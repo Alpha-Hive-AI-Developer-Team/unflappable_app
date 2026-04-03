@@ -26,6 +26,7 @@ class AuthTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final Widget? suffixIcon;
+  final String? errorText;
 
   const AuthTextField({
     super.key,
@@ -34,33 +35,40 @@ class AuthTextField extends StatelessWidget {
     this.keyboardType,
     this.onChanged,
     this.suffixIcon,
+    this.errorText,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: ScreenUtils.inputHeight,
-      child: TextField(
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        style: AppTextStyles.bodyMD.copyWith(color: AppColors.labelText),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
-          suffixIcon: suffixIcon,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: ScreenUtils.md,
-            vertical: ScreenUtils.vMd,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-            borderSide: BorderSide(color: AppColors.borderGrey),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-          ),
+    return TextField(
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      style: AppTextStyles.bodyMD.copyWith(color: AppColors.labelText),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
+        suffixIcon: suffixIcon,
+        errorText: errorText,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: ScreenUtils.md,
+          vertical: ScreenUtils.vMd,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          borderSide: BorderSide(color: AppColors.borderGrey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          borderSide: BorderSide(color: Colors.red, width: 1.5),
         ),
       ),
     );
