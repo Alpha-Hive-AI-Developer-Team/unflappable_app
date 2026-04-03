@@ -17,6 +17,7 @@ dependencies:
   talker_dio_logger: ^5.1.16
   ansicolor: ^2.0.3
   shared_preferences: ^2.5.5
+  native_glass_navbar: ^1.0.0
 
 dev_dependencies:
   flutter_test:

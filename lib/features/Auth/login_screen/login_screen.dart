@@ -21,6 +21,13 @@ class LoginScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(loginProvider);
 
+    // Listen for success and navigate to home
+    ref.listen(loginProvider, (previous, next) {
+      if (next.isSuccess) {
+        context.pushReplacementNamed('home');
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -40,7 +47,7 @@ class LoginScreen extends ConsumerWidget {
             ),
 
             // ✅ Center Dialog
-            Center(child: _LoginErrorDialog()),
+            Center(child: _LoginErrorDialog(errorMessage: state.errorMessage)),
           ],
         ],
       ),
@@ -160,6 +167,10 @@ class _LoginBody extends ConsumerWidget {
 }
 
 class _LoginErrorDialog extends ConsumerWidget {
+  final String? errorMessage;
+
+  const _LoginErrorDialog({this.errorMessage});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(loginProvider.notifier);
@@ -194,7 +205,7 @@ class _LoginErrorDialog extends ConsumerWidget {
           ),
           SizedBox(height: ScreenUtils.vSm),
           Text(
-            "Email or password didn't match",
+            errorMessage ?? "Email or password didn't match",
             style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
           ),
           const Spacer(),

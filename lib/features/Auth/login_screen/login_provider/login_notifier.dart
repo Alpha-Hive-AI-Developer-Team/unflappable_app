@@ -13,10 +13,35 @@ class LoginNotifier extends StateNotifier<LoginState> {
   void clearError() => state = state.copyWith(status: LoginStatus.idle);
 
   Future<void> submit() async {
+    // Validate email and password
+    if (state.email.isEmpty || state.password.isEmpty) {
+      state = state.copyWith(
+        status: LoginStatus.error,
+        errorMessage: 'Both email and password are required',
+      );
+      return;
+    }
+
+    // Validate email format
+    if (!_isValidEmail(state.email)) {
+      state = state.copyWith(
+        status: LoginStatus.error,
+        errorMessage: 'Please enter a valid email',
+      );
+      return;
+    }
+
     state = state.copyWith(status: LoginStatus.loading);
     // TODO: call auth repository
     await Future.delayed(const Duration(seconds: 1));
-    // Simulate error for demo — replace with real logic
-    state = state.copyWith(status: LoginStatus.error);
+
+    // On success, navigate to home
+    state = state.copyWith(status: LoginStatus.success);
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email);
   }
 }
