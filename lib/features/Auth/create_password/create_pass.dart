@@ -1,14 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:unflappable/core/Routes/app_routes.dart';
-import 'package:unflappable/core/theme/app_colors.dart';
-import 'package:unflappable/core/utils/screen_paddings.dart';
-import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/provider/Auth/Create%20Password/create_passProvider.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
-import 'package:unflappable/features/widgets/Common/buttons.dart';
+
+
+import 'create_password_export.dart';
 
 class CreateNewPasswordScreen extends ConsumerWidget {
   const CreateNewPasswordScreen({super.key});

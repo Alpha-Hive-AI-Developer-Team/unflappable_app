@@ -6,7 +6,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/provider/Auth/Sign%20Up/signup_provider.dart';
+import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_provider.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';

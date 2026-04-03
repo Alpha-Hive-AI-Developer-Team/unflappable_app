@@ -8,7 +8,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/provider/Auth/OTP/otp_provider.dart';
+import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_provider.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 

@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:unflappable/features/UI/Auth/create_pass.dart';
-import 'package:unflappable/features/UI/Auth/forget_passScreen.dart';
-import 'package:unflappable/features/UI/Auth/login_screen.dart';
-import 'package:unflappable/features/UI/Auth/otp_screen.dart';
-import 'package:unflappable/features/UI/Auth/signup_screen.dart';
-import 'package:unflappable/features/UI/Onboarding/onboarding_screen.dart';
-import 'package:unflappable/features/UI/Onboarding/splash_screen.dart';
+import 'package:unflappable/features/Auth/create_password/create_pass.dart';
+import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart';
+import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
+import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
+import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
+import 'package:unflappable/features/Onboarding/onboarding_screen.dart';
+import 'package:unflappable/features/Onboarding/splash_screen.dart';
+
+
 
 class AppRoutes {
   static const splash = '/splash';

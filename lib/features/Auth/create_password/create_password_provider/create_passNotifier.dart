@@ -1,5 +1,5 @@
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/provider/Auth/Create%20Password/create_passState.dart';
+
+import '../create_password_export.dart';
 
 class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
   CreatePasswordNotifier() : super(const CreatePasswordState());

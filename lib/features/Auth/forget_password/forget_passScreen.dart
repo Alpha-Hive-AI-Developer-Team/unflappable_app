@@ -5,7 +5,7 @@ import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/provider/Auth/Forget%20Password/forget_passProvider.dart';
+import 'package:unflappable/features/Auth/forget_password/forget_password_provider/forget_passProvider.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';

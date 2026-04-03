@@ -9,7 +9,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/provider/Auth/Log%20In/login_provider.dart';
+import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/provider/Auth/Forget%20Password/forget_passState.dart';
+import 'package:unflappable/features/Auth/forget_password/forget_password_provider/forget_passState.dart';
 
 class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
   ForgotPasswordNotifier() : super(const ForgotPasswordState());

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/provider/Auth/Sign%20Up/signup_state.dart';
+import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
 
 class SignUpNotifier extends StateNotifier<SignUpState> {
   SignUpNotifier() : super(const SignUpState());

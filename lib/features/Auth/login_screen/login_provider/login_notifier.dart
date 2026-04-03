@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/provider/Auth/Log%20In/login_state.dart';
+import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 
 class LoginNotifier extends StateNotifier<LoginState> {
   LoginNotifier() : super(const LoginState());

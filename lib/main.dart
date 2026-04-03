@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:unflappable/core/Routes/app_routes.dart';
-import 'package:unflappable/core/utils/screen_utils.dart';
+  
+import 'package:unflappable/export.dart';
 
 void main() {
   runApp(const ProviderScope(child: MainApp()));

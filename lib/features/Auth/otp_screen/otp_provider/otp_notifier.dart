@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/provider/Auth/OTP/otp_state.dart';
+import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_state.dart';
 
 class OtpNotifier extends StateNotifier<OtpState> {
   Timer? _timer;
