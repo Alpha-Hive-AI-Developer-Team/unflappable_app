@@ -10,8 +10,8 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 
-class OnboardingScreen extends ConsumerWidget {
-  const OnboardingScreen({super.key});
+class WelcomeScreen extends ConsumerWidget {
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,10 +58,13 @@ class _TaglineSection extends StatelessWidget {
           style: AppTextStyles.headingLG.copyWith(color: AppColors.headingText),
         ),
         SizedBox(height: ScreenUtils.vSm),
-        Text(
-          'Stay on top of your resources and follow\nyour plans. Execute them.',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyLG.copyWith(color: AppColors.bodyText),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 30.w),
+          child: Text(
+            ' Stay clear under pressure and follow through on what matters.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLG.copyWith(color: AppColors.bodyText),
+          ),
         ),
       ],
     );
