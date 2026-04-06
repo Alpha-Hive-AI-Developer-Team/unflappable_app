@@ -5,12 +5,12 @@ import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
+import 'package:unflappable/features/Home/UI/home_shell.dart';
+import 'package:unflappable/features/Home/UI/new_mission.dart';
+import 'package:unflappable/features/Home/UI/notification.dart';
 import 'package:unflappable/features/Onboarding/UI/onboarding_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/welcome_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash_screen.dart';
-import 'package:unflappable/features/home/home_export.dart';
-import 'package:unflappable/features/Onboarding/onboarding_screen.dart';
-import 'package:unflappable/features/Onboarding/splash_screen.dart';
 
 class AppRoutes {
   static const splash = '/splash';
@@ -22,6 +22,8 @@ class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const createNewPassword = '/create-new-password';
   static const home = '/home';
+  static const notifications = '/notifications';
+  static const mission = '/mission';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -64,7 +66,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: 'home',
         path: AppRoutes.home,
-        builder: (context, state) => const HomeNavBarWrapper(),
+        builder: (context, state) => const HomeShell(),
+      ),
+      GoRoute(
+        name: 'mission',
+        path: AppRoutes.mission,
+        builder: (context, state) => const NewMissionScreen(),
+      ),
+      GoRoute(
+        name: 'notifications',
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

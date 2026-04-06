@@ -8,12 +8,14 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
+import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_error_dialog.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -25,15 +27,10 @@ class LoginScreen extends ConsumerWidget {
     // Navigate away on success
     ref.listen<LoginState>(loginProvider, (previous, next) {
       if (next.isSuccess) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+        AppSnackbar.showSuccess(context, message: 'Login successful!');
+
         context.go(AppRoutes.onboarding);
         ref.read(loginProvider.notifier).clearError();
-    // Listen for success and navigate to home
-    ref.listen(loginProvider, (previous, next) {
-      if (next.isSuccess) {
-        context.pushReplacementNamed('home');
       }
     });
 
@@ -63,9 +60,6 @@ class LoginScreen extends ConsumerWidget {
                 onTryAgain: () => ref.read(loginProvider.notifier).clearError(),
               ),
             ),
-
-            // ✅ Center Dialog
-            Center(child: _LoginErrorDialog(errorMessage: state.errorMessage)),
           ],
         ],
       ),
@@ -97,7 +91,7 @@ class _LoginBody extends ConsumerWidget {
         FieldLabel('Email'),
         SizedBox(height: ScreenUtils.vSm),
         AuthTextField(
-          hint: 'samiperwaiz@gmail.com',
+          hint: 'Enter your email',
           keyboardType: TextInputType.emailAddress,
           onChanged: notifier.setEmail,
           obscureText: false,
@@ -110,7 +104,7 @@ class _LoginBody extends ConsumerWidget {
         FieldLabel('Password'),
         SizedBox(height: ScreenUtils.vSm),
         AuthTextField(
-          hint: '••••••••',
+          hint: 'Enter your password',
           obscureText: state.obscurePassword,
           onChanged: notifier.setPassword,
           errorText: state.passwordError,
@@ -182,73 +176,73 @@ class _LoginBody extends ConsumerWidget {
   }
 }
 
-class _LoginErrorDialog extends ConsumerWidget {
-  final String? errorMessage;
+// class _LoginErrorDialog extends ConsumerWidget {
+//   final String? errorMessage;
 
-  const _LoginErrorDialog({this.errorMessage});
+//   const _LoginErrorDialog({this.errorMessage});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(loginProvider.notifier);
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final notifier = ref.read(loginProvider.notifier);
 
-    return Container(
-      width: 400.w,
-      height: 242.h,
-      padding: EdgeInsets.symmetric(horizontal: ScreenUtils.md, vertical: 24.h),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border.all(color: AppColors.borderGrey),
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.error,
-              size: ScreenUtils.iconMd,
-            ),
-          ),
-          SizedBox(height: ScreenUtils.vMd),
-          Text(
-            'Login Failure',
-            style: AppTextStyles.labelLG.copyWith(color: AppColors.headingText),
-          ),
-          SizedBox(height: ScreenUtils.vSm),
-          Text(
-            errorMessage ?? "Email or password didn't match",
-            style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
-          ),
-          const Spacer(),
-          SizedBox(
-            width: double.infinity,
-            height: ScreenUtils.buttonHeight,
-            child: OutlinedButton(
-              onPressed: () {
-                notifier.clearError();
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.borderGrey),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                ),
-              ),
-              child: Text(
-                'Try Again',
-                style: AppTextStyles.labelLG.copyWith(
-                  color: AppColors.labelText,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//     return Container(
+//       width: 400.w,
+//       height: 242.h,
+//       padding: EdgeInsets.symmetric(horizontal: ScreenUtils.md, vertical: 24.h),
+//       decoration: BoxDecoration(
+//         color: AppColors.background,
+//         border: Border.all(color: AppColors.borderGrey),
+//         borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+//       ),
+//       child: Column(
+//         children: [
+//           Container(
+//             padding: EdgeInsets.all(10.w),
+//             decoration: BoxDecoration(
+//               color: AppColors.error.withOpacity(0.1),
+//               shape: BoxShape.circle,
+//             ),
+//             child: Icon(
+//               Icons.warning_amber_rounded,
+//               color: AppColors.error,
+//               size: ScreenUtils.iconMd,
+//             ),
+//           ),
+//           SizedBox(height: ScreenUtils.vMd),
+//           Text(
+//             'Login Failure',
+//             style: AppTextStyles.labelLG.copyWith(color: AppColors.headingText),
+//           ),
+//           SizedBox(height: ScreenUtils.vSm),
+//           Text(
+//             errorMessage ?? "Email or password didn't match",
+//             style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
+//           ),
+//           const Spacer(),
+//           SizedBox(
+//             width: double.infinity,
+//             height: ScreenUtils.buttonHeight,
+//             child: OutlinedButton(
+//               onPressed: () {
+//                 notifier.clearError();
+//               },
+//               style: OutlinedButton.styleFrom(
+//                 side: BorderSide(color: AppColors.borderGrey),
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+//                 ),
+//               ),
+//               child: Text(
+//                 'Try Again',
+//                 style: AppTextStyles.labelLG.copyWith(
+//                   color: AppColors.labelText,
+//                   fontWeight: FontWeight.w600,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

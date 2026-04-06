@@ -1,6 +1,5 @@
 enum LoginStatus { idle, loading, validationError, authError, success }
 
-// Sentinel to distinguish "explicitly set to null" from "not provided"
 const _keep = Object();
 
 class LoginState {
@@ -11,7 +10,6 @@ class LoginState {
   final String? emailError;
   final String? passwordError;
   final String? authErrorMessage;
-  final String? errorMessage;
 
   const LoginState({
     this.email = '',
@@ -21,7 +19,6 @@ class LoginState {
     this.emailError,
     this.passwordError,
     this.authErrorMessage,
-    this.errorMessage,
   });
 
   bool get isLoading => status == LoginStatus.loading;
@@ -33,7 +30,6 @@ class LoginState {
 
   bool get isSuccess => status == LoginStatus.success;
 
-  /// Sentinel-safe copyWith: null is a valid intentional value.
   LoginState copyWith({
     String? email,
     String? password,
@@ -57,12 +53,4 @@ class LoginState {
           : authErrorMessage as String?,
     );
   }
-    String? errorMessage,
-  }) => LoginState(
-    email: email ?? this.email,
-    password: password ?? this.password,
-    obscurePassword: obscurePassword ?? this.obscurePassword,
-    status: status ?? this.status,
-    errorMessage: errorMessage ?? this.errorMessage,
-  );
 }

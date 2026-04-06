@@ -94,7 +94,7 @@ class _SignUpBody extends ConsumerWidget {
           FieldLabel('Full Name'),
           SizedBox(height: ScreenUtils.vSm),
           AuthTextField(
-            hint: 'Sami Perwaiz',
+            hint: 'Enter Your Full Name',
             onChanged: notifier.setFullName,
             obscureText: false,
             errorText: state.fullNameError,
@@ -106,7 +106,7 @@ class _SignUpBody extends ConsumerWidget {
           FieldLabel('Email'),
           SizedBox(height: ScreenUtils.vSm),
           AuthTextField(
-            hint: 'samiperwaiz@gmail.com',
+            hint: 'Enter Your Email',
             keyboardType: TextInputType.emailAddress,
             onChanged: notifier.setEmail,
             obscureText: false,

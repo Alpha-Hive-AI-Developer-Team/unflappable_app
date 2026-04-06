@@ -1,5 +1,3 @@
-
-
 import 'create_password_export.dart';
 
 class CreateNewPasswordScreen extends ConsumerWidget {
@@ -39,6 +37,7 @@ class _CreatePasswordBody extends ConsumerWidget {
           hint: 'Enter new password',
           obscureText: state.obscureNew,
           onChanged: notifier.setNewPassword,
+          errorText: state.newPasswordError,
           suffixIcon: IconButton(
             icon: Icon(
               state.obscureNew
@@ -59,6 +58,7 @@ class _CreatePasswordBody extends ConsumerWidget {
           hint: 'Confirm new password',
           obscureText: state.obscureConfirm,
           onChanged: notifier.setConfirmPassword,
+          errorText: state.confirmPasswordError,
           suffixIcon: IconButton(
             icon: Icon(
               state.obscureConfirm
@@ -78,8 +78,10 @@ class _CreatePasswordBody extends ConsumerWidget {
           isLoading: state.isLoading,
           onTap: state.passwordsMatch
               ? () async {
-                  await notifier.submit();
-                  if (context.mounted) context.go(AppRoutes.login);
+                  final success = await notifier.submit();
+                  if (success && context.mounted) {
+                    context.go(AppRoutes.login);
+                  }
                 }
               : null,
         ),

@@ -199,7 +199,7 @@ class _BottomButton extends ConsumerWidget {
           ? () async {
               if (state.isLastStep) {
                 await notifier.completeSetup();
-                if (context.mounted) context.go(AppRoutes.login);
+                if (context.mounted) context.go(AppRoutes.home);
               } else {
                 notifier.nextStep();
               }

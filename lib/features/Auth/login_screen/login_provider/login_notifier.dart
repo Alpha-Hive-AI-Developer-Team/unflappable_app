@@ -61,20 +61,6 @@ class LoginNotifier extends StateNotifier<LoginState> {
         authErrorMessage:
             'Please fix the highlighted fields before continuing.',
         status: LoginStatus.validationError,
-    // Validate email and password
-    if (state.email.isEmpty || state.password.isEmpty) {
-      state = state.copyWith(
-        status: LoginStatus.error,
-        errorMessage: 'Both email and password are required',
-      );
-      return;
-    }
-
-    // Validate email format
-    if (!_isValidEmail(state.email)) {
-      state = state.copyWith(
-        status: LoginStatus.error,
-        errorMessage: 'Please enter a valid email',
       );
       return;
     }
@@ -104,16 +90,5 @@ class LoginNotifier extends StateNotifier<LoginState> {
     //   if (e.code == 'wrong-password') return 'Incorrect password. Please try again.';
     // }
     return "Email or password didn't match. Please try again.";
-    // TODO: call auth repository
-    await Future.delayed(const Duration(seconds: 1));
-
-    // On success, navigate to home
-    state = state.copyWith(status: LoginStatus.success);
-  }
-
-  bool _isValidEmail(String email) {
-    return RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    ).hasMatch(email);
   }
 }

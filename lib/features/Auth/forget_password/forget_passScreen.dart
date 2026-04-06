@@ -44,10 +44,11 @@ class _ForgotPasswordBody extends ConsumerWidget {
         FieldLabel('Email'),
         SizedBox(height: ScreenUtils.vSm),
         AuthTextField(
-          hint: 'samiperwaiz@gmail.com',
+          hint: 'Enter your email',
           keyboardType: TextInputType.emailAddress,
           onChanged: notifier.setEmail,
           obscureText: false,
+          errorText: state.emailError,
         ),
 
         const Spacer(),
@@ -63,8 +64,10 @@ class _ForgotPasswordBody extends ConsumerWidget {
                 label: 'Next',
                 isLoading: state.isLoading,
                 onTap: () async {
-                  await notifier.submit();
-                  if (context.mounted) context.push(AppRoutes.otpVerification);
+                  final success = await notifier.submit();
+                  if (success && context.mounted) {
+                    context.push(AppRoutes.otpVerification);
+                  }
                 },
               ),
             ),
