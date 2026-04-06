@@ -11,6 +11,7 @@ class LoginState {
   final String? emailError;
   final String? passwordError;
   final String? authErrorMessage;
+  final String? errorMessage;
 
   const LoginState({
     this.email = '',
@@ -20,6 +21,7 @@ class LoginState {
     this.emailError,
     this.passwordError,
     this.authErrorMessage,
+    this.errorMessage,
   });
 
   bool get isLoading => status == LoginStatus.loading;
@@ -55,4 +57,12 @@ class LoginState {
           : authErrorMessage as String?,
     );
   }
+    String? errorMessage,
+  }) => LoginState(
+    email: email ?? this.email,
+    password: password ?? this.password,
+    obscurePassword: obscurePassword ?? this.obscurePassword,
+    status: status ?? this.status,
+    errorMessage: errorMessage ?? this.errorMessage,
+  );
 }
