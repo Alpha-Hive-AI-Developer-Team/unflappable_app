@@ -8,6 +8,9 @@ import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
 import 'package:unflappable/features/Onboarding/UI/onboarding_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/welcome_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash_screen.dart';
+import 'package:unflappable/features/home/home_export.dart';
+import 'package:unflappable/features/Onboarding/onboarding_screen.dart';
+import 'package:unflappable/features/Onboarding/splash_screen.dart';
 
 class AppRoutes {
   static const splash = '/splash';
@@ -18,6 +21,7 @@ class AppRoutes {
   static const otpVerification = '/otp-verification';
   static const forgotPassword = '/forgot-password';
   static const createNewPassword = '/create-new-password';
+  static const home = '/home';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -56,6 +60,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.createNewPassword,
         builder: (context, state) => const CreateNewPasswordScreen(),
+      ),
+      GoRoute(
+        name: 'home',
+        path: AppRoutes.home,
+        builder: (context, state) => const HomeNavBarWrapper(),
       ),
     ],
   );
