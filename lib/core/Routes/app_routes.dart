@@ -53,7 +53,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.otpVerification,
-        builder: (context, state) => const OtpVerificationScreen(),
+        builder: (context, state) {
+          final purpose = state.uri.queryParameters['purpose'] == 'signup'
+              ? OtpPurpose.signup
+              : OtpPurpose.forgotPassword;
+          return OtpVerificationScreen(purpose: purpose);
+        },
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,

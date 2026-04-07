@@ -31,7 +31,7 @@ class SignUpScreen extends ConsumerWidget {
           context,
           message: 'Account created successfully!',
         );
-        context.go(AppRoutes.login);
+        context.push('${AppRoutes.otpVerification}?purpose=signup');
         ref.read(signUpProvider.notifier).clearError();
       }
     });
@@ -123,6 +123,28 @@ class _SignUpBody extends ConsumerWidget {
             obscureText: state.obscurePassword,
             onChanged: notifier.setPassword,
             errorText: state.passwordError,
+            suffixIcon: IconButton(
+              icon: Icon(
+                state.obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: ScreenUtils.iconSm,
+                color: AppColors.bodyText,
+              ),
+              onPressed: notifier.toggleObscure,
+            ),
+          ),
+
+          SizedBox(height: ScreenUtils.vLg),
+
+          // ── Confirm Password ──────────────────────────────────────────────
+          FieldLabel('Confirm Password'),
+          SizedBox(height: ScreenUtils.vSm),
+          AuthTextField(
+            hint: 'Confirm Your Password',
+            obscureText: state.obscurePassword,
+            onChanged: notifier.setConfirmPassword,
+            errorText: state.confirmPasswordError,
             suffixIcon: IconButton(
               icon: Icon(
                 state.obscurePassword

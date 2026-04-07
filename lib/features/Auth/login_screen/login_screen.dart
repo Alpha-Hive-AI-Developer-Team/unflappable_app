@@ -29,7 +29,7 @@ class LoginScreen extends ConsumerWidget {
       if (next.isSuccess) {
         AppSnackbar.showSuccess(context, message: 'Login successful!');
 
-        context.go(AppRoutes.onboarding);
+        context.go(AppRoutes.home);
         ref.read(loginProvider.notifier).clearError();
       }
     });

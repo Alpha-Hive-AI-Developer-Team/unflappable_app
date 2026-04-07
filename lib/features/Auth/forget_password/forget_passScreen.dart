@@ -66,7 +66,7 @@ class _ForgotPasswordBody extends ConsumerWidget {
                 onTap: () async {
                   final success = await notifier.submit();
                   if (success && context.mounted) {
-                    context.push(AppRoutes.otpVerification);
+                    context.push('${AppRoutes.otpVerification}?purpose=forgotPassword');
                   }
                 },
               ),

@@ -34,6 +34,15 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     );
   }
 
+  void setConfirmPassword(String v) {
+    final error = _validateConfirmPassword(v);
+    state = state.copyWith(
+      confirmPassword: v,
+      confirmPasswordError: error,
+      status: SignUpStatus.idle,
+    );
+  }
+
   void toggleObscure() =>
       state = state.copyWith(obscurePassword: !state.obscurePassword);
 
@@ -68,6 +77,12 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     return null;
   }
 
+  String? _validateConfirmPassword(String v) {
+    if (v.isEmpty) return 'Confirm password is required';
+    if (v != state.password) return 'Passwords do not match';
+    return null;
+  }
+
   // ── Submit ───────────────────────────────────────────────────────────────
 
   /// Runs full validation, shows the error overlay on any failure,
@@ -76,9 +91,10 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     final fullNameError = _validateFullName(state.fullName);
     final emailError = _validateEmail(state.email);
     final passwordError = _validatePassword(state.password);
+    final confirmPasswordError = _validateConfirmPassword(state.confirmPassword);
 
     final hasErrors =
-        fullNameError != null || emailError != null || passwordError != null;
+        fullNameError != null || emailError != null || passwordError != null || confirmPasswordError != null;
 
     if (hasErrors) {
       // Write all field errors and show the overlay
@@ -86,6 +102,7 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
         fullNameError: fullNameError,
         emailError: emailError,
         passwordError: passwordError,
+        confirmPasswordError: confirmPasswordError,
         authErrorMessage:
             'Please fix the highlighted fields before continuing.',
         status: SignUpStatus.validationError,

@@ -7,10 +7,12 @@ class SignUpState {
   final String fullName;
   final String email;
   final String password;
+  final String confirmPassword;
   final bool obscurePassword;
   final String? fullNameError;
   final String? emailError;
   final String? passwordError;
+  final String? confirmPasswordError;
   final String? authErrorMessage; // ← real error message shown in dialog
   final SignUpStatus status;
 
@@ -18,10 +20,12 @@ class SignUpState {
     this.fullName = '',
     this.email = '',
     this.password = '',
+    this.confirmPassword = '',
     this.obscurePassword = true,
     this.fullNameError,
     this.emailError,
     this.passwordError,
+    this.confirmPasswordError,
     this.authErrorMessage,
     this.status = SignUpStatus.idle,
   });
@@ -44,10 +48,12 @@ class SignUpState {
     String? fullName,
     String? email,
     String? password,
+    String? confirmPassword,
     bool? obscurePassword,
     Object? fullNameError = _keep,
     Object? emailError = _keep,
     Object? passwordError = _keep,
+    Object? confirmPasswordError = _keep,
     Object? authErrorMessage = _keep,
     SignUpStatus? status,
   }) {
@@ -55,6 +61,7 @@ class SignUpState {
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
       obscurePassword: obscurePassword ?? this.obscurePassword,
       fullNameError: fullNameError == _keep
           ? this.fullNameError
@@ -63,6 +70,9 @@ class SignUpState {
       passwordError: passwordError == _keep
           ? this.passwordError
           : passwordError as String?,
+      confirmPasswordError: confirmPasswordError == _keep
+          ? this.confirmPasswordError
+          : confirmPasswordError as String?,
       authErrorMessage: authErrorMessage == _keep
           ? this.authErrorMessage
           : authErrorMessage as String?,

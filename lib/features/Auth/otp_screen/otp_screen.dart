@@ -13,19 +13,28 @@ import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 
 class OtpVerificationScreen extends ConsumerWidget {
-  const OtpVerificationScreen({super.key});
+  final OtpPurpose purpose;
+
+  const OtpVerificationScreen({
+    super.key,
+    this.purpose = OtpPurpose.forgotPassword,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: const _OtpBody().withAuthScreenPadding(),
+      body: _OtpBody(purpose: purpose).withAuthScreenPadding(),
     );
   }
 }
 
+enum OtpPurpose { signup, forgotPassword }
+
 class _OtpBody extends ConsumerWidget {
-  const _OtpBody();
+  final OtpPurpose purpose;
+
+  const _OtpBody({required this.purpose});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,14 +51,10 @@ class _OtpBody extends ConsumerWidget {
       children: [
         AuthHeader(
           title: 'Verify Email',
-          subtitle: "We've sent a 4-digit code to your email address.",
+          subtitle: purpose == OtpPurpose.signup
+              ? "We've sent a 4-digit code to your email address to complete signup."
+              : "We've sent a 4-digit code to your email address.",
         ),
-        SizedBox(height: ScreenUtils.vXs),
-        Text(
-          "We've sent a 4-digit code to your email address.",
-          style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
-        ),
-
         SizedBox(height: ScreenUtils.vXxl),
 
         // OTP inputs
@@ -101,7 +106,11 @@ class _OtpBody extends ConsumerWidget {
                     ? () async {
                         await notifier.verify();
                         if (context.mounted) {
-                          context.push(AppRoutes.createNewPassword);
+                          if (purpose == OtpPurpose.signup) {
+                            context.push(AppRoutes.onboarding);
+                          } else {
+                            context.push(AppRoutes.createNewPassword);
+                          }
                         }
                       }
                     : null,
