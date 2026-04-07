@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
@@ -8,6 +7,7 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Home/Provider/home_provider.dart';
 import 'package:unflappable/features/Home/Provider/mission_provider.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
 class NewMissionScreen extends ConsumerWidget {
   const NewMissionScreen({super.key});
@@ -19,56 +19,11 @@ class NewMissionScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const _MissionAppBar(),
+            const HelpingAppBar(title: 'New Mission'),
             const Expanded(child: _MissionBody()),
             const _MissionBottomButton(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// APP BAR
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _MissionAppBar extends StatelessWidget {
-  const _MissionAppBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: ScreenUtils.authHorizontalMargin,
-        vertical: ScreenUtils.vMd,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Back button (left aligned)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: GestureDetector(
-              onTap: () => context.pop(),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: ScreenUtils.iconSm,
-                color: AppColors.headingText,
-              ),
-            ),
-          ),
-
-          // Centered Title
-          Center(
-            child: Text(
-              'New Mission',
-              style: AppTextStyles.headingLG.copyWith(
-                color: AppColors.headingText,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

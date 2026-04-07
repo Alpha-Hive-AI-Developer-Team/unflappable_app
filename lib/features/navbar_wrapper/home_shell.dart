@@ -3,6 +3,7 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Home/UI/home_screen.dart';
+import 'package:unflappable/features/Reset/UI/reset_screen.dart';
 import 'package:unflappable/features/navbar_wrapper/navbar.dart';
 
 final navIndexProvider = StateProvider<int>((_) => 0);
@@ -16,7 +17,7 @@ class HomeShell extends ConsumerWidget {
 
     const pages = [
       HomeScreen(),
-      _PlaceholderScreen(label: 'Reset'),
+      ResetScreen(),
       _PlaceholderScreen(label: 'Progress'),
       _PlaceholderScreen(label: 'Settings'),
     ];

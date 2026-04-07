@@ -3,10 +3,10 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 
-class AuthHeader extends StatelessWidget {
+class AppHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  const AuthHeader({super.key, required this.title, required this.subtitle});
+  const AppHeader({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {

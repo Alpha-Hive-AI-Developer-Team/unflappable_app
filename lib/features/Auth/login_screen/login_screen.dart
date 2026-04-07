@@ -1,17 +1,12 @@
 import 'dart:ui';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
-import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
+import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_error_dialog.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
@@ -80,7 +75,7 @@ class _LoginBody extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AuthHeader(
+        AppHeader(
           title: 'Welcome back',
           subtitle: 'Please enter your details to sign in.',
         ),

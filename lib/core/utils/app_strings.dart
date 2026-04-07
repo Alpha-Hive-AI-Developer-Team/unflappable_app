@@ -15,3 +15,5 @@ const String refresh = "assets/icons/refresh.png";
 const String progress = "assets/icons/progress.png";
 
 const String settings = "assets/icons/settings.png";
+
+const String lock = "assets/icons/lock.png";

@@ -11,7 +11,7 @@ import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_provider.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
+import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_error_dialog.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
@@ -83,7 +83,7 @@ class _SignUpBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AuthHeader(
+          AppHeader(
             title: 'Create Account',
             subtitle: 'Start your journey to unflappable focus.',
           ),

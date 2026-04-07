@@ -5,10 +5,13 @@ import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
-import 'package:unflappable/features/Home/UI/home_shell.dart';
+import 'package:unflappable/features/Reset/UI/reset_emotion.dart';
+import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 import 'package:unflappable/features/Home/UI/new_mission.dart';
 import 'package:unflappable/features/Home/UI/notification.dart';
 import 'package:unflappable/features/Onboarding/UI/onboarding_screen.dart';
+import 'package:unflappable/features/Reset/UI/reset_screen.dart';
+import 'package:unflappable/features/Reset/UI/reset_trigger.dart';
 import 'package:unflappable/features/Welcome%20Screens/welcome_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash_screen.dart';
 
@@ -24,6 +27,9 @@ class AppRoutes {
   static const home = '/home';
   static const notifications = '/notifications';
   static const mission = '/mission';
+  static const reset = '/reset';
+  static const resetTrigger = '/reset/trigger';
+  static const resetEmotion = '/reset/emotion';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -82,6 +88,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'notifications',
         path: AppRoutes.notifications,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        name: 'reset',
+        path: AppRoutes.reset,
+        builder: (context, state) => const ResetScreen(),
+      ),
+      GoRoute(
+        name: 'resetTrigger',
+        path: AppRoutes.resetTrigger,
+        builder: (context, state) => const ResetTriggerScreen(),
+      ),
+      GoRoute(
+        name: 'resetEmotion',
+        path: AppRoutes.resetEmotion,
+        builder: (context, state) => const ResetEmotionScreen(),
       ),
     ],
   );

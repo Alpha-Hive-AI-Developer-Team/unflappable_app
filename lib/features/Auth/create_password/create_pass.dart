@@ -23,7 +23,7 @@ class _CreatePasswordBody extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AuthHeader(
+        AppHeader(
           title: 'Create New Password',
           subtitle:
               'Create a secure new password to protect your account and keep your information safe always.',

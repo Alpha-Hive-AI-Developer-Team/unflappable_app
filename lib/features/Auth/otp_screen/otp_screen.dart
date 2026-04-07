@@ -9,7 +9,7 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_provider.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
+import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 
 class OtpVerificationScreen extends ConsumerWidget {
@@ -49,7 +49,7 @@ class _OtpBody extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AuthHeader(
+        AppHeader(
           title: 'Verify Email',
           subtitle: purpose == OtpPurpose.signup
               ? "We've sent a 4-digit code to your email address to complete signup."

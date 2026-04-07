@@ -6,8 +6,8 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/forget_password/forget_password_provider/forget_passProvider.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
+import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 
 class ForgotPasswordScreen extends ConsumerWidget {
@@ -33,7 +33,7 @@ class _ForgotPasswordBody extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AuthHeader(
+        AppHeader(
           title: 'Forgot Password',
           subtitle:
               "Enter your email and we'll send you a link to reset your password.",
@@ -66,7 +66,9 @@ class _ForgotPasswordBody extends ConsumerWidget {
                 onTap: () async {
                   final success = await notifier.submit();
                   if (success && context.mounted) {
-                    context.push('${AppRoutes.otpVerification}?purpose=forgotPassword');
+                    context.push(
+                      '${AppRoutes.otpVerification}?purpose=forgotPassword',
+                    );
                   }
                 },
               ),

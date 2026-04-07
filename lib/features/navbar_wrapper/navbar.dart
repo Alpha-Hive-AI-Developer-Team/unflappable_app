@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
-import 'package:unflappable/core/utils/screen_utils.dart';
 
 class AppNavBar extends StatelessWidget {
   final int currentIndex;

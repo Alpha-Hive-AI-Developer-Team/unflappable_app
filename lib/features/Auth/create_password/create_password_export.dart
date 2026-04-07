@@ -10,7 +10,7 @@ export 'package:unflappable/core/theme/app_colors.dart';
 export 'package:unflappable/core/utils/screen_paddings.dart';
 export 'package:unflappable/core/utils/screen_utils.dart';
 export 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-export 'package:unflappable/features/widgets/Auth%20widgets/auth_header.dart';
+export 'package:unflappable/features/widgets/Common/app_header.dart';
 export 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 export 'package:unflappable/features/widgets/Common/buttons.dart';
 export 'package:flutter_riverpod/legacy.dart';

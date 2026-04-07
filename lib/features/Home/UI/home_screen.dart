@@ -1,10 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
-import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Home/Provider/home_provider.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
+import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -63,7 +66,10 @@ class HomeScreen extends ConsumerWidget {
                   child: _QuickActionCard(
                     label: 'Run Reset',
                     sublabel: 'Clear your mind',
-                    onTap: () {},
+                    onTap: () {
+                      // Navigate to navbar reset tab (index 1)
+                      ref.read(navIndexProvider.notifier).state = 1;
+                    },
                     image: 'assets/images/reset.png',
                   ),
                 ),
@@ -98,21 +104,8 @@ class _HomeHeader extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              userName,
-              style: AppTextStyles.headingMD.copyWith(
-                color: AppColors.headingText,
-              ),
-            ),
-            Text(
-              'Welcome Back',
-              style: AppTextStyles.bodySM.copyWith(color: AppColors.bodyText),
-            ),
-          ],
-        ),
+        AppHeader(title: userName, subtitle: 'Welcome Back'),
+
         GestureDetector(
           onTap: () => context.push(AppRoutes.notifications),
           child: Container(
