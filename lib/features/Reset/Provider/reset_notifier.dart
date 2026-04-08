@@ -88,7 +88,6 @@ class ResetNotifier extends StateNotifier<ResetState> {
       resetsUsedToday: state.resetsUsedToday,
       totalReset: state.totalReset,
       dailyResetLimit: state.dailyResetLimit,
-      isPro: state.isPro,
       emotions: state.emotions,
       resetHistory: state.resetHistory,
     );

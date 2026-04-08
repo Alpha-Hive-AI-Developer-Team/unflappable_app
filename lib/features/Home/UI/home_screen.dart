@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-import 'package:unflappable/features/Home/Provider/home_provider.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
+import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier.dart';
+import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
@@ -14,7 +13,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(homeProvider);
+    final homeState = ref.watch(homeProvider);
+    final userState = ref.watch(userProvider);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -28,12 +28,12 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            _HomeHeader(userName: state.userName),
+            AppHeader(title: userState.userName, subtitle: 'Welcome Back'),
             SizedBox(height: ScreenUtils.vMd),
 
             // Mission card — changes based on state
-            state.hasMission
-                ? _ActiveMissionCard(mission: state.activeMission!)
+            homeState.hasMission
+                ? _ActiveMissionCard(mission: homeState.activeMission!)
                 : _SetDailyDirectionCard(),
 
             SizedBox(height: ScreenUtils.vMd),
@@ -42,16 +42,16 @@ class HomeScreen extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: _StatCard(
-                    type: _StatCardType.streak,
-                    count: state.dayStreak,
+                  child: StatCard(
+                    type: StatCardType.streak,
+                    count: homeState.dayStreak,
                   ),
                 ),
                 SizedBox(width: ScreenUtils.md),
                 Expanded(
-                  child: _StatCard(
-                    type: _StatCardType.missions,
-                    count: state.missionCount,
+                  child: StatCard(
+                    type: StatCardType.missions,
+                    count: homeState.missionCount,
                   ),
                 ),
               ],
@@ -78,7 +78,9 @@ class HomeScreen extends ConsumerWidget {
                   child: _QuickActionCard(
                     label: 'Weekly Review',
                     sublabel: 'Reflect & plan',
-                    onTap: () {},
+                    onTap: () {
+                      context.push(AppRoutes.weeklyReview);
+                    },
                     image: 'assets/images/calender.png',
                   ),
                 ),
@@ -87,42 +89,6 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HEADER
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _HomeHeader extends ConsumerWidget {
-  final String userName;
-  const _HomeHeader({required this.userName});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        AppHeader(title: userName, subtitle: 'Welcome Back'),
-
-        GestureDetector(
-          onTap: () => context.push(AppRoutes.notifications),
-          child: Container(
-            width: 40.w,
-            height: 40.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.secondarySurface,
-            ),
-            child: Icon(
-              Icons.notifications_outlined,
-              size: ScreenUtils.iconMd,
-              color: AppColors.headingText,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -142,12 +108,12 @@ class _SetDailyDirectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [
-              Color(0xFF0089FD), // top    — brand blue
-              Color(0xFF1892FF), // 15%
-              Color(0xFF299FFF), // 35%
-              Color(0xFF3AB2FF), // 60%
-              Color(0xFF4CC4FF), // 85%
-              Color(0xFF55CFFF), // bottom — light sky blue
+              Color(0xFF55CFFF),
+              Color(0xFF4CC4FF),
+              Color(0xFF3AB2FF),
+              Color(0xFF299FFF),
+              Color(0xFF0089FD),
+              Color(0xFF1892FF),
             ],
             stops: [0.0, 0.15, 0.35, 0.60, 0.85, 1.0],
             begin: Alignment.topCenter,
@@ -197,16 +163,16 @@ class _SetDailyDirectionCard extends StatelessWidget {
                   SizedBox(height: ScreenUtils.vSm),
                   Text(
                     'Set Daily Direction',
-                    style: AppTextStyles.labelLG.copyWith(
+                    style: AppTextStyles.headingMD.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 4.h),
                   Text(
                     'Set clear goals and align actions for today',
-                    style: AppTextStyles.bodySM.copyWith(
-                      color: Colors.white.withOpacity(0.85),
+                    style: AppTextStyles.bodyMD.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -238,12 +204,12 @@ class _ActiveMissionCard extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF0089FD), // top    — brand blue
-            Color(0xFF1892FF), // 15%
-            Color(0xFF299FFF), // 35%
-            Color(0xFF3AB2FF), // 60%
-            Color(0xFF4CC4FF), // 85%
-            Color(0xFF55CFFF), // bottom — light sky blue
+            Color(0xFF55CFFF),
+            Color(0xFF4CC4FF),
+            Color(0xFF3AB2FF),
+            Color(0xFF299FFF),
+            Color(0xFF0089FD),
+            Color(0xFF1892FF),
           ],
           stops: [0.0, 0.15, 0.35, 0.60, 0.85, 1.0],
           begin: Alignment.topCenter,
@@ -460,193 +426,6 @@ class _MissionTaskRow extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STAT CARD
-// ─────────────────────────────────────────────────────────────────────────────
-
-enum _StatCardType { streak, missions }
-
-class _StatCard extends StatelessWidget {
-  final _StatCardType type;
-  final int count;
-
-  const _StatCard({required this.type, required this.count});
-
-  bool get _isEmpty => count == 0;
-  bool get _isStreak => type == _StatCardType.streak;
-
-  // ── Zero state (both cards) ──────────────────────────────────────────────
-  static const _zeroShadows = [
-    BoxShadow(color: Color(0x08787878), offset: Offset(1, 1), blurRadius: 4),
-    BoxShadow(color: Color(0x08787878), offset: Offset(3, 6), blurRadius: 7),
-    BoxShadow(color: Color(0x05787878), offset: Offset(8, 13), blurRadius: 9),
-    BoxShadow(color: Color(0x00787878), offset: Offset(13, 23), blurRadius: 11),
-    BoxShadow(color: Color(0x00787878), offset: Offset(21, 36), blurRadius: 12),
-  ];
-
-  // ── Streak active gradients (sampled from Figma asset) ──────────────────
-  static const _streakBgGradient = LinearGradient(
-    colors: [
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFC), // top   — near white
-      Color(0xFFFFF2E9), // 15%
-      Color(0xFFFFDFC8), // 35%
-      Color(0xFFFFC49C),
-      Color(0xFFFFC49C), // 60%
-      //Color(0xFFFFA066), // 85%
-    ],
-    stops: [0.0, 0.15, 0.35, 0.60, 0.85, 1.0],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  static const _streakTextGradient = LinearGradient(
-    colors: [
-      Color(0xFFFFA066), // top text — mid orange
-      Color(0xFFFF8538), // bottom text — deep orange
-    ],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  // ── Missions active (blue, same as before) ────────────────────────────────
-  static const _missionBgGradient = LinearGradient(
-    colors: [
-      Color(0xFFFFFFFF), // top   — pure white
-      Color(0xFFFFFFFC),
-      Color(0xFFD8EDFF), // 15%   — icy blue tint
-      Color(0xFFA5D5FF), // 35%   — soft sky
-      Color(0xFF66B7FF),
-      Color(0xFF66B7FF), // 60%   — mid blue
-    ],
-    stops: [0.0, 0.15, 0.35, 0.60, 0.85, 1.0],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  static const _missionTextGradient = LinearGradient(
-    colors: [
-      Color(0xFF2699FF), // top text — strong blue
-      Color(0xFF0088FF), // bottom text — brand blue
-    ],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isEmpty) return _buildZeroCard();
-    return _isStreak
-        ? _buildActiveCard(_streakBgGradient, _streakTextGradient, 'Day Streak')
-        : _buildActiveCard(
-            _missionBgGradient,
-            _missionTextGradient,
-            'Missions',
-          );
-  }
-
-  // ── Zero state card ───────────────────────────────────────────────────────
-  Widget _buildZeroCard() {
-    final label = _isStreak ? 'Day Streak' : 'Missions';
-    return Container(
-      padding: EdgeInsets.all(ScreenUtils.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F7),
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
-        border: Border.all(color: const Color(0xFFE5E5EA)),
-        boxShadow: _zeroShadows,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            _isStreak ? 'assets/images/fire.png' : 'assets/images/mission.png',
-            width: 58.w,
-            height: 58.h,
-          ),
-          SizedBox(height: ScreenUtils.vMd),
-          Text(
-            count.toString().padLeft(2, '0'),
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              fontSize: 58.sp,
-              letterSpacing: -0.2,
-              color: const Color(0xFFD1D1D6),
-            ),
-          ),
-          Text(
-            label,
-            style: AppTextStyles.bodyMD.copyWith(
-              color: const Color(0xFFD1D1D6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Active gradient card ──────────────────────────────────────────────────
-  Widget _buildActiveCard(
-    LinearGradient bgGradient,
-    LinearGradient textGradient,
-    String label,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(ScreenUtils.md),
-      decoration: BoxDecoration(
-        gradient: bgGradient,
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
-        border: Border.all(
-          color: _isStreak ? const Color(0xFFFF8538) : const Color(0xFF5D6EFC),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (_isStreak ? const Color(0xFFFF8538) : AppColors.primary)
-                .withOpacity(0.20),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            _isStreak ? 'assets/images/fire.png' : 'assets/images/complete.png',
-            width: 58.w,
-            height: 58.h,
-          ),
-          SizedBox(height: ScreenUtils.vMd),
-          // Gradient text via ShaderMask
-          ShaderMask(
-            shaderCallback: (bounds) => textGradient.createShader(bounds),
-            blendMode: BlendMode.srcIn,
-            child: Text(
-              count.toString().padLeft(2, '0'),
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w400,
-                fontSize: 58.sp,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-          ShaderMask(
-            shaderCallback: (bounds) => textGradient.createShader(bounds),
-            blendMode: BlendMode.srcIn,
-            child: Text(
-              label,
-              style: AppTextStyles.bodyMD.copyWith(color: Colors.white),
-            ),
-          ),
-        ],
       ),
     );
   }

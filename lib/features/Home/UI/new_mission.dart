@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
-import 'package:unflappable/features/Home/Provider/home_provider.dart';
-import 'package:unflappable/features/Home/Provider/mission_provider.dart';
+import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier.dart';
+import 'package:unflappable/features/Home/Provider/Mission%20Provider/mission_notifier.dart';
+import 'package:unflappable/features/Home/Provider/Mission%20Provider/mission_state.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 

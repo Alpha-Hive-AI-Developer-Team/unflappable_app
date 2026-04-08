@@ -6,8 +6,9 @@ import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/auth_error_dialog.dart';
+import 'package:unflappable/features/widgets/Auth%20widgets/error_dialog.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
@@ -19,11 +20,22 @@ class LoginScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(loginProvider);
 
-    // Navigate away on success
+    // Navigate away on success and update user provider
     ref.listen<LoginState>(loginProvider, (previous, next) {
       if (next.isSuccess) {
-        AppSnackbar.showSuccess(context, message: 'Login successful!');
+        final email = next.email;
+        final displayName = _deriveNameFromEmail(email);
 
+        ref
+            .read(userProvider.notifier)
+            .setUserInfo(
+              id: email,
+              email: email,
+              name: displayName,
+              isPro: false,
+            );
+
+        AppSnackbar.showSuccess(context, message: 'Login successful!');
         context.go(AppRoutes.home);
         ref.read(loginProvider.notifier).clearError();
       }
@@ -45,7 +57,7 @@ class LoginScreen extends ConsumerWidget {
               ),
             ),
             Center(
-              child: AuthErrorDialog(
+              child: ErrorDialog(
                 title: state.status == LoginStatus.validationError
                     ? 'Invalid Fields'
                     : 'Login Failed',
@@ -171,73 +183,15 @@ class _LoginBody extends ConsumerWidget {
   }
 }
 
-// class _LoginErrorDialog extends ConsumerWidget {
-//   final String? errorMessage;
-
-//   const _LoginErrorDialog({this.errorMessage});
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final notifier = ref.read(loginProvider.notifier);
-
-//     return Container(
-//       width: 400.w,
-//       height: 242.h,
-//       padding: EdgeInsets.symmetric(horizontal: ScreenUtils.md, vertical: 24.h),
-//       decoration: BoxDecoration(
-//         color: AppColors.background,
-//         border: Border.all(color: AppColors.borderGrey),
-//         borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-//       ),
-//       child: Column(
-//         children: [
-//           Container(
-//             padding: EdgeInsets.all(10.w),
-//             decoration: BoxDecoration(
-//               color: AppColors.error.withOpacity(0.1),
-//               shape: BoxShape.circle,
-//             ),
-//             child: Icon(
-//               Icons.warning_amber_rounded,
-//               color: AppColors.error,
-//               size: ScreenUtils.iconMd,
-//             ),
-//           ),
-//           SizedBox(height: ScreenUtils.vMd),
-//           Text(
-//             'Login Failure',
-//             style: AppTextStyles.labelLG.copyWith(color: AppColors.headingText),
-//           ),
-//           SizedBox(height: ScreenUtils.vSm),
-//           Text(
-//             errorMessage ?? "Email or password didn't match",
-//             style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
-//           ),
-//           const Spacer(),
-//           SizedBox(
-//             width: double.infinity,
-//             height: ScreenUtils.buttonHeight,
-//             child: OutlinedButton(
-//               onPressed: () {
-//                 notifier.clearError();
-//               },
-//               style: OutlinedButton.styleFrom(
-//                 side: BorderSide(color: AppColors.borderGrey),
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-//                 ),
-//               ),
-//               child: Text(
-//                 'Try Again',
-//                 style: AppTextStyles.labelLG.copyWith(
-//                   color: AppColors.labelText,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+String _deriveNameFromEmail(String email) {
+  final localPart = email.split('@').first;
+  if (localPart.isEmpty) return 'User';
+  final segments = localPart.split(RegExp(r'[._\- ]+'));
+  return segments
+      .map(
+        (part) =>
+            part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}',
+      )
+      .where((part) => part.isNotEmpty)
+      .join(' ');
+}

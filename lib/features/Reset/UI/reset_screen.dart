@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Provider/reset_provider.dart';
 
 class ResetScreen extends ConsumerWidget {
@@ -10,11 +11,19 @@ class ResetScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(resetProvider);
+    final resetState = ref.watch(resetProvider);
+    final userState = ref.watch(userProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(children: [_ResetHomeBody(state: state).withScreenPadding()]),
+      body: Stack(
+        children: [
+          _ResetHomeBody(
+            resetState: resetState,
+            isPro: userState.isPro,
+          ).withScreenPadding(),
+        ],
+      ),
     );
   }
 }
@@ -24,8 +33,10 @@ class ResetScreen extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _ResetHomeBody extends ConsumerWidget {
-  final dynamic state;
-  const _ResetHomeBody({required this.state});
+  final dynamic resetState;
+  final bool isPro;
+
+  const _ResetHomeBody({required this.resetState, required this.isPro});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,14 +50,14 @@ class _ResetHomeBody extends ConsumerWidget {
         SizedBox(height: ScreenUtils.vMd),
 
         // Gradient Run Reset Card
-        _RunResetCard(state: state),
+        _RunResetCard(resetState: resetState, isPro: isPro),
         SizedBox(height: ScreenUtils.vMd),
 
         // Upgrade Banner
-        !state.isPro ? _UpgradeBanner() : SizedBox.shrink(),
+        !isPro ? _UpgradeBanner() : SizedBox.shrink(),
 
         // Reset History Section
-        if (state.totalReset > 0) ...[
+        if (resetState.totalReset > 0) ...[
           Padding(
             padding: EdgeInsets.only(top: ScreenUtils.vLg),
             child: Text(
@@ -57,7 +68,7 @@ class _ResetHomeBody extends ConsumerWidget {
             ),
           ),
           SizedBox(height: ScreenUtils.vMd),
-          _ResetHistoryList(state: state),
+          _ResetHistoryList(resetState: resetState, isPro: isPro),
         ],
       ],
     );
@@ -69,14 +80,16 @@ class _ResetHomeBody extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _RunResetCard extends ConsumerWidget {
-  final dynamic state;
-  const _RunResetCard({required this.state});
+  final dynamic resetState;
+  final bool isPro;
+
+  const _RunResetCard({required this.resetState, required this.isPro});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        if (!state.hasResetsLeft) return;
+        if (!resetState.hasResetsLeft && !isPro) return;
         context.push(AppRoutes.resetTrigger);
       },
       child: Container(
@@ -85,12 +98,12 @@ class _RunResetCard extends ConsumerWidget {
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [
+              Color(0xFF55CFFF),
+              Color(0xFF4CC4FF),
+              Color(0xFF3AB2FF),
+              Color(0xFF299FFF),
               Color(0xFF0089FD),
               Color(0xFF1892FF),
-              Color(0xFF299FFF),
-              Color(0xFF3AB2FF),
-              Color(0xFF4CC4FF),
-              Color(0xFF55CFFF),
             ],
             stops: [0.0, 0.15, 0.35, 0.60, 0.85, 1.0],
             begin: Alignment.topCenter,
@@ -135,16 +148,16 @@ class _RunResetCard extends ConsumerWidget {
             ),
             SizedBox(height: 4.h),
             Text(
-              '${state.resetsUsedToday} resets used today',
+              '${resetState.resetsUsedToday} resets used today',
               style: AppTextStyles.bodyMD.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
-              state.isPro
+              isPro
                   ? 'Pro plan — unlimited resets'
-                  : 'Free plan includes ${state.dailyResetLimit} reset per day.',
+                  : 'Free plan includes ${resetState.dailyResetLimit} reset per day.',
               style: AppTextStyles.bodyMD.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
@@ -226,13 +239,14 @@ class _UpgradeBanner extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ResetHistoryList extends StatelessWidget {
-  final dynamic state;
+  final dynamic resetState;
+  final bool isPro;
 
-  const _ResetHistoryList({required this.state});
+  const _ResetHistoryList({required this.resetState, required this.isPro});
 
   @override
   Widget build(BuildContext context) {
-    if (state.resetHistory.isEmpty) {
+    if (resetState.resetHistory.isEmpty) {
       return SizedBox.shrink();
     }
 
@@ -241,7 +255,7 @@ class _ResetHistoryList extends StatelessWidget {
         child: Stack(
           children: [
             Column(
-              children: state.resetHistory
+              children: resetState.resetHistory
                   .map<Widget>(
                     (item) => Padding(
                       padding: EdgeInsets.only(bottom: ScreenUtils.vMd),
@@ -250,7 +264,7 @@ class _ResetHistoryList extends StatelessWidget {
                   )
                   .toList(),
             ),
-            if (!state.isPro) ...[
+            if (!isPro) ...[
               Positioned.fill(
                 child: ClipRect(
                   child: BackdropFilter(

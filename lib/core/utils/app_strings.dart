@@ -17,3 +17,5 @@ const String progress = "assets/icons/progress.png";
 const String settings = "assets/icons/settings.png";
 
 const String lock = "assets/icons/lock.png";
+
+const String completion = "assets/icons/completion.png";

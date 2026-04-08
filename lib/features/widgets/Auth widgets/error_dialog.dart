@@ -4,12 +4,12 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 
-class AuthErrorDialog extends StatelessWidget {
+class ErrorDialog extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onTryAgain;
 
-  const AuthErrorDialog({
+  const ErrorDialog({
     super.key,
     required this.title,
     required this.message,

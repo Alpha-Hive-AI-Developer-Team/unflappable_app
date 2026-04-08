@@ -11,7 +11,6 @@ class ResetState {
   final List<String> selectedEmotions;
   final int resetsUsedToday;
   final int dailyResetLimit;
-  final bool isPro;
   final String? reframeText;
   final String? nextActionText;
   final String? errorMessage;
@@ -32,14 +31,13 @@ class ResetState {
     this.resetsUsedToday = 0,
     this.totalReset = 0,
     this.dailyResetLimit = 1,
-    this.isPro = false,
     this.reframeText,
     this.nextActionText,
     this.errorMessage,
     this.resetHistory = const [],
   });
 
-  bool get hasResetsLeft => resetsUsedToday < dailyResetLimit || isPro;
+  bool get hasResetsLeft => resetsUsedToday < dailyResetLimit;
 
   ResetState copyWith({
     ResetStatus? status,
@@ -49,7 +47,6 @@ class ResetState {
     int? resetsUsedToday,
     int? dailyResetLimit,
     int? totalReset,
-    bool? isPro,
     String? reframeText,
     String? nextActionText,
     String? errorMessage,
@@ -62,7 +59,6 @@ class ResetState {
       selectedEmotions: selectedEmotions ?? this.selectedEmotions,
       resetsUsedToday: resetsUsedToday ?? this.resetsUsedToday,
       dailyResetLimit: dailyResetLimit ?? this.dailyResetLimit,
-      isPro: isPro ?? this.isPro,
       totalReset: totalReset ?? this.totalReset,
       reframeText: reframeText ?? this.reframeText,
       nextActionText: nextActionText ?? this.nextActionText,
