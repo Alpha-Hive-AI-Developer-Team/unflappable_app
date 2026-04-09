@@ -4,7 +4,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Pricing/Provider/pricing_notifier.dart';
 import 'package:unflappable/features/Pricing/Provider/pricing_state.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/error_dialog.dart';
+import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
 class PricingPlansScreen extends ConsumerWidget {

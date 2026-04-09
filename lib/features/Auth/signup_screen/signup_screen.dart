@@ -13,7 +13,7 @@ import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_p
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
-import 'package:unflappable/features/widgets/Auth%20widgets/error_dialog.dart';
+import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 

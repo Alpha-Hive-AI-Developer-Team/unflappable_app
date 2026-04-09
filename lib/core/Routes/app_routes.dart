@@ -7,6 +7,13 @@ import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
 import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_emotion.dart';
+import 'package:unflappable/features/Setting/UI/account_screen.dart';
+import 'package:unflappable/features/Setting/UI/Help%20Center/help_center.dart';
+import 'package:unflappable/features/Setting/UI/Legal%20Screens/legal_screen.dart';
+import 'package:unflappable/features/Setting/Model/legal_model.dart';
+import 'package:unflappable/features/Setting/UI/Legal%20Screens/privacy_term.dart';
+import 'package:unflappable/features/Setting/UI/notification_setting.dart';
+import 'package:unflappable/features/Setting/UI/setting_screen.dart';
 import 'package:unflappable/features/Weekly%20Review/UI/review_screen.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 import 'package:unflappable/features/Home/UI/new_mission.dart';
@@ -16,6 +23,18 @@ import 'package:unflappable/features/Reset/UI/reset_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_trigger.dart';
 import 'package:unflappable/features/Welcome%20Screens/welcome_screen.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash_screen.dart';
+
+class PolicyScreenArgs {
+  final String title;
+  final String lastUpdated;
+  final List<PolicySection> sections;
+
+  const PolicyScreenArgs({
+    required this.title,
+    required this.lastUpdated,
+    required this.sections,
+  });
+}
 
 class AppRoutes {
   static const splash = '/splash';
@@ -34,6 +53,14 @@ class AppRoutes {
   static const resetEmotion = '/reset/emotion';
   static const weeklyReview = '/weeklyReview';
   static const pricing = '/pricing';
+  static const helpCenter = '/help-center';
+  static const legal = '/legal';
+  static const account = '/account';
+  static const settings = '/settings';
+  static const notificationSetting = '/notificationSetting';
+
+  static const privacyPolicy = '/privacy-policy';
+  static const termsOfUse = '/terms-of-use';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -117,6 +144,42 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'pricing',
         path: AppRoutes.pricing,
         builder: (context, state) => const PricingPlansScreen(),
+      ),
+      GoRoute(
+        name: 'settings',
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        name: 'account',
+        path: AppRoutes.account,
+        builder: (context, state) => const AccountScreen(),
+      ),
+      GoRoute(
+        name: 'help-center',
+        path: AppRoutes.helpCenter,
+        builder: (context, state) => const HelpCenterScreen(),
+      ),
+      GoRoute(
+        name: 'legal',
+        path: AppRoutes.legal,
+        builder: (context, state) => const LegalScreen(),
+      ),
+      GoRoute(
+        name: 'notificationSetting',
+        path: AppRoutes.notificationSetting,
+        builder: (context, state) => const NotificationsSetting(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        builder: (context, state) {
+          final args = state.extra as PolicyScreenArgs;
+          return PolicyScreen(
+            title: args.title,
+            lastUpdated: args.lastUpdated,
+            sections: args.sections,
+          );
+        },
       ),
     ],
   );

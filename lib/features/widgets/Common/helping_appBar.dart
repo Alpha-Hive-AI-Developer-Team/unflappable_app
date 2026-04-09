@@ -27,7 +27,7 @@ class HelpingAppBar extends StatelessWidget {
               onTap: () => context.pop(),
               child: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                size: ScreenUtils.iconSm,
+                size: ScreenUtils.iconMd,
                 color: AppColors.headingText,
               ),
             ),

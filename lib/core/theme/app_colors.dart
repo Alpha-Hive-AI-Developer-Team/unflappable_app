@@ -29,6 +29,8 @@ class AppColors {
 
   static const Color borderGrey = Color(0xFFC7C7CC);
 
+  static const Color setting_text = Color(0xFF3A3A3A);
+
   /// Primary text color (alias for headingText for backward compatibility)
   static const Color primaryText = headingText;
 

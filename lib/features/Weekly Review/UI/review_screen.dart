@@ -313,46 +313,6 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED WIDGETS
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ReviewAppBar extends StatelessWidget {
-  final String title;
-  final VoidCallback onBack;
-
-  const _ReviewAppBar({required this.title, required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: ScreenUtils.authHorizontalMargin,
-        vertical: ScreenUtils.vMd,
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: onBack,
-            child: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: ScreenUtils.iconSm,
-              color: AppColors.headingText,
-            ),
-          ),
-          SizedBox(width: ScreenUtils.md),
-          Text(
-            title,
-            style: AppTextStyles.headingMD.copyWith(
-              color: AppColors.headingText,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ReviewField extends StatelessWidget {
   final String label;
   final TextEditingController controller;

@@ -166,7 +166,7 @@ class _AppSnackbarContent extends StatelessWidget {
             onTap: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
             child: Icon(
               Icons.close_rounded,
-              size: ScreenUtils.iconSm,
+              size: ScreenUtils.iconMd,
               color: _titleColor.withOpacity(0.5),
             ),
           ),

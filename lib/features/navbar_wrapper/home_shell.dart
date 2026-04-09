@@ -1,10 +1,8 @@
-import 'package:unflappable/core/theme/appText_styles.dart';
-import 'package:unflappable/core/theme/app_colors.dart';
-import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Home/UI/home_screen.dart';
 import 'package:unflappable/features/Progress/progress_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_screen.dart';
+import 'package:unflappable/features/Setting/UI/setting_screen.dart';
 import 'package:unflappable/features/navbar_wrapper/navbar.dart';
 
 final navIndexProvider = StateProvider<int>((_) => 0);
@@ -20,7 +18,7 @@ class HomeShell extends ConsumerWidget {
       HomeScreen(),
       ResetScreen(),
       ProgressScreen(),
-      _PlaceholderScreen(label: 'Settings'),
+      SettingsScreen(),
     ];
 
     return Scaffold(
@@ -44,15 +42,5 @@ class HomeShell extends ConsumerWidget {
         ],
       ),
     );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String label;
-  const _PlaceholderScreen({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(label, style: AppTextStyles.headingMD));
   }
 }

@@ -8,12 +8,14 @@ class PrimaryButton extends StatelessWidget {
   final String label;
   final bool isLoading;
   final VoidCallback? onTap;
+  final Color? backgroundColor;
 
   const PrimaryButton({
     super.key,
     required this.label,
     required this.isLoading,
     this.onTap,
+    this.backgroundColor,
   });
 
   // Figma shadows translated to Flutter BoxShadow
@@ -71,7 +73,7 @@ class PrimaryButton extends StatelessWidget {
               ElevatedButton.styleFrom(
                 backgroundColor: isDisabled
                     ? AppColors.borderGrey
-                    : AppColors.primary,
+                    : (backgroundColor ?? AppColors.primary),
                 foregroundColor: AppColors.white,
                 disabledBackgroundColor: AppColors.borderGrey,
                 elevation: 0,
@@ -81,14 +83,16 @@ class PrimaryButton extends StatelessWidget {
                 // Inset white glow — applied via overlayColor trick using a
                 // custom ButtonStyle so we can paint it as a foreground layer
                 backgroundBuilder: (context, states, child) {
+                  final bgColor = backgroundColor ?? AppColors.primary;
                   return DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: borderRadius,
+
                       gradient: isDisabled
                           ? null
-                          : const LinearGradient(
+                          : LinearGradient(
                               // keeps the solid blue base; the inset glow sits on top
-                              colors: [AppColors.primary, AppColors.primary],
+                              colors: [bgColor, bgColor],
                             ),
                     ),
                     child: DecoratedBox(
