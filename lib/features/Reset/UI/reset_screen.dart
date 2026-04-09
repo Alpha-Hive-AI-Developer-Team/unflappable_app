@@ -212,7 +212,7 @@ class _UpgradeBanner extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Navigate to upgrade screen
+              context.push(AppRoutes.pricing);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -300,7 +300,9 @@ class _ResetHistoryList extends StatelessWidget {
                       PrimaryButton(
                         label: 'Unlock History',
                         isLoading: false,
-                        onTap: () {},
+                        onTap: () {
+                          context.push(AppRoutes.pricing);
+                        },
                       ),
                     ],
                   ),

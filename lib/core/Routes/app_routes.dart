@@ -5,6 +5,7 @@ import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
+import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_emotion.dart';
 import 'package:unflappable/features/Weekly%20Review/UI/review_screen.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
@@ -32,6 +33,7 @@ class AppRoutes {
   static const resetTrigger = '/reset/trigger';
   static const resetEmotion = '/reset/emotion';
   static const weeklyReview = '/weeklyReview';
+  static const pricing = '/pricing';
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -110,6 +112,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'weeklyReview',
         path: AppRoutes.weeklyReview,
         builder: (context, state) => const WeeklyReviewScreen(),
+      ),
+      GoRoute(
+        name: 'pricing',
+        path: AppRoutes.pricing,
+        builder: (context, state) => const PricingPlansScreen(),
       ),
     ],
   );
