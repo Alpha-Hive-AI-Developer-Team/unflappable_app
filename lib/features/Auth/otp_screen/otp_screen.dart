@@ -11,20 +11,23 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_provider.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class OtpVerificationScreen extends ConsumerWidget {
   final OtpPurpose purpose;
+  final String email;
 
   const OtpVerificationScreen({
     super.key,
     this.purpose = OtpPurpose.forgotPassword,
+    required this.email,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: _OtpBody(purpose: purpose).withAuthScreenPadding(),
+      body: _OtpBody(purpose: purpose, email: email).withAuthScreenPadding(),
     );
   }
 }
@@ -33,8 +36,9 @@ enum OtpPurpose { signup, forgotPassword }
 
 class _OtpBody extends ConsumerWidget {
   final OtpPurpose purpose;
+  final String email;
 
-  const _OtpBody({required this.purpose});
+  const _OtpBody({required this.purpose, required this.email});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,22 +76,54 @@ class _OtpBody extends ConsumerWidget {
 
         SizedBox(height: ScreenUtils.vMd),
 
-        // Resend timer
+        // Resend timer / resend button
         Center(
-          child: RichText(
-            text: TextSpan(
-              style: AppTextStyles.bodyLG.copyWith(color: AppColors.bodyText),
-              children: [
-                const TextSpan(text: 'Resent code in: '),
-                TextSpan(
-                  text: timeStr,
-                  style: AppTextStyles.bodyLG.copyWith(
-                    color: AppColors.primary,
+          child: state.secondsLeft == 0
+              ? GestureDetector(
+                  onTap: state.isLoading
+                      ? null
+                      : () async {
+                          final success = await notifier.resendCode(email: email);
+                          if (!context.mounted) return;
+                          if (success) {
+                            AppSnackbar.showSuccess(
+                              context,
+                              message: 'A new code was sent to your email.',
+                            );
+                          } else {
+                            AppSnackbar.showError(
+                              context,
+                              message:
+                                  'Unable to resend code. Please try again.',
+                            );
+                          }
+                        },
+                  child: Text(
+                    'Resend code',
+                    style: AppTextStyles.bodyLG.copyWith(
+                      color: state.isLoading
+                          ? AppColors.bodyText
+                          : AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : RichText(
+                  text: TextSpan(
+                    style: AppTextStyles.bodyLG.copyWith(
+                      color: AppColors.bodyText,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Resend code in: '),
+                      TextSpan(
+                        text: timeStr,
+                        style: AppTextStyles.bodyLG.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
         ),
 
         const Spacer(),
@@ -104,13 +140,19 @@ class _OtpBody extends ConsumerWidget {
                 isLoading: state.isLoading,
                 onTap: state.isComplete
                     ? () async {
-                        await notifier.verify();
-                        if (context.mounted) {
+                        final success = await notifier.verify(email: email);
+                        if (!context.mounted) return;
+                        if (success) {
                           if (purpose == OtpPurpose.signup) {
                             context.push(AppRoutes.onboarding);
                           } else {
                             context.push(AppRoutes.createNewPassword);
                           }
+                        } else {
+                          AppSnackbar.showError(
+                            context,
+                            message: 'Invalid code. Please try again.',
+                          );
                         }
                       }
                     : null,

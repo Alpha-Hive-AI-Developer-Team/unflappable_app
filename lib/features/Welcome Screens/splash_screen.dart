@@ -6,7 +6,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
-import 'package:unflappable/features/Welcome%20Screens/splash-provider/splash_provider.dart';
+import 'package:unflappable/features/Welcome%20Screens/splash-provider/splash_notifier.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +20,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   void initState() {
     super.initState();
 
-    // 👇 Run navigation logic after build
     Future.microtask(() {
       ref.read(splashProvider.notifier).navigateNext(() {
         context.go(AppRoutes.welcome);

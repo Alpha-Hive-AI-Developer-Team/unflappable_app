@@ -28,7 +28,22 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            AppHeader(title: userState.userName, subtitle: 'Welcome Back'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                AppHeader(title: userState.userName, subtitle: 'Welcome Back'),
+                IconButton(
+                  onPressed: () {
+                    context.push(AppRoutes.notifications);
+                  },
+                  icon: Icon(
+                    Icons.notifications_none_rounded,
+                    color: AppColors.headingText,
+                    size: ScreenUtils.iconMd,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: ScreenUtils.vMd),
 
             // Mission card — changes based on state
@@ -60,31 +75,43 @@ class HomeScreen extends ConsumerWidget {
             SizedBox(height: ScreenUtils.vMd),
 
             // Quick actions row
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionCard(
-                    label: 'Run Reset',
-                    sublabel: 'Clear your mind',
-                    onTap: () {
-                      // Navigate to navbar reset tab (index 1)
-                      ref.read(navIndexProvider.notifier).state = 1;
-                    },
-                    image: 'assets/images/reset.png',
-                  ),
+            GestureDetector(
+              onTap: () {
+                context.push(AppRoutes.weeklyReview);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(ScreenUtils.md),
+                decoration: BoxDecoration(
+                  color: AppColors.secondarySurface,
+                  borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
                 ),
-                SizedBox(width: ScreenUtils.md),
-                Expanded(
-                  child: _QuickActionCard(
-                    label: 'Weekly Review',
-                    sublabel: 'Reflect & plan',
-                    onTap: () {
-                      context.push(AppRoutes.weeklyReview);
-                    },
-                    image: 'assets/images/calender.png',
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/calender.png',
+                      height: 38.h,
+                      width: 38.w,
+                    ),
+                    SizedBox(height: ScreenUtils.vSm),
+                    Text(
+                      'Weekly Review',
+                      style: AppTextStyles.labelLG.copyWith(
+                        color: AppColors.headingText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'Reflect & plan',
+                      style: AppTextStyles.bodyMD.copyWith(
+                        color: AppColors.bodyText,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),

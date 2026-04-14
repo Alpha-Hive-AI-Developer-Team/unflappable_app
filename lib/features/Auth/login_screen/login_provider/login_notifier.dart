@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
+import 'package:unflappable/service/auth_service.dart';
 
 class LoginNotifier extends StateNotifier<LoginState> {
   LoginNotifier() : super(const LoginState());
@@ -68,27 +70,69 @@ class LoginNotifier extends StateNotifier<LoginState> {
     state = state.copyWith(status: LoginStatus.loading);
 
     try {
-      // TODO: replace with real auth repository call
-      // e.g. await ref.read(authRepositoryProvider).login(...)
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await AuthService.login(
+        fullName: _deriveNameFromEmail(state.email),
+        email: state.email.trim(),
+        password: state.password,
+      );
 
-      state = state.copyWith(status: LoginStatus.success);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        state = state.copyWith(status: LoginStatus.success);
+      } else {
+        final message = _extractMessage(response) ??
+            "Email or password didn't match. Please try again.";
+        state = state.copyWith(
+          status: LoginStatus.authError,
+          authErrorMessage: message,
+        );
+      }
+    } on DioException catch (e) {
+      final message = e.response != null
+          ? _extractMessage(e.response!) ??
+              "Email or password didn't match. Please try again."
+          : 'Unable to connect to the server. Please try again.';
+      state = state.copyWith(
+        status: LoginStatus.authError,
+        authErrorMessage: message,
+      );
     } catch (e) {
       state = state.copyWith(
         status: LoginStatus.authError,
-        authErrorMessage: _mapErrorMessage(e),
+        authErrorMessage: "Email or password didn't match. Please try again.",
       );
     }
+  }
+
+  String _deriveNameFromEmail(String email) {
+    final localPart = email.split('@').first;
+    if (localPart.isEmpty) return 'User';
+    final segments = localPart.split(RegExp(r'[._\- ]+'));
+    return segments
+        .map((part) =>
+            part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}')
+        .where((part) => part.isNotEmpty)
+        .join(' ');
+  }
+
+  String? _extractMessage(Response response) {
+    if (response.data is Map<String, dynamic>) {
+      final body = response.data as Map<String, dynamic>;
+      return body['message']?.toString() ??
+          body['error']?.toString() ??
+          body['errors']?.toString();
+    }
+    return null;
   }
 
   /// Convert exceptions from the auth repository into user-friendly messages.
   /// Expand this when you wire up the real API.
   String _mapErrorMessage(Object e) {
-    // Example for Firebase / custom backend errors:
-    // if (e is FirebaseAuthException) {
-    //   if (e.code == 'user-not-found') return 'No account found with this email.';
-    //   if (e.code == 'wrong-password') return 'Incorrect password. Please try again.';
-    // }
+    if (e is DioException) {
+      return e.response != null && e.response?.data is Map<String, dynamic>
+          ? _extractMessage(e.response!) ??
+              "Email or password didn't match. Please try again."
+          : 'Unable to connect to the server. Please try again.';
+    }
     return "Email or password didn't match. Please try again.";
   }
 }

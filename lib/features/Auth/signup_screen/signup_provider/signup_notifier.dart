@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
+import 'package:unflappable/service/auth_service.dart';
 
 class SignUpNotifier extends StateNotifier<SignUpState> {
   SignUpNotifier() : super(const SignUpState());
@@ -114,26 +116,57 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     state = state.copyWith(status: SignUpStatus.loading);
 
     try {
-      // TODO: replace with real auth repository call
-      // e.g. await ref.read(authRepositoryProvider).signUp(...)
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await AuthService.signUp(
+        fullName: state.fullName.trim(),
+        email: state.email.trim(),
+        password: state.password,
+      );
 
-      state = state.copyWith(status: SignUpStatus.success);
-    } catch (e) {
-      // Map repository / API exceptions to a human-readable message
-      final message = _mapErrorMessage(e);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        state = state.copyWith(status: SignUpStatus.success);
+      } else {
+        final errorMessage = _extractMessage(response) ??
+            'Failed to create account. Please try again.';
+        state = state.copyWith(
+          status: SignUpStatus.authError,
+          authErrorMessage: errorMessage,
+        );
+      }
+    } on DioException catch (e) {
+      final errorMessage = e.response != null
+          ? _extractMessage(e.response!)
+          : 'Unable to sign up. Please check your internet connection.';
       state = state.copyWith(
         status: SignUpStatus.authError,
-        authErrorMessage: message,
+        authErrorMessage: errorMessage,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: SignUpStatus.authError,
+        authErrorMessage: 'An error occurred during sign up. Please try again.',
       );
     }
+  }
+
+  String? _extractMessage(Response response) {
+    if (response.data is Map<String, dynamic>) {
+      final body = response.data as Map<String, dynamic>;
+      return body['message']?.toString() ??
+          body['error']?.toString() ??
+          body['errors']?.toString();
+    }
+    return null;
   }
 
   /// Convert exceptions from the auth repository into user-friendly messages.
   /// Expand this when you wire up the real API.
   String _mapErrorMessage(Object e) {
-    // Example for Firebase / custom backend errors:
-    // if (e is FirebaseAuthException) { ... }
+    if (e is DioException) {
+      return e.response != null && e.response?.data is Map<String, dynamic>
+          ? _extractMessage(e.response!) ??
+              'An error occurred during sign up. Please try again.'
+          : 'Unable to sign up. Please check your internet connection.';
+    }
     return 'An error occurred during sign up. Please try again.';
   }
 }

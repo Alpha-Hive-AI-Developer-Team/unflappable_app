@@ -31,7 +31,9 @@ class SignUpScreen extends ConsumerWidget {
           context,
           message: 'Account created successfully!',
         );
-        context.push('${AppRoutes.otpVerification}?purpose=signup');
+        context.push(
+          '${AppRoutes.otpVerification}?purpose=signup&email=${Uri.encodeComponent(next.email)}',
+        );
         ref.read(signUpProvider.notifier).clearError();
       }
     });

@@ -14,7 +14,15 @@ class _Authentication {
 
   static _Authentication? _instance;
 
-  String get _controllerName => '$_apiBaseUrl/api/vendor';
-  String get login => '$_controllerName/login/';
-  String get deleteAccount => '$_controllerName/auth-details/delete/';
+  String get _authController => '$_apiBaseUrl/api/auth';
+  String get _vendorController => '$_apiBaseUrl/api/vendor';
+
+  String get signup => '$_authController/signup';
+  String get login => '$_authController/login';
+  String get forgotPassword => '$_authController/password/forgot';
+  String get verifyOtp => '$_authController/password/verify-otp';
+  String get resetPassword => '$_authController/password/reset';
+  String get resendOtp => '$_authController/password/resend-otp';
+
+  String get deleteAccount => '$_vendorController/auth-details/delete/';
 }

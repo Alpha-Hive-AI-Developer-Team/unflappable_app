@@ -67,7 +67,7 @@ class _ForgotPasswordBody extends ConsumerWidget {
                   final success = await notifier.submit();
                   if (success && context.mounted) {
                     context.push(
-                      '${AppRoutes.otpVerification}?purpose=forgotPassword',
+                      '${AppRoutes.otpVerification}?purpose=forgotPassword&email=${Uri.encodeComponent(state.email)}',
                     );
                   }
                 },

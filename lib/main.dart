@@ -1,7 +1,12 @@
   
+import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/export.dart';
+import 'package:unflappable/service/dio_helper.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalStorage.init();
+  DioHelper.init();
   runApp(const ProviderScope(child: MainApp()));
 }
 

@@ -3,6 +3,7 @@ import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Onboarding/Model/onboarding_model.dart';
 import 'package:unflappable/features/Onboarding/Provider/onboarding_provider.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class OnboardingQuestionnaireScreen extends ConsumerWidget {
   const OnboardingQuestionnaireScreen({super.key});
@@ -198,8 +199,22 @@ class _BottomButton extends ConsumerWidget {
       onTap: state.hasAnswer
           ? () async {
               if (state.isLastStep) {
-                await notifier.completeSetup();
-                if (context.mounted) context.go(AppRoutes.home);
+                try {
+                  await notifier.completeSetup();
+                  if (context.mounted) {
+                    AppSnackbar.showSuccess(context,
+                        message: 'Onboarding complete!');
+                    context.go(AppRoutes.home);
+                  }
+                } catch (_) {
+                  if (context.mounted) {
+                    AppSnackbar.showError(
+                      context,
+                      message:
+                          'Unable to complete onboarding. Please try again.',
+                    );
+                  }
+                }
               } else {
                 notifier.nextStep();
               }

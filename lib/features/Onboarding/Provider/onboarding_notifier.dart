@@ -1,6 +1,7 @@
-import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-import 'package:unflappable/features/Onboarding/Provider/onboarding%20state.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:unflappable/features/Onboarding/Model/onboarding_model.dart';
+import 'package:unflappable/features/Onboarding/Provider/onboarding state.dart';
+import 'package:unflappable/service/onboarding_service.dart';
 
 class OnboardingNotifier extends StateNotifier<OnboardingState> {
   OnboardingNotifier() : super(const OnboardingState());
@@ -25,8 +26,10 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
 
   Future<void> completeSetup() async {
     state = state.copyWith(isLoading: true);
-    // TODO: persist answers, call onboarding repository
-    await Future.delayed(const Duration(seconds: 1));
-    state = state.copyWith(isLoading: false);
+    try {
+      await OnboardingService.complete(answers: state.answers);
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
   }
 }

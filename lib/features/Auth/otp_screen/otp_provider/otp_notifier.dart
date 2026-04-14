@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_state.dart';
+import 'package:unflappable/service/auth_service.dart';
 
 class OtpNotifier extends StateNotifier<OtpState> {
   Timer? _timer;
@@ -32,11 +34,44 @@ class OtpNotifier extends StateNotifier<OtpState> {
     _startTimer();
   }
 
-  Future<void> verify() async {
+  Future<bool> verify({required String email}) async {
     state = state.copyWith(isLoading: true);
-    // TODO: call auth repository
-    await Future.delayed(const Duration(seconds: 1));
-    state = state.copyWith(isLoading: false);
+    try {
+      final code = state.digits.join();
+      final response = await AuthService.verifyOtp(
+        email: email.trim(),
+        code: code,
+      );
+
+      state = state.copyWith(isLoading: false);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException {
+      state = state.copyWith(isLoading: false);
+      return false;
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
+      return false;
+    }
+  }
+
+  Future<bool> resendCode({required String email}) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final response = await AuthService.resendOtp(email: email.trim());
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        resend();
+        state = state.copyWith(isLoading: false);
+        return true;
+      }
+      state = state.copyWith(isLoading: false);
+      return false;
+    } on DioException {
+      state = state.copyWith(isLoading: false);
+      return false;
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
+      return false;
+    }
   }
 
   @override

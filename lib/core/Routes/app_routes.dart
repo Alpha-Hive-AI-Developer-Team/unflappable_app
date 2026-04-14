@@ -94,7 +94,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final purpose = state.uri.queryParameters['purpose'] == 'signup'
               ? OtpPurpose.signup
               : OtpPurpose.forgotPassword;
-          return OtpVerificationScreen(purpose: purpose);
+          final email = state.uri.queryParameters['email'] ?? '';
+          return OtpVerificationScreen(purpose: purpose, email: email);
         },
       ),
       GoRoute(
