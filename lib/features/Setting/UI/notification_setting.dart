@@ -2,7 +2,9 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
+import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class NotificationsSetting extends ConsumerWidget {
   const NotificationsSetting({super.key});
@@ -76,11 +78,32 @@ class NotificationsSetting extends ConsumerWidget {
 
                   // Weekly Reminder
                   TimePickerRow(
-                    label: 'Weekly Reminder',
+                    label: 'Weekly Reminder (${n.weeklyReminderDay})',
                     value: n.weeklyReminder,
                     onTap: () async {
                       final picked = await _pickTime(context, n.weeklyReminder);
                       if (picked != null) notifier.setWeeklyReminder(picked);
+                    },
+                  ),
+                  SizedBox(height: ScreenUtils.vXl),
+                  PrimaryButton(
+                    label: 'Save Preferences',
+                    isLoading: state.isSavingNotifications,
+                    onTap: () async {
+                      await notifier.saveNotifications();
+                      if (!context.mounted) return;
+                      final latest = ref.read(settingsProvider);
+                      if (latest.errorMessage != null) {
+                        AppSnackbar.showError(
+                          context,
+                          message: latest.errorMessage!,
+                        );
+                        return;
+                      }
+                      AppSnackbar.showSuccess(
+                        context,
+                        message: 'Notification preferences updated.',
+                      );
                     },
                   ),
                 ],

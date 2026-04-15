@@ -79,10 +79,13 @@ class LoginNotifier extends StateNotifier<LoginState> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final token = _extractAuthToken(response.data);
-        if (token != null) await LocalStorage.saveData(LocalStorage.accessToken, token);
+        if (token != null) {
+          await LocalStorage.saveData(LocalStorage.accessToken, token);
+        }
         state = state.copyWith(status: LoginStatus.success);
       } else {
-        final message = _extractMessage(response) ??
+        final message =
+            _extractMessage(response) ??
             "Email or password didn't match. Please try again.";
         state = state.copyWith(
           status: LoginStatus.authError,
@@ -92,7 +95,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
     } on DioException catch (e) {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
-              "Email or password didn't match. Please try again."
+                "Email or password didn't match. Please try again."
           : 'Unable to connect to the server. Please try again.';
       state = state.copyWith(
         status: LoginStatus.authError,
@@ -111,8 +114,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
     if (localPart.isEmpty) return 'User';
     final segments = localPart.split(RegExp(r'[._\- ]+'));
     return segments
-        .map((part) =>
-            part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}')
+        .map(
+          (part) => part.isEmpty
+              ? ''
+              : '${part[0].toUpperCase()}${part.substring(1)}',
+        )
         .where((part) => part.isNotEmpty)
         .join(' ');
   }

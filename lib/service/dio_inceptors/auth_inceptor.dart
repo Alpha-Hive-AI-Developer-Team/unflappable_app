@@ -4,12 +4,13 @@ import 'package:unflappable/core/storage/local_storage.dart';
 
 final Interceptor authInterceptor = QueuedInterceptorsWrapper(
   onRequest: (RequestOptions options, RequestInterceptorHandler handler) async {
-    String? accessToken = LocalStorage.getData(LocalStorage.accessToken);
+    final String? accessToken = LocalStorage.getData(LocalStorage.accessToken);
+    final token = accessToken?.trim();
 
-    options.headers.addAll({
-      'Authorization': 'Bearer ${accessToken ?? ''}',
-      'Accept': 'application/json',
-    });
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    options.headers['Accept'] = 'application/json';
     return handler.next(options);
   },
   // onError: (DioException e, ErrorInterceptorHandler handler) async {

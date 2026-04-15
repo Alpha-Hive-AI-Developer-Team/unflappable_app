@@ -3,6 +3,7 @@ import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -99,12 +100,25 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 isLoading: state.isSavingAccount,
                 onTap: () async {
                   await notifier.saveAccount();
+                  if (!context.mounted) return;
+                  final latest = ref.read(settingsProvider);
+                  if (latest.errorMessage != null) {
+                    AppSnackbar.showError(
+                      context,
+                      message: latest.errorMessage!,
+                    );
+                    return;
+                  }
                   ref
                       .read(userProvider.notifier)
                       .updateUserInfo(
-                        name: state.accountDraft.fullName,
-                        email: state.accountDraft.email,
+                        name: latest.accountDraft.fullName,
+                        email: latest.accountDraft.email,
                       );
+                  AppSnackbar.showSuccess(
+                    context,
+                    message: 'Account updated successfully.',
+                  );
                 },
               ),
             ),

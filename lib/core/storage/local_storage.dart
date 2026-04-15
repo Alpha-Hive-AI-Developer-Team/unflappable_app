@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 abstract final class LocalStorage {
   static const String accessToken = 'accessToken';
+  static const String refreshToken = 'refreshToken';
   static const String userId = 'user_id';
   static const String userName = 'user_name';
   static const String userEmail = 'user_email';

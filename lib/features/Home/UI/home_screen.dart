@@ -6,7 +6,6 @@ import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier
 import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
-import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -450,57 +449,6 @@ class _MissionTaskRow extends StatelessWidget {
                   decorationColor: Colors.white.withOpacity(0.6),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// QUICK ACTION CARD
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _QuickActionCard extends StatelessWidget {
-  final String label;
-  final String sublabel;
-  final VoidCallback onTap;
-  final String image;
-
-  const _QuickActionCard({
-    required this.label,
-    required this.sublabel,
-    required this.onTap,
-    required this.image,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(ScreenUtils.md),
-        decoration: BoxDecoration(
-          color: AppColors.secondarySurface,
-          borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(image, height: 38.h, width: 38.w),
-            SizedBox(height: ScreenUtils.vSm),
-            Text(
-              label,
-              style: AppTextStyles.labelLG.copyWith(
-                color: AppColors.headingText,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              sublabel,
-              style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
             ),
           ],
         ),

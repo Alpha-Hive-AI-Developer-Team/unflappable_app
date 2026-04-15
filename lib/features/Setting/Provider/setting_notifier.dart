@@ -1,9 +1,75 @@
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Setting/Model/setting_model.dart';
 import 'package:unflappable/features/Setting/Provider/setting_state.dart';
+import 'package:unflappable/core/storage/local_storage.dart';
+import 'package:unflappable/service/settings_service.dart';
+import 'package:dio/dio.dart';
 
 class SettingsNotifier extends StateNotifier<SettingsState> {
   SettingsNotifier() : super(const SettingsState());
+
+  Future<void> loadInitialData() async {
+    if (state.hasLoadedInitialData || state.isLoadingInitialData) return;
+    state = state.copyWith(isLoadingInitialData: true, clearError: true);
+
+    try {
+      final settingsResponse = await SettingsService.getSettings();
+      final accountResponse = await SettingsService.getAccount();
+      final notificationsResponse = await SettingsService.getNotifications();
+
+      final settingsMap = _extractPayload(settingsResponse.data);
+      final accountMap = _extractPayload(accountResponse.data);
+      final notificationsMap = _extractPayload(notificationsResponse.data);
+
+      final merged = <String, dynamic>{
+        ...settingsMap,
+        ...accountMap,
+        ...notificationsMap,
+      };
+
+      final nextAccount = AccountDraft(
+        fullName: _readString(merged, ['fullName', 'name']) ?? state.accountDraft.fullName,
+        email: _readString(merged, ['email']) ?? state.accountDraft.email,
+      );
+
+      final current = state.notifications;
+      final nextNotifications = NotificationSettings(
+        dailyReminders:
+            _readBool(merged, ['dailyReminders']) ?? current.dailyReminders,
+        morningReminder: NotificationSettings.toDisplayTime(
+          _readString(merged, ['morningReminder']) ?? current.morningReminder24h,
+        ),
+        eveningReminder: NotificationSettings.toDisplayTime(
+          _readString(merged, ['eveningReminder']) ?? current.eveningReminder24h,
+        ),
+        weeklyReview: _readBool(merged, ['weeklyReview']) ?? current.weeklyReview,
+        weeklyReminderDay:
+            _readString(merged, ['weeklyReminderDay']) ??
+            current.weeklyReminderDay,
+        weeklyReminder: NotificationSettings.toDisplayTime(
+          _readString(merged, ['weeklyReminderTime']) ??
+              current.weeklyReminderTime24h,
+        ),
+      );
+
+      state = state.copyWith(
+        accountDraft: nextAccount,
+        notifications: nextNotifications,
+        isLoadingInitialData: false,
+        hasLoadedInitialData: true,
+      );
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoadingInitialData: false,
+        errorMessage: _dioErrorMessage(e, fallback: 'Failed to load settings.'),
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isLoadingInitialData: false,
+        errorMessage: 'Failed to load settings.',
+      );
+    }
+  }
 
   // ── Notifications ──────────────────────────────────────────────────────────
   void toggleDailyReminders(bool v) => state = state.copyWith(
@@ -26,6 +92,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     notifications: state.notifications.copyWith(weeklyReminder: v),
   );
 
+  void setWeeklyReminderDay(String v) => state = state.copyWith(
+    notifications: state.notifications.copyWith(weeklyReminderDay: v),
+  );
+
   // ── Account ────────────────────────────────────────────────────────────────
   void initAccountDraft({required String name, required String email}) =>
       state = state.copyWith(
@@ -41,10 +111,133 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   );
 
   Future<void> saveAccount() async {
-    state = state.copyWith(isSavingAccount: true);
-    // TODO: call repository
-    await Future.delayed(const Duration(milliseconds: 800));
-    state = state.copyWith(isSavingAccount: false);
+    state = state.copyWith(isSavingAccount: true, clearError: true);
+    try {
+      await SettingsService.updateAccount(fullName: state.accountDraft.fullName);
+      state = state.copyWith(isSavingAccount: false);
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isSavingAccount: false,
+        errorMessage: _dioErrorMessage(e, fallback: 'Failed to update account.'),
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isSavingAccount: false,
+        errorMessage: 'Failed to update account.',
+      );
+    }
+  }
+
+  Future<void> saveNotifications() async {
+    state = state.copyWith(isSavingNotifications: true, clearError: true);
+    try {
+      await SettingsService.updateNotifications(notifications: state.notifications);
+      state = state.copyWith(isSavingNotifications: false);
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isSavingNotifications: false,
+        errorMessage: _dioErrorMessage(
+          e,
+          fallback: 'Failed to update notification settings.',
+        ),
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isSavingNotifications: false,
+        errorMessage: 'Failed to update notification settings.',
+      );
+    }
+  }
+
+  Future<bool> logout() async {
+    state = state.copyWith(isProcessingLogout: true, clearError: true);
+    try {
+      final refreshToken =
+          LocalStorage.getData(LocalStorage.refreshToken) ??
+          LocalStorage.getData(LocalStorage.accessToken) ??
+          '';
+      await SettingsService.logout(refreshToken: refreshToken);
+      await LocalStorage.clearAllData();
+      state = state.copyWith(isProcessingLogout: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isProcessingLogout: false,
+        errorMessage: _dioErrorMessage(e, fallback: 'Failed to logout.'),
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isProcessingLogout: false,
+        errorMessage: 'Failed to logout.',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccount({
+    required String password,
+    required String confirmText,
+  }) async {
+    state = state.copyWith(isDeletingAccount: true, clearError: true);
+    try {
+      await SettingsService.deleteAccount(
+        password: password,
+        confirmText: confirmText,
+      );
+      await LocalStorage.clearAllData();
+      state = state.copyWith(isDeletingAccount: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isDeletingAccount: false,
+        errorMessage: _dioErrorMessage(e, fallback: 'Failed to delete account.'),
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isDeletingAccount: false,
+        errorMessage: 'Failed to delete account.',
+      );
+      return false;
+    }
+  }
+
+  String _dioErrorMessage(DioException e, {required String fallback}) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message;
+      }
+    }
+    return fallback;
+  }
+
+  Map<String, dynamic> _extractPayload(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      if (data['data'] is Map<String, dynamic>) {
+        return data['data'] as Map<String, dynamic>;
+      }
+      return data;
+    }
+    return <String, dynamic>{};
+  }
+
+  String? _readString(Map<String, dynamic> source, List<String> keys) {
+    for (final key in keys) {
+      final value = source[key];
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+    }
+    return null;
+  }
+
+  bool? _readBool(Map<String, dynamic> source, List<String> keys) {
+    for (final key in keys) {
+      final value = source[key];
+      if (value is bool) return value;
+    }
+    return null;
   }
 }
 

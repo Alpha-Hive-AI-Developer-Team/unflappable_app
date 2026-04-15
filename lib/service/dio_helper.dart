@@ -4,23 +4,32 @@ import 'package:unflappable/service/dio_inceptors/dio_inceptors.dart';
 abstract final class DioHelper {
   static late Dio _dio;
   static late Dio _dioWithoutToken;
+  static const Duration _connectTimeout = Duration(seconds: 15);
+  static const Duration _sendTimeout = Duration(seconds: 20);
+  static const Duration _receiveTimeout = Duration(seconds: 20);
 
   static void init() {
     _dio = Dio(
       BaseOptions(
+        connectTimeout: _connectTimeout,
+        sendTimeout: _sendTimeout,
+        receiveTimeout: _receiveTimeout,
         receiveDataWhenStatusError: true,
         contentType: 'application/json',
         headers: {},
       ),
-    )..interceptors.addAll(dioInterceptoprs);
+    )..interceptors.addAll(dioInterceptors);
 
     _dioWithoutToken = Dio(
       BaseOptions(
-        // receiveDataWhenStatusError: true,
+        connectTimeout: _connectTimeout,
+        sendTimeout: _sendTimeout,
+        receiveTimeout: _receiveTimeout,
+        receiveDataWhenStatusError: true,
         contentType: 'application/json',
         headers: {},
       ),
-    )..interceptors.addAll(dioInterceptoprsWithoutToken);
+    )..interceptors.addAll(dioInterceptorsWithoutToken);
   }
 
   static Future<Response> getData({

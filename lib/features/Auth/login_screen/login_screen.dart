@@ -7,6 +7,7 @@ import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
+import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
@@ -35,6 +36,7 @@ class LoginScreen extends ConsumerWidget {
               isPro: false,
             );
 
+        ref.read(navIndexProvider.notifier).state = 0;
         AppSnackbar.showSuccess(context, message: 'Login successful!');
         context.go(AppRoutes.home);
         ref.read(loginProvider.notifier).clearError();
