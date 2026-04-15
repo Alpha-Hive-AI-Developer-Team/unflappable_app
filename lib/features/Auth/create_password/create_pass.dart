@@ -1,19 +1,23 @@
 import 'create_password_export.dart';
 
 class CreateNewPasswordScreen extends ConsumerWidget {
-  const CreateNewPasswordScreen({super.key});
+  final String resetToken;
+
+  const CreateNewPasswordScreen({super.key, required this.resetToken});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: const _CreatePasswordBody().withAuthScreenPadding(),
+      body: _CreatePasswordBody(resetToken: resetToken).withAuthScreenPadding(),
     );
   }
 }
 
 class _CreatePasswordBody extends ConsumerWidget {
-  const _CreatePasswordBody();
+  final String resetToken;
+
+  const _CreatePasswordBody({required this.resetToken});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,7 +82,7 @@ class _CreatePasswordBody extends ConsumerWidget {
           isLoading: state.isLoading,
           onTap: state.passwordsMatch
               ? () async {
-                  final success = await notifier.submit();
+                  final success = await notifier.submit(resetToken: resetToken);
                   if (success && context.mounted) {
                     context.go(AppRoutes.login);
                   }

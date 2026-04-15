@@ -9,6 +9,7 @@ import 'package:unflappable/features/Auth/forget_password/forget_password_provid
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class ForgotPasswordScreen extends ConsumerWidget {
   const ForgotPasswordScreen({super.key});
@@ -65,7 +66,12 @@ class _ForgotPasswordBody extends ConsumerWidget {
                 isLoading: state.isLoading,
                 onTap: () async {
                   final success = await notifier.submit();
-                  if (success && context.mounted) {
+                  if (!context.mounted) return;
+                  if (success) {
+                    AppSnackbar.showSuccess(
+                      context,
+                      message: 'A reset code has been sent to your email.',
+                    );
                     context.push(
                       '${AppRoutes.otpVerification}?purpose=forgotPassword&email=${Uri.encodeComponent(state.email)}',
                     );

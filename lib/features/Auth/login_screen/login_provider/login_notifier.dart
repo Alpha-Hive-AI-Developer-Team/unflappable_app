@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 import 'package:unflappable/service/auth_service.dart';
 
@@ -77,6 +78,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = _extractAuthToken(response.data);
+        if (token != null) await LocalStorage.saveData(LocalStorage.accessToken, token);
         state = state.copyWith(status: LoginStatus.success);
       } else {
         final message = _extractMessage(response) ??
@@ -124,15 +127,17 @@ class LoginNotifier extends StateNotifier<LoginState> {
     return null;
   }
 
-  /// Convert exceptions from the auth repository into user-friendly messages.
-  /// Expand this when you wire up the real API.
-  String _mapErrorMessage(Object e) {
-    if (e is DioException) {
-      return e.response != null && e.response?.data is Map<String, dynamic>
-          ? _extractMessage(e.response!) ??
-              "Email or password didn't match. Please try again."
-          : 'Unable to connect to the server. Please try again.';
+  String? _extractAuthToken(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final token = data['accessToken'] ?? data['token'] ?? data['authToken'];
+      if (token != null) return token.toString();
+      if (data['data'] is Map<String, dynamic>) {
+        final nested = data['data'] as Map<String, dynamic>;
+        return nested['accessToken']?.toString() ??
+            nested['token']?.toString() ??
+            nested['authToken']?.toString();
+      }
     }
-    return "Email or password didn't match. Please try again.";
+    return null;
   }
 }

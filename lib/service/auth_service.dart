@@ -52,7 +52,20 @@ abstract final class AuthService {
       endPoint: EndPoints.auth.verifyOtp,
       data: {
         'email': email,
-        'code': code,
+        'otp': code,
+      },
+    );
+  }
+
+  static Future<Response> verifyEmail({
+    required String email,
+    required String code,
+  }) async {
+    return DioHelper.postWithOutAuthData(
+      endPoint: EndPoints.auth.verifyEmail,
+      data: {
+        'email': email,
+        'otp': code,
       },
     );
   }
@@ -60,13 +73,19 @@ abstract final class AuthService {
   static Future<Response> resetPassword({
     required String resetToken,
     required String newPassword,
+    String? confirmPassword,
   }) async {
+    final payload = {
+      'resetToken': resetToken,
+      'newPassword': newPassword,
+    };
+    if (confirmPassword != null) {
+      payload['confirmPassword'] = confirmPassword;
+    }
+
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.resetPassword,
-      data: {
-        'resetToken': resetToken,
-        'newPassword': newPassword,
-      },
+      data: payload,
     );
   }
 
@@ -75,6 +94,17 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.resendOtp,
+      data: {
+        'email': email,
+      },
+    );
+  }
+
+  static Future<Response> resendEmailVerificationOtp({
+    required String email,
+  }) async {
+    return DioHelper.postWithOutAuthData(
+      endPoint: EndPoints.auth.verifyEmailResend,
       data: {
         'email': email,
       },

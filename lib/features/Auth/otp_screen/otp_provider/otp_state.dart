@@ -1,3 +1,5 @@
+enum OtpPurpose { signup, forgotPassword }
+
 class OtpState {
   final List<String> digits;
   final int secondsLeft;

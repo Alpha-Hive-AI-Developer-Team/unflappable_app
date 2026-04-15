@@ -21,6 +21,8 @@ class _Authentication {
   String get login => '$_authController/login';
   String get forgotPassword => '$_authController/password/forgot';
   String get verifyOtp => '$_authController/password/verify-otp';
+  String get verifyEmail => '$_authController/verify-email';
+  String get verifyEmailResend => '$_authController/verify-email/resend';
   String get resetPassword => '$_authController/password/reset';
   String get resendOtp => '$_authController/password/resend-otp';
 

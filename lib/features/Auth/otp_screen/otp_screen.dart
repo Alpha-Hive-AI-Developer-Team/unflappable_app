@@ -9,6 +9,7 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_provider.dart';
+import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_state.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
@@ -31,8 +32,6 @@ class OtpVerificationScreen extends ConsumerWidget {
     );
   }
 }
-
-enum OtpPurpose { signup, forgotPassword }
 
 class _OtpBody extends ConsumerWidget {
   final OtpPurpose purpose;
@@ -83,7 +82,10 @@ class _OtpBody extends ConsumerWidget {
                   onTap: state.isLoading
                       ? null
                       : () async {
-                          final success = await notifier.resendCode(email: email);
+                          final success = await notifier.resendCode(
+                            email: email,
+                            purpose: purpose,
+                          );
                           if (!context.mounted) return;
                           if (success) {
                             AppSnackbar.showSuccess(
@@ -140,13 +142,26 @@ class _OtpBody extends ConsumerWidget {
                 isLoading: state.isLoading,
                 onTap: state.isComplete
                     ? () async {
-                        final success = await notifier.verify(email: email);
+                        final resetToken = await notifier.verify(
+                          email: email,
+                          purpose: purpose,
+                        );
                         if (!context.mounted) return;
-                        if (success) {
+                        if (resetToken != null) {
                           if (purpose == OtpPurpose.signup) {
+                            AppSnackbar.showSuccess(
+                              context,
+                              message: 'Email verified successfully.',
+                            );
                             context.push(AppRoutes.onboarding);
                           } else {
-                            context.push(AppRoutes.createNewPassword);
+                            AppSnackbar.showSuccess(
+                              context,
+                              message: 'Code verified. Please create your new password.',
+                            );
+                            context.push(
+                              '${AppRoutes.createNewPassword}?resetToken=${Uri.encodeComponent(resetToken)}',
+                            );
                           }
                         } else {
                           AppSnackbar.showError(

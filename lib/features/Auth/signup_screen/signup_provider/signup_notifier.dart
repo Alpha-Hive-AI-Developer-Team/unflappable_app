@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
 import 'package:unflappable/service/auth_service.dart';
 
@@ -123,6 +124,8 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = _extractAuthToken(response.data);
+        if (token != null) await LocalStorage.saveData(LocalStorage.accessToken, token);
         state = state.copyWith(status: SignUpStatus.success);
       } else {
         final errorMessage = _extractMessage(response) ??
@@ -158,15 +161,17 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     return null;
   }
 
-  /// Convert exceptions from the auth repository into user-friendly messages.
-  /// Expand this when you wire up the real API.
-  String _mapErrorMessage(Object e) {
-    if (e is DioException) {
-      return e.response != null && e.response?.data is Map<String, dynamic>
-          ? _extractMessage(e.response!) ??
-              'An error occurred during sign up. Please try again.'
-          : 'Unable to sign up. Please check your internet connection.';
+  String? _extractAuthToken(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final token = data['accessToken'] ?? data['token'] ?? data['authToken'];
+      if (token != null) return token.toString();
+      if (data['data'] is Map<String, dynamic>) {
+        final nested = data['data'] as Map<String, dynamic>;
+        return nested['accessToken']?.toString() ??
+            nested['token']?.toString() ??
+            nested['authToken']?.toString();
+      }
     }
-    return 'An error occurred during sign up. Please try again.';
+    return null;
   }
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:unflappable/features/Auth/create_password/create_pass.dart';
 import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart';
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
+import '../../features/Auth/otp_screen/otp_provider/otp_state.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
 import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
@@ -104,7 +105,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.createNewPassword,
-        builder: (context, state) => const CreateNewPasswordScreen(),
+        builder: (context, state) {
+          final resetToken = state.uri.queryParameters['resetToken'] ?? '';
+          return CreateNewPasswordScreen(resetToken: resetToken);
+        },
       ),
       GoRoute(
         name: 'home',

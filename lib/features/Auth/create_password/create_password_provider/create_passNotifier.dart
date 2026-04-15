@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/service/auth_service.dart';
+
 import '../create_password_export.dart';
 
 class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
@@ -34,12 +38,20 @@ class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
   void toggleObscureConfirm() =>
       state = state.copyWith(obscureConfirm: !state.obscureConfirm);
 
-  Future<bool> submit() async {
+  Future<bool> submit({required String resetToken}) async {
     final newPasswordError = _validatePassword(state.newPassword);
     final confirmPasswordError = _validateConfirmPassword(
       state.confirmPassword,
     );
     final hasErrors = newPasswordError != null || confirmPasswordError != null;
+
+    if (resetToken.isEmpty) {
+      state = state.copyWith(
+        authErrorMessage: 'Unable to reset password. Reset token is missing.',
+        status: CreatePasswordStatus.authError,
+      );
+      return false;
+    }
 
     if (hasErrors) {
       state = state.copyWith(
@@ -58,13 +70,39 @@ class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
     );
 
     try {
-      // TODO: replace with real auth repository call
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await AuthService.resetPassword(
+        resetToken: resetToken,
+        newPassword: state.newPassword.trim(),
+        confirmPassword: state.confirmPassword.trim(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        state = state.copyWith(
+          isLoading: false,
+          status: CreatePasswordStatus.success,
+        );
+        return true;
+      }
+
+      final errorMessage = _extractMessage(response) ??
+          'Unable to reset password. Please try again.';
       state = state.copyWith(
         isLoading: false,
-        status: CreatePasswordStatus.success,
+        status: CreatePasswordStatus.authError,
+        authErrorMessage: errorMessage,
       );
-      return true;
+      return false;
+    } on DioException catch (e) {
+      final message = e.response != null
+          ? _extractMessage(e.response!) ??
+              'Unable to reset password. Please try again.'
+          : 'Unable to connect to the server. Please try again.';
+      state = state.copyWith(
+        isLoading: false,
+        status: CreatePasswordStatus.authError,
+        authErrorMessage: message,
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -73,6 +111,16 @@ class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
       );
       return false;
     }
+  }
+
+  String? _extractMessage(Response response) {
+    if (response.data is Map<String, dynamic>) {
+      final body = response.data as Map<String, dynamic>;
+      return body['message']?.toString() ??
+          body['error']?.toString() ??
+          body['errors']?.toString();
+    }
+    return null;
   }
 
   String? _validatePassword(String v) {

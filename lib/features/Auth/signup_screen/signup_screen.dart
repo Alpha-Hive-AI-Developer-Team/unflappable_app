@@ -29,7 +29,8 @@ class SignUpScreen extends ConsumerWidget {
       if (next.isSuccess) {
         AppSnackbar.showSuccess(
           context,
-          message: 'Account created successfully!',
+          message:
+              'Account created. Please verify your email using the code we sent.',
         );
         context.push(
           '${AppRoutes.otpVerification}?purpose=signup&email=${Uri.encodeComponent(next.email)}',
