@@ -65,6 +65,7 @@ class ErrorDialog extends StatelessWidget {
               ),
               child: Text(
                 'Try Again',
+                textAlign: TextAlign.center,
                 style: AppTextStyles.labelLG.copyWith(
                   color: AppColors.labelText,
                   fontWeight: FontWeight.w600,

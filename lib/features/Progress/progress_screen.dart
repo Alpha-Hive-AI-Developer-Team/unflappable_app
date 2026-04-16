@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
+import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier.dart';
 import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
@@ -15,6 +16,11 @@ class ProgressScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(homeProvider);
+    final notifier = ref.read(homeProvider.notifier);
+
+    if (!state.hasLoaded && !state.isLoading) {
+      Future.microtask(() => notifier.loadHome());
+    }
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -58,18 +64,23 @@ class ProgressScreen extends ConsumerWidget {
             ),
             SizedBox(height: ScreenUtils.vMd),
             _performanceCard(
-              mainText: 'Task Completion',
+              mainText: state.taskCompletionLabel,
               icon: completion,
-              subText:
-                  ' ${state.completedTasks} of ${state.totalTasks} tasks done',
-              completionRate: state.completionRate,
+              subText: state.taskCompletionSubtitle,
+              completionRate: state.taskCompletionPercentage,
             ),
             SizedBox(height: ScreenUtils.vMd),
             _performanceCard(
-              mainText: 'Total Resets',
+              mainText: state.totalResetsLabel,
               icon: refresh,
-              subText: ' Moment of recovery',
-              completionRate: 0.02,
+              subText: state.totalResetsSubtitle,
+              completionRate: state.totalResetsPercentage,
+            ),
+            SizedBox(height: ScreenUtils.vMd),
+            _performanceCard(
+              mainText: "Mission History",
+              icon: history,
+              onTap: () => context.push(AppRoutes.mission_history),
             ),
           ],
         ),
@@ -81,53 +92,64 @@ class ProgressScreen extends ConsumerWidget {
 class _performanceCard extends StatelessWidget {
   final String mainText;
   final String icon;
-  final String subText;
-  final double completionRate;
+  final String? subText;
+  final double? completionRate;
+  final void Function()? onTap;
 
   const _performanceCard({
     required this.mainText,
     required this.icon,
-    required this.subText,
-    required this.completionRate,
+    this.subText,
+    this.completionRate,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(ScreenUtils.md),
-      decoration: BoxDecoration(
-        color: AppColors.secondarySurface,
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
-        border: Border.all(color: AppColors.borderGrey),
-      ),
-      child: Row(
-        children: [
-          Image.asset(icon, width: 32.w, height: 32.w),
-          SizedBox(width: 12.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                mainText,
-                style: AppTextStyles.headingSM.copyWith(
-                  color: AppColors.headingText,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(ScreenUtils.md),
+        decoration: BoxDecoration(
+          color: AppColors.secondarySurface,
+          borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
+          border: Border.all(color: AppColors.borderGrey),
+        ),
+        child: Row(
+          children: [
+            Image.asset(icon, width: 32.w, height: 32.w),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mainText,
+                  style: AppTextStyles.headingSM.copyWith(
+                    color: AppColors.headingText,
+                  ),
                 ),
-              ),
-              Text(
-                subText,
-                style: AppTextStyles.bodyLG.copyWith(color: AppColors.bodyText),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            '${(completionRate * 100).round()}%',
-            style: AppTextStyles.bodyLG.copyWith(
-              color: AppColors.primaryText,
-              fontWeight: FontWeight.w500,
+                subText != null
+                    ? Text(
+                        subText!,
+                        style: AppTextStyles.bodyLG.copyWith(
+                          color: AppColors.bodyText,
+                        ),
+                      )
+                    : SizedBox.shrink(),
+              ],
             ),
-          ),
-        ],
+            const Spacer(),
+            completionRate != null
+                ? Text(
+                    '${(completionRate! * 100).round()}%',
+                    style: AppTextStyles.bodyLG.copyWith(
+                      color: AppColors.primaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )
+                : SizedBox.shrink(),
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier.dart';
 import 'package:unflappable/features/Home/Provider/Mission%20Provider/mission_notifier.dart';
 import 'package:unflappable/features/Home/Provider/Mission%20Provider/mission_state.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
@@ -351,6 +352,7 @@ class _MissionBottomButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(newMissionProvider);
+    final homeState = ref.watch(homeProvider);
 
     // canSubmit requires non-empty objective AND at least 1 committed task
     final canStart = state.canSubmit;
@@ -364,15 +366,30 @@ class _MissionBottomButton extends ConsumerWidget {
       ),
       child: PrimaryButton(
         label: 'Start Mission',
-        isLoading: false,
+        isLoading: homeState.isCreatingMission,
         onTap: canStart
-            ? () {
-                final mission = ref
-                    .read(newMissionProvider.notifier)
-                    .buildMission();
-                ref.read(homeProvider.notifier).setMission(mission);
-                ref.read(newMissionProvider.notifier).reset();
-                context.pop();
+            ? () async {
+                final draft = ref.read(newMissionProvider);
+                final homeNotifier = ref.read(homeProvider.notifier);
+
+                try {
+                  await homeNotifier.createMission(
+                    objective: draft.objective.trim(),
+                    tasks: draft.tasks.map((task) => task.trim()).toList(),
+                  );
+                  ref.read(newMissionProvider.notifier).reset();
+                  if (!context.mounted) return;
+                  context.pop();
+                } catch (_) {
+                  if (!context.mounted) return;
+                  final latest = ref.read(homeProvider);
+                  AppSnackbar.showError(
+                    context,
+                    message:
+                        latest.errorMessage ??
+                        'Unable to create mission right now.',
+                  );
+                }
               }
             : null,
       ),

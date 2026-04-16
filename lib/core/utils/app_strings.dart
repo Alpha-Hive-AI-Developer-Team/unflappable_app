@@ -19,3 +19,13 @@ const String settings = "assets/icons/settings.png";
 const String lock = "assets/icons/lock.png";
 
 const String completion = "assets/icons/completion.png";
+
+const String history = "assets/icons/history.png";
+
+const String fire = "assets/images/fire.png";
+
+const String fire_dark = "assets/images/fire_dark.png";
+
+const String mission = "assets/images/mission.png";
+
+const String mission_dark = "assets/images/mission_dark.png";

@@ -3,9 +3,11 @@ import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Home/Provider/Home%20Provider/home_notifier.dart';
+import 'package:unflappable/features/Home/Provider/Home%20Provider/home_state.dart';
 import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -14,6 +16,11 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
     final userState = ref.watch(userProvider);
+    final notifier = ref.read(homeProvider.notifier);
+
+    if (!homeState.hasLoaded && !homeState.isLoading) {
+      Future.microtask(() => notifier.loadHome());
+    }
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -46,9 +53,23 @@ class HomeScreen extends ConsumerWidget {
             SizedBox(height: ScreenUtils.vMd),
 
             // Mission card — changes based on state
-            homeState.hasMission
-                ? _ActiveMissionCard(mission: homeState.activeMission!)
-                : _SetDailyDirectionCard(),
+            if (homeState.isLoading && !homeState.hasLoaded)
+              const Center(child: CircularProgressIndicator())
+            else if (homeState.hasMission)
+              _ActiveMissionCard(
+                mission: homeState.activeMission!,
+                homeState: homeState,
+              )
+            else
+              _SetDailyDirectionCard(),
+
+            if (homeState.errorMessage != null) ...[
+              SizedBox(height: ScreenUtils.vSm),
+              Text(
+                homeState.errorMessage!,
+                style: AppTextStyles.bodySM.copyWith(color: AppColors.error),
+              ),
+            ],
 
             SizedBox(height: ScreenUtils.vMd),
 
@@ -217,13 +238,19 @@ class _SetDailyDirectionCard extends StatelessWidget {
 
 class _ActiveMissionCard extends ConsumerWidget {
   final Mission mission;
-  const _ActiveMissionCard({required this.mission});
+  final HomeState homeState;
+
+  const _ActiveMissionCard({
+    required this.mission,
+    required this.homeState,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = mission.progress;
     final progressPct = (progress * 100).toInt();
     final notifier = ref.read(homeProvider.notifier);
+    final isCompletedState = mission.isAllCompleted;
 
     return Container(
       width: double.infinity,
@@ -283,15 +310,15 @@ class _ActiveMissionCard extends ConsumerWidget {
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.white.withOpacity(0.2),
-                        offset: Offset(0, 2),
+                        offset: const Offset(0, 2),
                         blurRadius: 6,
                       ),
                     ],
                   ),
                   child: Text(
-                    mission.isDone ? 'Done' : 'Completed',
+                    isCompletedState ? 'Completed' : 'Pending',
                     style: AppTextStyles.labelLG.copyWith(
-                      color: mission.isAllCompleted
+                      color: isCompletedState
                           ? Colors.white
                           : AppColors.bodyText,
                       fontWeight: FontWeight.w600,
@@ -340,46 +367,38 @@ class _ActiveMissionCard extends ConsumerWidget {
             SizedBox(height: ScreenUtils.vMd),
 
             // Task list
-            ...mission.tasks.map(
-              (task) => _MissionTaskRow(
-                task: task,
-                onToggle: () => notifier.toggleTask(task.id),
-              ),
-            ),
+            ...mission.tasks.asMap().entries.map((entry) {
+              final taskIndex = entry.key;
+              final task = entry.value;
+              final hasIncompleteBefore = mission.tasks
+                  .take(taskIndex)
+                  .any((previousTask) => !previousTask.isCompleted);
 
-            // Done button when all complete
-            if (mission.isAllCompleted && !mission.isDone) ...[
-              SizedBox(height: ScreenUtils.vSm),
-              GestureDetector(
-                onTap: notifier.markMissionDone,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: ScreenUtils.iconSm,
-                      ),
-                      SizedBox(width: ScreenUtils.xs),
-                      Text(
-                        'Done',
-                        style: AppTextStyles.labelMD.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              return _MissionTaskRow(
+                task: task,
+                isLoading: homeState.activeTaskId == task.id,
+                onToggle: () async {
+                  if (task.isCompleted) {
+                    AppSnackbar.showError(
+                      context,
+                      message: 'Already completed task.',
+                    );
+                    return;
+                  }
+
+                  if (hasIncompleteBefore) {
+                    AppSnackbar.showError(
+                      context,
+                      message: 'Please complete previous tasks first.',
+                    );
+                    return;
+                  }
+
+                  await notifier.toggleTask(task.id);
+                },
+              );
+            }),
+
           ],
         ),
       ),
@@ -389,9 +408,14 @@ class _ActiveMissionCard extends ConsumerWidget {
 
 class _MissionTaskRow extends StatelessWidget {
   final MissionTask task;
+  final bool isLoading;
   final VoidCallback onToggle;
 
-  const _MissionTaskRow({required this.task, required this.onToggle});
+  const _MissionTaskRow({
+    required this.task,
+    required this.isLoading,
+    required this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -411,7 +435,7 @@ class _MissionTaskRow extends StatelessWidget {
         ],
       ),
       child: GestureDetector(
-        onTap: onToggle,
+        onTap: isLoading ? null : onToggle,
         child: Row(
           children: [
             // Circle check
@@ -427,7 +451,18 @@ class _MissionTaskRow extends StatelessWidget {
                   width: 1.5,
                 ),
               ),
-              child: task.isCompleted
+              child: isLoading
+                  ? SizedBox(
+                      width: 12.w,
+                      height: 12.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    )
+                  : task.isCompleted
                   ? Icon(
                       Icons.check_rounded,
                       size: 12.w,

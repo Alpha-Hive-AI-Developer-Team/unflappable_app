@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:unflappable/features/Auth/create_password/create_pass.dart';
 import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart';
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
+import 'package:unflappable/features/Mission%20History/missionHistory_screen.dart';
 import '../../features/Auth/otp_screen/otp_provider/otp_state.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
@@ -59,7 +60,7 @@ class AppRoutes {
   static const account = '/account';
   static const settings = '/settings';
   static const notificationSetting = '/notificationSetting';
-
+  static const mission_history = '/mission_history';
   static const privacyPolicy = '/privacy-policy';
   static const termsOfUse = '/terms-of-use';
 }
@@ -185,6 +186,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             sections: args.sections,
           );
         },
+      ),
+      GoRoute(
+        name: 'mission_history',
+        path: AppRoutes.mission_history,
+        builder: (context, state) => const MissionHistoryScreen(),
       ),
     ],
   );

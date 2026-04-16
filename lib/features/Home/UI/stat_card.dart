@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
+import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 
 enum StatCardType { streak, missions }
@@ -89,7 +90,7 @@ class StatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
-            _isStreak ? 'assets/images/fire.png' : 'assets/images/mission.png',
+            _isStreak ? fire_dark : mission_dark,
             width: 58.w,
             height: 58.h,
           ),
@@ -141,11 +142,7 @@ class StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            _isStreak ? 'assets/images/fire.png' : 'assets/images/complete.png',
-            width: 58.w,
-            height: 58.h,
-          ),
+          Image.asset(_isStreak ? fire : mission, width: 58.w, height: 58.h),
           SizedBox(height: ScreenUtils.vMd),
           ShaderMask(
             shaderCallback: (bounds) => textGradient.createShader(bounds),

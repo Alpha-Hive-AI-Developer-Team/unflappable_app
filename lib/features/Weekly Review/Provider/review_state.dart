@@ -4,14 +4,20 @@ class WeeklyReviewState {
   final bool showAddScreen;
   final WeeklyReviewData draft;
   final WeeklyReviewData? saved;
+  final List<WeeklyReviewData> history;
   final bool isLoading;
+  final bool hasLoaded;
+  final String? errorMessage;
   final WeeklySummary summary;
 
   const WeeklyReviewState({
     this.showAddScreen = false,
     this.draft = const WeeklyReviewData(),
     this.saved,
+    this.history = const [],
     this.isLoading = false,
+    this.hasLoaded = false,
+    this.errorMessage,
     this.summary = const WeeklySummary(),
   });
 
@@ -21,13 +27,20 @@ class WeeklyReviewState {
     bool? showAddScreen,
     WeeklyReviewData? draft,
     WeeklyReviewData? saved,
+    List<WeeklyReviewData>? history,
     bool? isLoading,
+    bool? hasLoaded,
+    String? errorMessage,
     bool clearSaved = false,
+    bool clearError = false,
   }) => WeeklyReviewState(
     showAddScreen: showAddScreen ?? this.showAddScreen,
     draft: draft ?? this.draft,
     saved: clearSaved ? null : (saved ?? this.saved),
+    history: history ?? this.history,
     isLoading: isLoading ?? this.isLoading,
+    hasLoaded: hasLoaded ?? this.hasLoaded,
+    errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     summary: summary,
   );
 }

@@ -5,6 +5,8 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Weekly%20Review/Provider/review_notifier.dart';
+import 'package:unflappable/features/Weekly%20Review/Provider/review_state.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
@@ -17,6 +19,14 @@ class WeeklyReviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(weeklyReviewProvider);
+
+    if (!state.hasLoaded && !state.isLoading) {
+      Future.microtask(
+        () => ref.read(weeklyReviewProvider.notifier).loadInitial(),
+      );
+    }
+
     final showAdd = ref.watch(
       weeklyReviewProvider.select((s) => s.showAddScreen),
     );
@@ -130,7 +140,7 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
 
                     // ── Weekly Summary ─────────────────────────────────────
                     Text(
-                      'Weekly Summary',
+                      'Weekly Reviews',
                       style: AppTextStyles.labelLG.copyWith(
                         color: AppColors.headingText,
                         fontWeight: FontWeight.w700,
@@ -139,40 +149,33 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
 
                     SizedBox(height: ScreenUtils.vMd),
 
-                    Text(
-                      'This week you completed ${state.summary.completedActions} of ${state.summary.plannedActions} planned actions.',
-                      style: AppTextStyles.bodyMD.copyWith(
-                        color: AppColors.bodyText,
-                      ),
-                    ),
-
-                    SizedBox(height: ScreenUtils.vMd),
-
-                    // Strongest Pattern card
-                    _SummaryCard(
-                      label: 'Strongest Pattern',
-                      content: state.summary.strongestPattern,
-                    ),
-
-                    SizedBox(height: ScreenUtils.vSm),
-
-                    // Main Adjustment card
-                    _SummaryCard(
-                      label: 'Main Adjustment',
-                      content: state.summary.mainAdjustment,
-                    ),
-
-                    // Show saved review entries if any
-                    if (state.hasSavedReview) ...[
-                      SizedBox(height: ScreenUtils.vXl),
+                    if (state.errorMessage != null) ...[
                       Text(
-                        'Your Review',
-                        style: AppTextStyles.labelLG.copyWith(
-                          color: AppColors.headingText,
-                          fontWeight: FontWeight.w700,
+                        state.errorMessage!,
+                        style: AppTextStyles.bodyMD.copyWith(
+                          color: AppColors.error,
                         ),
                       ),
                       SizedBox(height: ScreenUtils.vMd),
+                    ] else
+                      Text(
+                        'Your current week review appears first, followed by previous reviews below.',
+                        style: AppTextStyles.bodyMD.copyWith(
+                          color: AppColors.bodyText,
+                        ),
+                      ),
+
+                    SizedBox(height: ScreenUtils.vXl),
+                    Text(
+                      'Current Week Review',
+                      style: AppTextStyles.labelLG.copyWith(
+                        color: AppColors.headingText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: ScreenUtils.vMd),
+
+                    if (state.hasSavedReview) ...[
                       if (state.saved!.biggestWin.isNotEmpty)
                         _ReviewEntryCard(
                           label: 'Biggest Win',
@@ -199,7 +202,39 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
                           content: state.saved!.oneShiftNextWeek,
                         ),
                       ],
+                    ] else ...[
+                      Text(
+                        "You haven't provide this week's review.",
+                        style: AppTextStyles.bodyMD.copyWith(
+                          color: AppColors.bodyText,
+                        ),
+                      ),
                     ],
+
+                    SizedBox(height: ScreenUtils.vXl),
+                    Text(
+                      'Review History',
+                      style: AppTextStyles.labelLG.copyWith(
+                        color: AppColors.headingText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: ScreenUtils.vMd),
+
+                    if (state.history.isNotEmpty) ...state.history.map(
+                      (review) => Padding(
+                        padding: EdgeInsets.only(bottom: ScreenUtils.vSm),
+                        child: _ReviewEntryCard(
+                          label: review.createdAt == null
+                              ? 'Review'
+                              : 'Review • ${review.createdAt!.day}/${review.createdAt!.month}/${review.createdAt!.year}',
+                          content: review.biggestWin.isNotEmpty
+                              ? review.biggestWin
+                              : review.oneShiftNextWeek,
+                        ),
+                      ),
+                    ) else
+                      SizedBox(height: ScreenUtils.vXl),
                   ],
                 ),
               ),
@@ -255,6 +290,14 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(weeklyReviewProvider);
+
+    ref.listen<WeeklyReviewState>(weeklyReviewProvider, (previous, next) {
+      if (previous?.errorMessage != next.errorMessage &&
+          next.errorMessage != null &&
+          context.mounted) {
+        AppSnackbar.showError(context, message: next.errorMessage!);
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -355,45 +398,6 @@ class _ReviewField extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final String content;
-
-  const _SummaryCard({required this.label, required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: ScreenUtils.md,
-        vertical: ScreenUtils.vMd,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.secondarySurface,
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.labelMD.copyWith(
-              color: AppColors.headingText,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            content,
-            style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
-          ),
-        ],
-      ),
     );
   }
 }
