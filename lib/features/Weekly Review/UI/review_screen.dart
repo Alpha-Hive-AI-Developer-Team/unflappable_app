@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
+import 'package:unflappable/features/Weekly%20Review/Model/review_model.dart';
 import 'package:unflappable/features/Weekly%20Review/Provider/review_notifier.dart';
 import 'package:unflappable/features/Weekly%20Review/Provider/review_state.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
@@ -39,6 +40,10 @@ class WeeklyReviewScreen extends ConsumerWidget {
 // 1 ── WEEKLY REVIEW LIST SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 1 ── WEEKLY REVIEW LIST SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _WeeklyReviewListScreen extends ConsumerWidget {
   const _WeeklyReviewListScreen();
 
@@ -51,7 +56,6 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // AppBar
             HelpingAppBar(title: 'Weekly Review'),
 
             Expanded(
@@ -138,10 +142,10 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
 
                     SizedBox(height: ScreenUtils.vXl),
 
-                    // ── Weekly Summary ─────────────────────────────────────
+                    // ── Review History ─────────────────────────────────────
                     Text(
-                      'Weekly Reviews',
-                      style: AppTextStyles.labelLG.copyWith(
+                      'Review History',
+                      style: AppTextStyles.headingMD.copyWith(
                         color: AppColors.headingText,
                         fontWeight: FontWeight.w700,
                       ),
@@ -149,92 +153,29 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
 
                     SizedBox(height: ScreenUtils.vMd),
 
-                    if (state.errorMessage != null) ...[
+                    if (state.errorMessage != null)
                       Text(
                         state.errorMessage!,
                         style: AppTextStyles.bodyMD.copyWith(
                           color: AppColors.error,
                         ),
-                      ),
-                      SizedBox(height: ScreenUtils.vMd),
-                    ] else
+                      )
+                    else if (state.isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (state.history.isEmpty)
                       Text(
-                        'Your current week review appears first, followed by previous reviews below.',
+                        'No review history yet.',
                         style: AppTextStyles.bodyMD.copyWith(
                           color: AppColors.bodyText,
                         ),
-                      ),
-
-                    SizedBox(height: ScreenUtils.vXl),
-                    Text(
-                      'Current Week Review',
-                      style: AppTextStyles.labelLG.copyWith(
-                        color: AppColors.headingText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-
-                    if (state.hasSavedReview) ...[
-                      if (state.saved!.biggestWin.isNotEmpty)
-                        _ReviewEntryCard(
-                          label: 'Biggest Win',
-                          content: state.saved!.biggestWin,
-                        ),
-                      if (state.saved!.biggestMiss.isNotEmpty) ...[
-                        SizedBox(height: ScreenUtils.vSm),
-                        _ReviewEntryCard(
-                          label: 'Biggest Miss',
-                          content: state.saved!.biggestMiss,
-                        ),
-                      ],
-                      if (state.saved!.causeOfDrift.isNotEmpty) ...[
-                        SizedBox(height: ScreenUtils.vSm),
-                        _ReviewEntryCard(
-                          label: 'Cause of Drift',
-                          content: state.saved!.causeOfDrift,
-                        ),
-                      ],
-                      if (state.saved!.oneShiftNextWeek.isNotEmpty) ...[
-                        SizedBox(height: ScreenUtils.vSm),
-                        _ReviewEntryCard(
-                          label: 'One Shift for Next Week',
-                          content: state.saved!.oneShiftNextWeek,
-                        ),
-                      ],
-                    ] else ...[
-                      Text(
-                        "You haven't provide this week's review.",
-                        style: AppTextStyles.bodyMD.copyWith(
-                          color: AppColors.bodyText,
+                      )
+                    else
+                      ...state.history.map(
+                        (review) => Padding(
+                          padding: EdgeInsets.only(bottom: ScreenUtils.vMd),
+                          child: _ReviewHistoryCard(review: review),
                         ),
                       ),
-                    ],
-
-                    SizedBox(height: ScreenUtils.vXl),
-                    Text(
-                      'Review History',
-                      style: AppTextStyles.labelLG.copyWith(
-                        color: AppColors.headingText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-
-                    if (state.history.isNotEmpty) ...state.history.map(
-                      (review) => Padding(
-                        padding: EdgeInsets.only(bottom: ScreenUtils.vSm),
-                        child: _ReviewEntryCard(
-                          label: review.createdAt == null
-                              ? 'Review'
-                              : 'Review • ${review.createdAt!.day}/${review.createdAt!.month}/${review.createdAt!.year}',
-                          content: review.biggestWin.isNotEmpty
-                              ? review.biggestWin
-                              : review.oneShiftNextWeek,
-                        ),
-                      ),
-                    ) else
-                      SizedBox(height: ScreenUtils.vXl),
                   ],
                 ),
               ),
@@ -246,6 +187,125 @@ class _WeeklyReviewListScreen extends ConsumerWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEW HISTORY CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ReviewHistoryCard extends StatelessWidget {
+  final WeeklyReviewData review;
+
+  const _ReviewHistoryCard({required this.review});
+
+  String get _dateLabel {
+    if (review.createdAt == null) return 'Review';
+    final d = review.createdAt!;
+    return '${d.day}/${d.month}/${d.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Date label ──────────────────────────────────────────────────────
+        Text(
+          _dateLabel,
+          style: AppTextStyles.labelMD.copyWith(
+            color: AppColors.headingText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+        SizedBox(height: ScreenUtils.vSm),
+
+        // ── Card container ──────────────────────────────────────────────────
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.secondarySurface,
+            borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          ),
+          padding: EdgeInsets.all(ScreenUtils.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Biggest Win
+              if (review.biggestWin.isNotEmpty) ...[
+                _ReviewAttributeRow(
+                  label: 'Biggest Win',
+                  content: review.biggestWin,
+                ),
+              ],
+
+              // Biggest Miss
+              if (review.biggestMiss.isNotEmpty) ...[
+                SizedBox(height: ScreenUtils.vSm),
+                _ReviewAttributeRow(
+                  label: 'Biggest Miss',
+                  content: review.biggestMiss,
+                ),
+              ],
+
+              // Cause of Drift
+              if (review.causeOfDrift.isNotEmpty) ...[
+                SizedBox(height: ScreenUtils.vSm),
+                _ReviewAttributeRow(
+                  label: 'Cause of Drift',
+                  content: review.causeOfDrift,
+                ),
+              ],
+
+              // One Shift for Next Week
+              if (review.oneShiftNextWeek.isNotEmpty) ...[
+                SizedBox(height: ScreenUtils.vSm),
+                _ReviewAttributeRow(
+                  label: 'One Shift for Next Week',
+                  content: review.oneShiftNextWeek,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEW ATTRIBUTE ROW
+// A single label + content pair rendered inside the history card.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ReviewAttributeRow extends StatelessWidget {
+  final String label;
+  final String content;
+
+  const _ReviewAttributeRow({required this.label, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: ScreenUtils.vXs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.labelSM.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            content,
+            style: AppTextStyles.bodyMD.copyWith(color: AppColors.headingText),
+          ),
+        ],
+      ),
+    );
+  }
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // 2 ── ADD REVIEW SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
