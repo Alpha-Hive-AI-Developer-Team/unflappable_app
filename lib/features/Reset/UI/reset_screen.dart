@@ -1,16 +1,48 @@
 import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Provider/reset_provider.dart';
+import 'package:unflappable/features/Reset/Provider/reset_state.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
-class ResetScreen extends ConsumerWidget {
+class ResetScreen extends ConsumerStatefulWidget {
   const ResetScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ResetScreen> createState() => _ResetScreenState();
+}
+
+class _ResetScreenState extends ConsumerState<ResetScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(resetProvider.notifier).loadInitial();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(resetProvider.notifier).loadInitial(silent: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final resetState = ref.watch(resetProvider);
     final userState = ref.watch(userProvider);
 
@@ -28,12 +60,8 @@ class ResetScreen extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Body
-// ---------------------------------------------------------------------------
-
 class _ResetHomeBody extends ConsumerWidget {
-  final dynamic resetState;
+  final ResetState resetState;
   final bool isPro;
 
   const _ResetHomeBody({required this.resetState, required this.isPro});
@@ -48,26 +76,23 @@ class _ResetHomeBody extends ConsumerWidget {
           subtitle: 'Clear your mind and regain focus.',
         ),
         SizedBox(height: ScreenUtils.vMd),
-
-        // Gradient Run Reset Card
         _RunResetCard(resetState: resetState, isPro: isPro),
         SizedBox(height: ScreenUtils.vMd),
-
-        // Upgrade Banner
-        !isPro ? _UpgradeBanner() : SizedBox.shrink(),
-
-        // Reset History Section
-        if (resetState.totalReset > 0) ...[
-          Padding(
-            padding: EdgeInsets.only(top: ScreenUtils.vLg),
-            child: Text(
-              'Reset History',
-              style: AppTextStyles.headingSM.copyWith(
-                color: AppColors.headingText,
-              ),
+        if (!isPro) _UpgradeBanner(),
+        Padding(
+          padding: EdgeInsets.only(top: ScreenUtils.vLg),
+          child: Text(
+            'Reset History',
+            style: AppTextStyles.headingSM.copyWith(
+              color: AppColors.headingText,
             ),
           ),
-          SizedBox(height: ScreenUtils.vMd),
+        ),
+        SizedBox(height: ScreenUtils.vMd),
+        if (resetState.status == ResetStatus.loading &&
+            resetState.resetHistory.isEmpty) ...[
+          const Expanded(child: Center(child: CircularProgressIndicator())),
+        ] else ...[
           _ResetHistoryList(resetState: resetState, isPro: isPro),
         ],
       ],
@@ -75,12 +100,8 @@ class _ResetHomeBody extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Run Reset Gradient Card
-// ---------------------------------------------------------------------------
-
 class _RunResetCard extends ConsumerWidget {
-  final dynamic resetState;
+  final ResetState resetState;
   final bool isPro;
 
   const _RunResetCard({required this.resetState, required this.isPro});
@@ -89,7 +110,14 @@ class _RunResetCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        if (!resetState.hasResetsLeft && !isPro) return;
+        if (!resetState.hasResetsLeft && !isPro) {
+          AppSnackbar.showError(
+            context,
+            message:
+                'You have used your free reset for today. If you want more resets, continue to premium.',
+          );
+          return;
+        }
         context.push(AppRoutes.resetTrigger);
       },
       child: Container(
@@ -121,7 +149,6 @@ class _RunResetCard extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Refresh icon circle
             Container(
               padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
@@ -148,7 +175,9 @@ class _RunResetCard extends ConsumerWidget {
             ),
             SizedBox(height: 4.h),
             Text(
-              '${resetState.resetsUsedToday} resets used today',
+              resetState.status == ResetStatus.loading
+                  ? 'Loading...'
+                  : '${resetState.resetsUsedToday} resets used today',
               style: AppTextStyles.bodyMD.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
@@ -156,7 +185,7 @@ class _RunResetCard extends ConsumerWidget {
             ),
             Text(
               isPro
-                  ? 'Pro plan — unlimited resets'
+                  ? 'Pro plan - unlimited resets'
                   : 'Free plan includes ${resetState.dailyResetLimit} reset per day.',
               style: AppTextStyles.bodyMD.copyWith(
                 color: Colors.white,
@@ -169,10 +198,6 @@ class _RunResetCard extends ConsumerWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Upgrade Banner
-// ---------------------------------------------------------------------------
 
 class _UpgradeBanner extends StatelessWidget {
   @override
@@ -234,12 +259,8 @@ class _UpgradeBanner extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Reset History List
-// ---------------------------------------------------------------------------
-
 class _ResetHistoryList extends StatelessWidget {
-  final dynamic resetState;
+  final ResetState resetState;
   final bool isPro;
 
   const _ResetHistoryList({required this.resetState, required this.isPro});
@@ -247,78 +268,86 @@ class _ResetHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (resetState.resetHistory.isEmpty) {
-      return SizedBox.shrink();
+      return Expanded(
+        child: Center(
+          child: Text(
+            resetState.status == ResetStatus.error
+                ? resetState.errorMessage ?? 'Unable to load reset history.'
+                : 'No reset history yet.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMD.copyWith(color: AppColors.bodyText),
+          ),
+        ),
+      );
     }
 
-    return SingleChildScrollView(
-      child: ClipRect(
-        child: Stack(
-          children: [
-            Column(
-              children: resetState.resetHistory
-                  .map<Widget>(
-                    (item) => Padding(
-                      padding: EdgeInsets.only(bottom: ScreenUtils.vMd),
-                      child: _ResetHistoryCard(item: item),
+    return Expanded(
+      child: SingleChildScrollView(
+        child: ClipRect(
+          child: Stack(
+            children: [
+              Column(
+                children: resetState.resetHistory
+                    .map<Widget>(
+                      (item) => Padding(
+                        padding: EdgeInsets.only(bottom: ScreenUtils.vMd),
+                        child: _ResetHistoryCard(item: item),
+                      ),
+                    )
+                    .toList(),
+              ),
+              if (!isPro) ...[
+                Positioned.fill(
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                      child: Container(color: Colors.black.withOpacity(0.03)),
                     ),
-                  )
-                  .toList(),
-            ),
-            if (!isPro) ...[
-              Positioned.fill(
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                    child: Container(color: Colors.black.withOpacity(0.03)),
                   ),
                 ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 77.w),
-                padding: EdgeInsets.symmetric(vertical: 24.h),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(lock, width: 38.w, height: 38.h),
-                      SizedBox(height: 5.h),
-                      Text(
-                        'History Locked',
-                        style: AppTextStyles.bodyLG.copyWith(
-                          color: AppColors.labelText,
-                          fontWeight: FontWeight.w700,
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 77.w),
+                  padding: EdgeInsets.symmetric(vertical: 24.h),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(lock, width: 38.w, height: 38.h),
+                        SizedBox(height: 5.h),
+                        Text(
+                          'History Locked',
+                          style: AppTextStyles.bodyLG.copyWith(
+                            color: AppColors.labelText,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Upgrade to Pro to view your past\nresets and insights',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMD.copyWith(
-                          color: AppColors.labelText,
+                        Text(
+                          'Upgrade to Pro to view your past\nresets and insights',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMD.copyWith(
+                            color: AppColors.labelText,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 18.h),
-                      PrimaryButton(
-                        label: 'Unlock History',
-                        isLoading: false,
-                        onTap: () {
-                          context.push(AppRoutes.pricing);
-                        },
-                      ),
-                    ],
+                        SizedBox(height: 18.h),
+                        PrimaryButton(
+                          label: 'Unlock History',
+                          isLoading: false,
+                          onTap: () {
+                            context.push(AppRoutes.pricing);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Reset History Card
-// ---------------------------------------------------------------------------
 
 class _ResetHistoryCard extends StatelessWidget {
   final dynamic item;
@@ -338,7 +367,6 @@ class _ResetHistoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header: Trigger & Time ──────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -376,17 +404,12 @@ class _ResetHistoryCard extends StatelessWidget {
               ),
             ],
           ),
-
           SizedBox(height: ScreenUtils.vLg),
-
-          // ── Emotions ──────────────────────────────────────────────────────
           Text(
             item.trigger,
             style: AppTextStyles.labelLG.copyWith(color: AppColors.headingText),
           ),
           SizedBox(height: ScreenUtils.vLg),
-
-          // ── Reframe Text ──────────────────────────────────────────────────
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),

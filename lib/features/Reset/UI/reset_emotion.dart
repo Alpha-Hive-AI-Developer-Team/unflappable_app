@@ -24,6 +24,12 @@ class ResetEmotionScreen extends ConsumerWidget {
     final notifier = ref.read(resetProvider.notifier);
     final isLoading = state.status == ResetStatus.loading;
 
+    // FIX: showLimitError is now handled on ResetScreen (the screen the user
+    // is on when they tap "Run Reset"). By the time they reach the emotion
+    // screen they have already been granted a reset, so there is no need to
+    // handle the limit error here. Removing it avoids a race condition where
+    // the flag is still true from a previous navigation cycle.
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -52,7 +58,6 @@ class ResetEmotionScreen extends ConsumerWidget {
                         SizedBox(height: ScreenUtils.vLg),
 
                         // ── Emotion Chips ─────────────────────────────────────
-                        // TODO: Replace `state.emotions` with API-fetched list
                         _EmotionChipsGrid(
                           emotions: state.emotions,
                           selectedEmotions: state.selectedEmotions,
@@ -102,7 +107,6 @@ class ResetEmotionScreen extends ConsumerWidget {
                   state: state,
                   onBackToHome: () {
                     ref.read(resetProvider.notifier).resetFlow();
-                    // Pop all the way back to home
                     context.go(AppRoutes.home);
                   },
                 ),
@@ -181,7 +185,7 @@ class _EmotionChip extends StatelessWidget {
               color: Colors.black.withOpacity(0.05),
               blurRadius: 2,
               spreadRadius: 1,
-              offset: Offset(0, 3), // x, y
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -195,6 +199,7 @@ class _EmotionChip extends StatelessWidget {
     );
   }
 }
+
 // ---------------------------------------------------------------------------
 // Reset Complete Card
 // ---------------------------------------------------------------------------

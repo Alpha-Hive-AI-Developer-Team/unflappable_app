@@ -8,6 +8,7 @@ part 'progress_endpoints.dart';
 part 'settings_endpoints.dart';
 part 'weekly_review_endpoints.dart';
 part 'reset_endpoints.dart';
+part 'notification_endpoints.dart';
 
 abstract final class EndPoints {
   static const String baseUrl = String.fromEnvironment(
@@ -21,4 +22,5 @@ abstract final class EndPoints {
   static _Settings get settings => _Settings(apiBaseUrl: baseUrl);
   static _WeeklyReview get weeklyReview => _WeeklyReview(apiBaseUrl: baseUrl);
   static _Reset get reset => _Reset(apiBaseUrl: baseUrl);
+  static _Notifications get notifications => _Notifications(apiBaseUrl: baseUrl);
 }

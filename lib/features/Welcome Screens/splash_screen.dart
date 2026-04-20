@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
+import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash-provider/splash_notifier.dart';
 
@@ -22,7 +23,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     Future.microtask(() {
       ref.read(splashProvider.notifier).navigateNext(() {
-        context.go(AppRoutes.welcome);
+        final isLoggedIn = LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty == true;
+        if (isLoggedIn) {
+          context.go(AppRoutes.home);
+        } else {
+          context.go(AppRoutes.welcome);
+        }
       });
     });
   }

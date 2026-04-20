@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
 import 'package:unflappable/service/auth_service.dart';
@@ -125,7 +126,10 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final token = _extractAuthToken(response.data);
-        if (token != null) await LocalStorage.saveData(LocalStorage.accessToken, token);
+        if (token != null) {
+          await LocalStorage.saveData(LocalStorage.accessToken, token);
+          await NotificationManager.registerDeviceToken();
+        }
         state = state.copyWith(status: SignUpStatus.success);
       } else {
         final errorMessage = _extractMessage(response) ??

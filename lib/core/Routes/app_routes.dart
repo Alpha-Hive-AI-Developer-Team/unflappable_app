@@ -19,7 +19,7 @@ import 'package:unflappable/features/Setting/UI/setting_screen.dart';
 import 'package:unflappable/features/Weekly%20Review/UI/review_screen.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 import 'package:unflappable/features/Home/UI/new_mission.dart';
-import 'package:unflappable/features/Home/UI/notification.dart';
+import 'package:unflappable/features/Notifications/UI/notifications_screen.dart';
 import 'package:unflappable/features/Onboarding/UI/onboarding_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_trigger.dart';

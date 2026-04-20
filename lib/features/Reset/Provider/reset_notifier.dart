@@ -1,21 +1,69 @@
 import 'package:dio/dio.dart';
-import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Models/reset_history_item.dart';
 import 'package:unflappable/features/Reset/Provider/reset_state.dart';
 import 'package:unflappable/service/reset_service.dart';
 
 class ResetNotifier extends StateNotifier<ResetState> {
-  ResetNotifier() : super(const ResetState()) {
+  final Ref _ref;
+
+  bool get _isPro => _ref.read(userProvider).isPro;
+
+  ResetNotifier({required Ref ref}) : _ref = ref, super(const ResetState()) {
     loadInitial();
   }
 
-  // ── Trigger ──────────────────────────────────────────────────────────────
+  static const _resetsUsedTodayKeys = [
+    'resetsUsedToday',
+    'resets_used_today',
+    'resetUsedToday',
+    'reset_used_today',
+    'usedToday',
+    'used_today',
+    'usedResetToday',
+    'used_reset_today',
+    'todayUsedReset',
+    'today_used_reset',
+    'usedResetCount',
+    'used_reset_count',
+    'todayUsedResetCount',
+    'today_used_reset_count',
+    'resetsToday',
+    'resets_today',
+    'todayResets',
+    'today_resets',
+    'resetCountToday',
+    'reset_count_today',
+  ];
+
+  static const _dailyLimitKeys = [
+    'dailyLimit',
+    'daily_limit',
+    'dailyResetLimit',
+    'daily_reset_limit',
+    'limit',
+  ];
+
+  static const _totalResetKeys = [
+    'totalReset',
+    'total_reset',
+    'totalResets',
+    'total_resets',
+    'total',
+    'totalResets',
+    'total_resets',
+    'resets_total',
+  ];
+
+  // ── Trigger ───────────────────────────────────────────────────────────────
 
   void setTrigger(String value) {
     state = state.copyWith(trigger: value);
   }
 
-  // ── Emotions ─────────────────────────────────────────────────────────────
+  // ── Emotions ──────────────────────────────────────────────────────────────
 
   void toggleEmotion(String emotion) {
     final current = List<String>.from(state.selectedEmotions);
@@ -27,44 +75,54 @@ class ResetNotifier extends StateNotifier<ResetState> {
     state = state.copyWith(selectedEmotions: current);
   }
 
-  Future<void> loadInitial() async {
+  // ── Load Initial ──────────────────────────────────────────────────────────
+  // FIX: This is now the single source of truth for resetsUsedToday,
+  // dailyResetLimit, totalReset, and resetHistory. It always overwrites
+  // state with values from the API, so re-opening the app always reflects
+  // the backend's reality rather than an in-memory counter that resets to 0.
+
+  Future<void> loadInitial({bool silent = false}) async {
     if (state.status == ResetStatus.loading) return;
 
-    state = state.copyWith(status: ResetStatus.loading, errorMessage: null);
+    if (!silent) {
+      state = state.copyWith(status: ResetStatus.loading, errorMessage: null);
+    } else {
+      state = state.copyWith(errorMessage: null);
+    }
 
     try {
       final landingResponse = await ResetService.getLanding();
-      final historyResponse = await ResetService.getHistory(page: 1, limit: 20);
+      final landingData = landingResponse.data;
+      final historyData = await _fetchHistoryDataSafely();
+      final landingPayload = _extractPrimaryPayload(landingData);
+      final historyItems = _extractHistoryItems(
+        historyData,
+        landingData,
+      );
 
-      final landingPayload = _extractPayload(landingResponse.data);
-      final historyItems = _extractList(
-        historyResponse.data,
-      ).map(ResetHistoryItem.fromJson).toList();
+      // FIX: Always pull counts from the API response. Never fall back to the
+      // in-memory state value — that's what caused the "shows 1, then 0 on
+      // restart" bug. If the API doesn't return a field, default to 0 / 1.
+      final int resetsUsedToday =
+          _extractInt(landingPayload, _resetsUsedTodayKeys) ??
+          _extractInt(landingData, _resetsUsedTodayKeys) ??
+          _extractInt(historyData, _resetsUsedTodayKeys) ??
+          0;
+      final int dailyLimit =
+          _extractInt(landingPayload, _dailyLimitKeys) ??
+          _extractInt(landingData, _dailyLimitKeys) ??
+          1;
+      final int totalResets =
+          _extractInt(landingPayload, _totalResetKeys) ??
+          _extractInt(landingData, _totalResetKeys) ??
+          _extractInt(historyData, _totalResetKeys) ??
+          historyItems.length;
 
       state = state.copyWith(
         status: ResetStatus.initial,
-        emotions: _extractEmotions(landingPayload) ?? state.emotions,
-        resetsUsedToday:
-            _extractInt(landingPayload, [
-              'resetsUsedToday',
-              'resets_used_today',
-              'usedToday',
-            ]) ??
-            state.resetsUsedToday,
-        dailyResetLimit:
-            _extractInt(landingPayload, [
-              'dailyResetLimit',
-              'daily_reset_limit',
-              'limit',
-            ]) ??
-            state.dailyResetLimit,
-        totalReset:
-            _extractInt(landingPayload, [
-              'totalReset',
-              'total_reset',
-              'total',
-            ]) ??
-            historyItems.length,
+        resetsUsedToday: resetsUsedToday,
+        dailyResetLimit: dailyLimit,
+        totalReset: totalResets,
         resetHistory: historyItems,
         errorMessage: null,
       );
@@ -76,16 +134,27 @@ class ResetNotifier extends StateNotifier<ResetState> {
           fallback: 'Unable to load reset history.',
         ),
       );
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         status: ResetStatus.error,
-        errorMessage: 'Unable to load reset history.',
+        errorMessage: 'Unable to load reset history. $e',
       );
     }
   }
 
+  // ── Run Reset ─────────────────────────────────────────────────────────────
+  // FIX: Guard is now purely API-driven. After a successful reset the state is
+  // updated from the server response (or by incrementing if the server doesn't
+  // return updated counts), then _refreshLanding() is called to sync the
+  // authoritative count back from the backend.
+
   Future<void> runReset() async {
-    if (!state.hasResetsLeft) return;
+    // FIX: Check limit before proceeding. Set showLimitError so the UI can
+    // display the snackbar, but do NOT navigate forward.
+    if (!state.hasResetsLeft) {
+      state = state.copyWith(showLimitError: true);
+      return;
+    }
 
     state = state.copyWith(status: ResetStatus.loading, errorMessage: null);
 
@@ -95,86 +164,105 @@ class ResetNotifier extends StateNotifier<ResetState> {
         feeling: feeling,
         trigger: state.trigger ?? '',
       );
-      final payload = _extractPayload(response.data);
-      final historyItems = _extractList(
-        response.data,
-      ).map(ResetHistoryItem.fromJson).toList();
+
+      final responseData = response.data;
+      final payload = _extractPrimaryPayload(responseData);
+
+      final String? reframeText = _extractString(payload, [
+        'reframeText',
+        'reframe',
+        'reframe_text',
+      ]);
+      final String? nextActionText = _extractString(payload, [
+        'nextActionText',
+        'nextAction',
+        'next_action',
+      ]);
+
+      // FIX: Prefer server-returned counts. Fall back to incrementing the
+      // current state value (not zero) so the UI stays consistent even when
+      // the reset endpoint doesn't echo back usage counts.
+      final int? serverResetsUsedToday = _extractInt(
+        payload,
+        _resetsUsedTodayKeys,
+      ) ??
+          _extractInt(responseData, _resetsUsedTodayKeys);
+      final int? serverTotalReset = _extractInt(payload, _totalResetKeys);
 
       state = state.copyWith(
         status: ResetStatus.success,
-        reframeText:
-            _extractString(payload, [
-              'reframeText',
-              'reframe',
-              'reframe_text',
-            ]) ??
-            state.reframeText,
-        nextActionText:
-            _extractString(payload, [
-              'nextActionText',
-              'nextAction',
-              'next_action',
-            ]) ??
-            state.nextActionText,
-        resetsUsedToday: state.resetsUsedToday + 1,
-        totalReset: state.totalReset + 1,
-        resetHistory: historyItems.isNotEmpty
-            ? historyItems
-            : [
-                ResetHistoryItem(
-                  trigger: state.trigger ?? 'Unknown',
-                  emotions: List<String>.from(state.selectedEmotions),
-                  reframeText:
-                      _extractString(payload, [
-                        'reframeText',
-                        'reframe',
-                        'reframe_text',
-                      ]) ??
-                      '',
-                  nextActionText:
-                      _extractString(payload, [
-                        'nextActionText',
-                        'nextAction',
-                        'next_action',
-                      ]) ??
-                      '',
-                  timestamp: DateTime.now(),
-                ),
-                ...state.resetHistory,
-              ],
+        reframeText: reframeText ?? state.reframeText,
+        nextActionText: nextActionText ?? state.nextActionText,
+        resetsUsedToday: serverResetsUsedToday ?? state.resetsUsedToday + 1,
+        totalReset: serverTotalReset ?? state.totalReset + 1,
       );
 
-      await _refreshHistory();
+      // FIX: After a successful reset, re-fetch the landing data so that
+      // resetsUsedToday is authoritative from the server on the next render.
+      // This also refreshes the history list.
+      await _refreshLanding();
     } on DioException catch (e) {
       state = state.copyWith(
         status: ResetStatus.error,
         errorMessage: _dioErrorMessage(e, fallback: 'Unable to run reset.'),
       );
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         status: ResetStatus.error,
-        errorMessage: 'Unable to run reset.',
+        errorMessage: 'Unable to run reset. $e',
       );
     }
   }
 
-  Future<void> _refreshHistory() async {
-    try {
-      final historyResponse = await ResetService.getHistory(page: 1, limit: 20);
-      final historyItems = _extractList(
-        historyResponse.data,
-      ).map(ResetHistoryItem.fromJson).toList();
+  // ── Refresh Landing ───────────────────────────────────────────────────────
+  // FIX: Replaces the old _refreshHistory(). Re-fetches both the landing
+  // endpoint (for accurate resetsUsedToday / dailyLimit counts) and the
+  // history endpoint. This ensures that after a reset completes, and every
+  // time the screen is revisited, the count the user sees matches the backend.
 
+  Future<void> _refreshLanding() async {
+    try {
+      final landingResponse = await ResetService.getLanding();
+      final landingData = landingResponse.data;
+      final historyData = await _fetchHistoryDataSafely();
+      final landingPayload = _extractPrimaryPayload(landingData);
+      final historyItems = _extractHistoryItems(
+        historyData,
+        landingData,
+      );
+
+      final int resetsUsedToday =
+          _extractInt(landingPayload, _resetsUsedTodayKeys) ??
+          _extractInt(landingData, _resetsUsedTodayKeys) ??
+          _extractInt(historyData, _resetsUsedTodayKeys) ??
+          state.resetsUsedToday;
+      final int dailyLimit =
+          _extractInt(landingPayload, _dailyLimitKeys) ??
+          _extractInt(landingData, _dailyLimitKeys) ??
+          state.dailyResetLimit;
+      final int totalResets =
+          _extractInt(landingPayload, _totalResetKeys) ??
+          _extractInt(landingData, _totalResetKeys) ??
+          _extractInt(historyData, _totalResetKeys) ??
+          historyItems.length;
+
+      // FIX: Preserve the current status (success) when refreshing — only
+      // update the data fields so the success overlay stays visible.
       state = state.copyWith(
+        resetsUsedToday: resetsUsedToday,
+        dailyResetLimit: dailyLimit,
+        totalReset: totalResets,
         resetHistory: historyItems,
-        totalReset: historyItems.length,
       );
     } catch (_) {
-      // Keep existing history if refresh fails.
+      // If the refresh fails, keep whatever state we already have. The
+      // optimistic increment in runReset() is already applied.
     }
   }
 
-  // ── Reset flow back to initial ────────────────────────────────────────────
+  // ── Reset Flow ────────────────────────────────────────────────────────────
+  // Clears per-session fields (trigger, emotions, result) while preserving
+  // the API-sourced counters and history.
 
   void resetFlow() {
     state = ResetState(
@@ -186,32 +274,67 @@ class ResetNotifier extends StateNotifier<ResetState> {
     );
   }
 
-  void clearError() {
-    state = state.copyWith(status: ResetStatus.initial, errorMessage: null);
+  void clearLimitError() {
+    state = state.copyWith(showLimitError: false);
   }
 
-  Map<String, dynamic> _extractPayload(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      if (data['data'] is Map<String, dynamic>) {
-        return Map<String, dynamic>.from(data['data'] as Map);
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  int? _extractInt(dynamic data, List<String> keys) {
+    if (data is Map) {
+      final raw = Map<String, dynamic>.from(data);
+      final normalizedKeys = keys.map(_normalizeKey).toSet();
+      for (final entry in raw.entries) {
+        if (!normalizedKeys.contains(_normalizeKey(entry.key))) continue;
+        final value = entry.value;
+        if (value is int) return value;
+        if (value is num) return value.toInt();
+        if (value is String) {
+          final parsed = int.tryParse(value);
+          if (parsed != null) return parsed;
+        }
       }
-      return Map<String, dynamic>.from(data);
+      for (final nestedValue in raw.values) {
+        final nestedInt = _extractInt(nestedValue, keys);
+        if (nestedInt != null) return nestedInt;
+      }
+    } else if (data is List) {
+      for (final item in data) {
+        final nestedInt = _extractInt(item, keys);
+        if (nestedInt != null) return nestedInt;
+      }
     }
-    return <String, dynamic>{};
+    return null;
   }
 
   List<Map<String, dynamic>> _extractList(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      final payload = data['data'];
+    if (data is List) {
+      return data
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    if (data is Map) {
+      final outer = Map<String, dynamic>.from(data);
+      final payload = outer['data'];
       if (payload is List) {
         return payload
             .whereType<Map>()
             .map((item) => Map<String, dynamic>.from(item))
             .toList();
       }
-      if (payload is Map<String, dynamic>) {
+      if (payload is Map) {
+        final inner = Map<String, dynamic>.from(payload);
         final items =
-            payload['items'] ?? payload['history'] ?? payload['resets'];
+            inner['items'] ??
+            inner['history'] ??
+            inner['historyPreview'] ??
+            inner['history_preview'] ??
+            inner['recentHistory'] ??
+            inner['recent_history'] ??
+            inner['recentResets'] ??
+            inner['recent_resets'] ??
+            inner['resets'];
         if (items is List) {
           return items
               .whereType<Map>()
@@ -219,59 +342,91 @@ class ResetNotifier extends StateNotifier<ResetState> {
               .toList();
         }
       }
+      final items =
+          outer['items'] ??
+          outer['history'] ??
+          outer['historyPreview'] ??
+          outer['history_preview'] ??
+          outer['recentHistory'] ??
+          outer['recent_history'] ??
+          outer['recentResets'] ??
+          outer['recent_resets'] ??
+          outer['resets'];
+      if (items is List) {
+        return items
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
     }
     return const [];
   }
 
   String? _extractString(Map<String, dynamic> data, List<String> keys) {
-    for (final key in keys) {
-      final value = data[key];
-      if (value is String && value.isNotEmpty) {
-        return value;
-      }
+    final normalizedKeys = keys.map(_normalizeKey).toSet();
+    for (final entry in data.entries) {
+      if (!normalizedKeys.contains(_normalizeKey(entry.key))) continue;
+      final value = entry.value;
+      if (value is String && value.isNotEmpty) return value;
     }
     return null;
   }
 
-  int? _extractInt(Map<String, dynamic> data, List<String> keys) {
-    for (final key in keys) {
-      final value = data[key];
-      if (value is int) {
-        return value;
-      }
-      if (value is String) {
-        final parsed = int.tryParse(value);
-        if (parsed != null) {
-          return parsed;
+  Map<String, dynamic> _extractPrimaryPayload(dynamic data) {
+    if (data is! Map) return <String, dynamic>{};
+    final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
+    final nestedData = outer['data'];
+    if (nestedData is Map) {
+      final payload = Map<String, dynamic>.from(nestedData.cast<String, dynamic>());
+      for (final key in const ['summary', 'stats', 'usage', 'counts']) {
+        final nested = payload[key];
+        if (nested is Map) {
+          return {
+            ...payload,
+            ...Map<String, dynamic>.from(nested.cast<String, dynamic>()),
+          };
         }
       }
+      return payload;
     }
-    return null;
+    return outer;
   }
 
-  List<String>? _extractEmotions(Map<String, dynamic> data) {
-    final emotionsValue = data['emotions'] ?? data['feelings'];
-    if (emotionsValue == null) return null;
-    if (emotionsValue is List) {
-      return emotionsValue.whereType<String>().toList();
+  Future<dynamic> _fetchHistoryDataSafely() async {
+    try {
+      final historyResponse = _isPro
+          ? await ResetService.getHistory(page: 1, limit: 20)
+          : await ResetService.getHistory();
+      return historyResponse.data;
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403 || statusCode == 404) {
+        return null;
+      }
+      rethrow;
     }
-    if (emotionsValue is String) {
-      return emotionsValue
-          .split(',')
-          .map((item) => item.trim())
-          .where((item) => item.isNotEmpty)
-          .toList();
-    }
-    return null;
   }
+
+  List<ResetHistoryItem> _extractHistoryItems(
+    dynamic primarySource,
+    dynamic fallbackSource,
+  ) {
+    final primaryList = _extractList(primarySource);
+    if (primaryList.isNotEmpty) {
+      return primaryList.map(ResetHistoryItem.fromJson).toList();
+    }
+    final fallbackList = _extractList(fallbackSource);
+    return fallbackList.map(ResetHistoryItem.fromJson).toList();
+  }
+
+  String _normalizeKey(String value) =>
+      value.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toLowerCase();
 
   String _dioErrorMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
       final message = data['message'];
-      if (message is String && message.trim().isNotEmpty) {
-        return message;
-      }
+      if (message is String && message.trim().isNotEmpty) return message;
     }
     return fallback;
   }

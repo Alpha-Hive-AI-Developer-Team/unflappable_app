@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_state.dart';
 import 'package:unflappable/service/auth_service.dart';
@@ -62,6 +63,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
+          await NotificationManager.registerDeviceToken();
           return token;
         }
         return null;

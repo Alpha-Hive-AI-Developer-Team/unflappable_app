@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 import 'package:unflappable/service/auth_service.dart';
@@ -81,6 +82,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
+          await NotificationManager.registerDeviceToken();
         }
         state = state.copyWith(status: LoginStatus.success);
       } else {

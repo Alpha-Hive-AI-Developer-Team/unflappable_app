@@ -92,10 +92,7 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
         oneShiftForNextWeek: state.draft.oneShiftNextWeek,
       );
       await loadInitial(force: true);
-      state = state.copyWith(
-        isLoading: false,
-        showAddScreen: false,
-      );
+      state = state.copyWith(isLoading: false, showAddScreen: false);
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -129,7 +126,8 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
             .toList();
       }
       if (payload is Map<String, dynamic>) {
-        final items = payload['items'] ?? payload['history'] ?? payload['reviews'];
+        final items =
+            payload['items'] ?? payload['history'] ?? payload['reviews'];
         if (items is List) {
           return items
               .whereType<Map>()
@@ -156,7 +154,9 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
         final review = WeeklyReviewData.fromJson(candidate);
         if (review.hasAnyEntry) return review;
       } else if (candidate is Map) {
-        final review = WeeklyReviewData.fromJson(Map<String, dynamic>.from(candidate));
+        final review = WeeklyReviewData.fromJson(
+          Map<String, dynamic>.from(candidate),
+        );
         if (review.hasAnyEntry) return review;
       }
     }

@@ -18,13 +18,16 @@ class HomeNotifier extends StateNotifier<HomeState> {
     try {
       final homeResponse = await HomeService.getHome();
       final progressResponse = await ProgressService.getProgress();
-      final homePayload = _extractPayload(homeResponse.data);
+      _extractPayload(homeResponse.data);
       final progressPayload = _extractPayload(progressResponse.data);
       final todayMissionResult = await _fetchTodayMissionResult();
       final streakPayload = _readMap(progressPayload, 'streak');
       final missionsPayload = _readMap(progressPayload, 'missions');
       final performancePayload = _readMap(progressPayload, 'performanceStats');
-      final taskCompletionPayload = _readMap(performancePayload, 'taskCompletion');
+      final taskCompletionPayload = _readMap(
+        performancePayload,
+        'taskCompletion',
+      );
       final totalResetsPayload = _readMap(performancePayload, 'totalResets');
 
       state = state.copyWith(
@@ -34,34 +37,24 @@ class HomeNotifier extends StateNotifier<HomeState> {
         totalTasks: _readTaskTotal(taskCompletionPayload),
         completedTasks: _readCompletedTasks(taskCompletionPayload),
         totalResets: _readInt(totalResetsPayload, const ['count']),
-        taskCompletionLabel: _readString(
-          taskCompletionPayload,
-          const ['label'],
-          fallback: state.taskCompletionLabel,
-        ),
-        taskCompletionSubtitle: _readString(
-          taskCompletionPayload,
-          const ['subtitle'],
-          fallback: state.taskCompletionSubtitle,
-        ),
-        taskCompletionPercentage: _readPercentage(
-          taskCompletionPayload,
-          const ['percentage'],
-        ),
-        totalResetsLabel: _readString(
-          totalResetsPayload,
-          const ['label'],
-          fallback: state.totalResetsLabel,
-        ),
-        totalResetsSubtitle: _readString(
-          totalResetsPayload,
-          const ['subtitle'],
-          fallback: state.totalResetsSubtitle,
-        ),
-        totalResetsPercentage: _readPercentage(
-          totalResetsPayload,
-          const ['percentage'],
-        ),
+        taskCompletionLabel: _readString(taskCompletionPayload, const [
+          'label',
+        ], fallback: state.taskCompletionLabel),
+        taskCompletionSubtitle: _readString(taskCompletionPayload, const [
+          'subtitle',
+        ], fallback: state.taskCompletionSubtitle),
+        taskCompletionPercentage: _readPercentage(taskCompletionPayload, const [
+          'percentage',
+        ]),
+        totalResetsLabel: _readString(totalResetsPayload, const [
+          'label',
+        ], fallback: state.totalResetsLabel),
+        totalResetsSubtitle: _readString(totalResetsPayload, const [
+          'subtitle',
+        ], fallback: state.totalResetsSubtitle),
+        totalResetsPercentage: _readPercentage(totalResetsPayload, const [
+          'percentage',
+        ]),
         activeMission: todayMissionResult.found
             ? todayMissionResult.mission
             : null,
@@ -102,7 +95,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
     } on DioException catch (e) {
       state = state.copyWith(
         isCreatingMission: false,
-        errorMessage: _dioErrorMessage(e, fallback: 'Unable to create mission.'),
+        errorMessage: _dioErrorMessage(
+          e,
+          fallback: 'Unable to create mission.',
+        ),
       );
       rethrow;
     } catch (_) {
@@ -134,10 +130,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
             .take(mission.tasks.length - 1)
             .every((previousTask) => previousTask.isCompleted);
 
-    state = state.copyWith(
-      clearError: true,
-      activeTaskId: taskId,
-    );
+    state = state.copyWith(clearError: true, activeTaskId: taskId);
 
     try {
       await HomeService.completeTask(missionId: mission.id, taskId: taskId);
@@ -341,8 +334,5 @@ class _TodayMissionResult {
   final bool found;
   final Mission? mission;
 
-  const _TodayMissionResult({
-    required this.found,
-    this.mission,
-  });
+  const _TodayMissionResult({required this.found, this.mission});
 }

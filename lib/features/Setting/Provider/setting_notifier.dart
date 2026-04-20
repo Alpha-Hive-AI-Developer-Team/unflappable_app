@@ -1,6 +1,7 @@
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Setting/Model/setting_model.dart';
 import 'package:unflappable/features/Setting/Provider/setting_state.dart';
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/service/settings_service.dart';
 import 'package:dio/dio.dart';
@@ -28,7 +29,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       };
 
       final nextAccount = AccountDraft(
-        fullName: _readString(merged, ['fullName', 'name']) ?? state.accountDraft.fullName,
+        fullName:
+            _readString(merged, ['fullName', 'name']) ??
+            state.accountDraft.fullName,
         email: _readString(merged, ['email']) ?? state.accountDraft.email,
       );
 
@@ -37,12 +40,15 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         dailyReminders:
             _readBool(merged, ['dailyReminders']) ?? current.dailyReminders,
         morningReminder: NotificationSettings.toDisplayTime(
-          _readString(merged, ['morningReminder']) ?? current.morningReminder24h,
+          _readString(merged, ['morningReminder']) ??
+              current.morningReminder24h,
         ),
         eveningReminder: NotificationSettings.toDisplayTime(
-          _readString(merged, ['eveningReminder']) ?? current.eveningReminder24h,
+          _readString(merged, ['eveningReminder']) ??
+              current.eveningReminder24h,
         ),
-        weeklyReview: _readBool(merged, ['weeklyReview']) ?? current.weeklyReview,
+        weeklyReview:
+            _readBool(merged, ['weeklyReview']) ?? current.weeklyReview,
         weeklyReminderDay:
             _readString(merged, ['weeklyReminderDay']) ??
             current.weeklyReminderDay,
@@ -113,12 +119,17 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   Future<void> saveAccount() async {
     state = state.copyWith(isSavingAccount: true, clearError: true);
     try {
-      await SettingsService.updateAccount(fullName: state.accountDraft.fullName);
+      await SettingsService.updateAccount(
+        fullName: state.accountDraft.fullName,
+      );
       state = state.copyWith(isSavingAccount: false);
     } on DioException catch (e) {
       state = state.copyWith(
         isSavingAccount: false,
-        errorMessage: _dioErrorMessage(e, fallback: 'Failed to update account.'),
+        errorMessage: _dioErrorMessage(
+          e,
+          fallback: 'Failed to update account.',
+        ),
       );
     } catch (_) {
       state = state.copyWith(
@@ -131,7 +142,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   Future<void> saveNotifications() async {
     state = state.copyWith(isSavingNotifications: true, clearError: true);
     try {
-      await SettingsService.updateNotifications(notifications: state.notifications);
+      await SettingsService.updateNotifications(
+        notifications: state.notifications,
+      );
       state = state.copyWith(isSavingNotifications: false);
     } on DioException catch (e) {
       state = state.copyWith(
@@ -157,6 +170,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           LocalStorage.getData(LocalStorage.accessToken) ??
           '';
       await SettingsService.logout(refreshToken: refreshToken);
+      await NotificationManager.deleteDeviceToken();
       await LocalStorage.clearAllData();
       state = state.copyWith(isProcessingLogout: false);
       return true;
@@ -191,7 +205,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     } on DioException catch (e) {
       state = state.copyWith(
         isDeletingAccount: false,
-        errorMessage: _dioErrorMessage(e, fallback: 'Failed to delete account.'),
+        errorMessage: _dioErrorMessage(
+          e,
+          fallback: 'Failed to delete account.',
+        ),
       );
       return false;
     } catch (_) {

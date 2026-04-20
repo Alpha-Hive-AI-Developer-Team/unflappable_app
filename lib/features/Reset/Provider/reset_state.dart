@@ -16,6 +16,7 @@ class ResetState {
   final String? errorMessage;
   final int totalReset;
   final List<ResetHistoryItem> resetHistory;
+  final bool showLimitError;
 
   const ResetState({
     this.status = ResetStatus.initial,
@@ -35,6 +36,7 @@ class ResetState {
     this.nextActionText,
     this.errorMessage,
     this.resetHistory = const [],
+    this.showLimitError = false,
   });
 
   bool get hasResetsLeft => resetsUsedToday < dailyResetLimit;
@@ -51,6 +53,7 @@ class ResetState {
     String? nextActionText,
     String? errorMessage,
     List<ResetHistoryItem>? resetHistory,
+    bool? showLimitError,
   }) {
     return ResetState(
       status: status ?? this.status,
@@ -64,6 +67,7 @@ class ResetState {
       nextActionText: nextActionText ?? this.nextActionText,
       errorMessage: errorMessage ?? this.errorMessage,
       resetHistory: resetHistory ?? this.resetHistory,
+      showLimitError: showLimitError ?? this.showLimitError,
     );
   }
 }
