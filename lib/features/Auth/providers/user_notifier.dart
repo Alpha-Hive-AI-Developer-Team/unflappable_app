@@ -24,8 +24,6 @@ class UserNotifier extends StateNotifier<UserState> {
     state = state.copyWith(status: UserStatus.authenticated, user: user);
   }
 
-  /// Update only the pro status (e.g., after purchase)
-  /// In real app: call API first, then update state
   Future<void> updateProStatus(bool isPro) async {
     if (state.user == null) return;
 

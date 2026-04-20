@@ -74,7 +74,8 @@ class ProgressScreen extends ConsumerWidget {
               mainText: state.totalResetsLabel,
               icon: refresh,
               subText: state.totalResetsSubtitle,
-              completionRate: state.totalResetsPercentage,
+              completionRate: state.totalResets.toDouble(),
+              isPercent: false,
             ),
             SizedBox(height: ScreenUtils.vMd),
             _performanceCard(
@@ -95,6 +96,7 @@ class _performanceCard extends StatelessWidget {
   final String? subText;
   final double? completionRate;
   final void Function()? onTap;
+  final bool isPercent;
 
   const _performanceCard({
     required this.mainText,
@@ -102,6 +104,7 @@ class _performanceCard extends StatelessWidget {
     this.subText,
     this.completionRate,
     this.onTap,
+    this.isPercent = true,
   });
 
   @override
@@ -141,7 +144,9 @@ class _performanceCard extends StatelessWidget {
             const Spacer(),
             completionRate != null
                 ? Text(
-                    '${(completionRate! * 100).round()}%',
+                    isPercent
+                        ? '${(completionRate! * 100).round()}%'
+                        : completionRate!.toStringAsFixed(0),
                     style: AppTextStyles.bodyLG.copyWith(
                       color: AppColors.primaryText,
                       fontWeight: FontWeight.w500,

@@ -6,6 +6,7 @@ class HomeState {
   final int missionCount;
   final int totalTasks;
   final int completedTasks;
+  final int totalResetToday;
   final int totalResets;
   final String taskCompletionLabel;
   final String taskCompletionSubtitle;
@@ -25,9 +26,10 @@ class HomeState {
     this.dayStreak = 0,
     this.longestStreak = 0,
     this.missionCount = 0,
-    this.totalTasks = 12,
-    this.completedTasks = 9,
-    this.totalResets = 3,
+    this.totalTasks = 0,
+    this.completedTasks = 0,
+    this.totalResetToday = 0,
+    this.totalResets = 0,
     this.taskCompletionLabel = 'Task Completion',
     this.taskCompletionSubtitle = '0 of 0 tasks done',
     this.taskCompletionPercentage = 0,
@@ -54,6 +56,7 @@ class HomeState {
     int? missionCount,
     int? totalTasks,
     int? completedTasks,
+    int? totalResetToday,
     int? totalResets,
     String? taskCompletionLabel,
     String? taskCompletionSubtitle,
@@ -77,6 +80,7 @@ class HomeState {
     missionCount: missionCount ?? this.missionCount,
     totalTasks: totalTasks ?? this.totalTasks,
     completedTasks: completedTasks ?? this.completedTasks,
+    totalResetToday: totalResetToday ?? this.totalResetToday,
     totalResets: totalResets ?? this.totalResets,
     taskCompletionLabel: taskCompletionLabel ?? this.taskCompletionLabel,
     taskCompletionSubtitle:
@@ -85,8 +89,7 @@ class HomeState {
         taskCompletionPercentage ?? this.taskCompletionPercentage,
     totalResetsLabel: totalResetsLabel ?? this.totalResetsLabel,
     totalResetsSubtitle: totalResetsSubtitle ?? this.totalResetsSubtitle,
-    totalResetsPercentage:
-        totalResetsPercentage ?? this.totalResetsPercentage,
+    totalResetsPercentage: totalResetsPercentage ?? this.totalResetsPercentage,
     activeMission: clearMission ? null : (activeMission ?? this.activeMission),
     isLoading: isLoading ?? this.isLoading,
     isCreatingMission: isCreatingMission ?? this.isCreatingMission,

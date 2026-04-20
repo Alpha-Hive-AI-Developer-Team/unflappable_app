@@ -4,6 +4,7 @@ import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
 import 'package:unflappable/service/home_service.dart';
 import 'package:unflappable/service/progress_service.dart';
+import 'package:unflappable/service/reset_service.dart';
 import 'package:dio/dio.dart';
 
 class HomeNotifier extends StateNotifier<HomeState> {
@@ -18,9 +19,11 @@ class HomeNotifier extends StateNotifier<HomeState> {
     try {
       final homeResponse = await HomeService.getHome();
       final progressResponse = await ProgressService.getProgress();
+      final resetHistoryResponse = await ResetService.getHistory(page: 1, limit: 20);
       _extractPayload(homeResponse.data);
       final progressPayload = _extractPayload(progressResponse.data);
       final todayMissionResult = await _fetchTodayMissionResult();
+      final resetHistoryCount = _countResetHistoryItems(resetHistoryResponse.data);
       final streakPayload = _readMap(progressPayload, 'streak');
       final missionsPayload = _readMap(progressPayload, 'missions');
       final performancePayload = _readMap(progressPayload, 'performanceStats');
@@ -36,7 +39,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
         missionCount: _readInt(missionsPayload, const ['totalCompleted']),
         totalTasks: _readTaskTotal(taskCompletionPayload),
         completedTasks: _readCompletedTasks(taskCompletionPayload),
-        totalResets: _readInt(totalResetsPayload, const ['count']),
+        totalResets: resetHistoryCount,
         taskCompletionLabel: _readString(taskCompletionPayload, const [
           'label',
         ], fallback: state.taskCompletionLabel),
@@ -224,6 +227,29 @@ class HomeNotifier extends StateNotifier<HomeState> {
       return Map<String, dynamic>.from(data);
     }
     return <String, dynamic>{};
+  }
+
+  int _countResetHistoryItems(dynamic data) {
+    if (data is List) return data.length;
+
+    if (data is Map<String, dynamic>) {
+      final payload = data['data'];
+      if (payload is List) return payload.length;
+
+      if (payload is Map<String, dynamic>) {
+        for (final key in const ['items', 'history', 'historyPreview', 'resets']) {
+          final items = payload[key];
+          if (items is List) return items.length;
+        }
+      }
+
+      for (final key in const ['items', 'history', 'historyPreview', 'resets']) {
+        final items = data[key];
+        if (items is List) return items.length;
+      }
+    }
+
+    return 0;
   }
 
   Mission? _extractMission(Map<String, dynamic> source) {
