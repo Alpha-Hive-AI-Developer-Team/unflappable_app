@@ -94,7 +94,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
     try {
       await HomeService.createMission(objective: objective, tasks: tasks);
       await loadHome(force: true);
-      state = state.copyWith(isCreatingMission: false);
+      state = state.copyWith(
+        isCreatingMission: false,
+        successMessage: 'Mission started successfully',
+      );
     } on DioException catch (e) {
       state = state.copyWith(
         isCreatingMission: false,
@@ -140,7 +143,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
       await loadHome(force: true);
 
       if (isFinalTaskCompletion) {
-        state = state.copyWith(clearActiveTask: true);
+        state = state.copyWith(
+          clearActiveTask: true,
+          successMessage: "Today's mission completed successfully",
+        );
         return;
       }
 
@@ -148,6 +154,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
       state = state.copyWith(
         activeMission: refreshedMission ?? state.activeMission,
         clearActiveTask: true,
+        successMessage: '${task.title} completed',
       );
     } on DioException catch (e) {
       state = state.copyWith(
@@ -190,6 +197,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  void clearSuccessMessage() {
+    state = state.copyWith(clearSuccess: true);
   }
 
   Future<_TodayMissionResult> _fetchTodayMissionResult() async {

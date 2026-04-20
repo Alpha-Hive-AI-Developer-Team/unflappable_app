@@ -13,6 +13,65 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
 
+    await _loadReviews();
+  }
+
+  void openAddScreen() => state = state.copyWith(
+    showAddScreen: true,
+    draft: state.saved ?? const WeeklyReviewData(),
+  );
+
+  void closeAddScreen() => state = state.copyWith(showAddScreen: false);
+
+  void setBiggestWin(String v) =>
+      state = state.copyWith(draft: state.draft.copyWith(biggestWin: v));
+
+  void setBiggestMiss(String v) =>
+      state = state.copyWith(draft: state.draft.copyWith(biggestMiss: v));
+
+  void setCauseOfDrift(String v) =>
+      state = state.copyWith(draft: state.draft.copyWith(causeOfDrift: v));
+
+  void setOneShift(String v) =>
+      state = state.copyWith(draft: state.draft.copyWith(oneShiftNextWeek: v));
+
+  Future<void> saveReview() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await WeeklyReviewService.createReview(
+        biggestWin: state.draft.biggestWin,
+        biggestMiss: state.draft.biggestMiss,
+        causeOfDrift: state.draft.causeOfDrift,
+        oneShiftForNextWeek: state.draft.oneShiftNextWeek,
+      );
+      await _loadReviews(showLoader: false);
+      state = state.copyWith(
+        isLoading: false,
+        showAddScreen: false,
+        successMessage: "Successfully added this weeks review",
+      );
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _dioErrorMessage(e, fallback: 'Unable to save review.'),
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Unable to save review.',
+      );
+    }
+  }
+
+  void clearSuccessMessage() {
+    state = state.copyWith(clearSuccess: true);
+  }
+
+  Future<void> _loadReviews({bool showLoader = true}) async {
+    if (showLoader) {
+      state = state.copyWith(isLoading: true, clearError: true);
+    }
+
     try {
       final currentResponse = await WeeklyReviewService.getCurrentReview();
       final historyResponse = await WeeklyReviewService.getReviewHistory(
@@ -59,49 +118,6 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Unable to load weekly review.',
-      );
-    }
-  }
-
-  void openAddScreen() => state = state.copyWith(
-    showAddScreen: true,
-    draft: state.saved ?? const WeeklyReviewData(),
-  );
-
-  void closeAddScreen() => state = state.copyWith(showAddScreen: false);
-
-  void setBiggestWin(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(biggestWin: v));
-
-  void setBiggestMiss(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(biggestMiss: v));
-
-  void setCauseOfDrift(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(causeOfDrift: v));
-
-  void setOneShift(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(oneShiftNextWeek: v));
-
-  Future<void> saveReview() async {
-    state = state.copyWith(isLoading: true, clearError: true);
-    try {
-      await WeeklyReviewService.createReview(
-        biggestWin: state.draft.biggestWin,
-        biggestMiss: state.draft.biggestMiss,
-        causeOfDrift: state.draft.causeOfDrift,
-        oneShiftForNextWeek: state.draft.oneShiftNextWeek,
-      );
-      await loadInitial(force: true);
-      state = state.copyWith(isLoading: false, showAddScreen: false);
-    } on DioException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: _dioErrorMessage(e, fallback: 'Unable to save review.'),
-      );
-    } catch (_) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Unable to save review.',
       );
     }
   }

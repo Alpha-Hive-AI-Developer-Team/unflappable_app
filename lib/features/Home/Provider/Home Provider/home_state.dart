@@ -19,6 +19,7 @@ class HomeState {
   final bool isCreatingMission;
   final bool hasLoaded;
   final String? errorMessage;
+  final String? successMessage;
   final String? activeTaskId;
   final bool isRefreshingCompletedMission;
 
@@ -41,6 +42,7 @@ class HomeState {
     this.isCreatingMission = false,
     this.hasLoaded = false,
     this.errorMessage,
+    this.successMessage,
     this.activeTaskId,
     this.isRefreshingCompletedMission = false,
   });
@@ -69,10 +71,12 @@ class HomeState {
     bool? isCreatingMission,
     bool? hasLoaded,
     String? errorMessage,
+    String? successMessage,
     String? activeTaskId,
     bool? isRefreshingCompletedMission,
     bool clearMission = false,
     bool clearError = false,
+    bool clearSuccess = false,
     bool clearActiveTask = false,
   }) => HomeState(
     dayStreak: dayStreak ?? this.dayStreak,
@@ -95,6 +99,8 @@ class HomeState {
     isCreatingMission: isCreatingMission ?? this.isCreatingMission,
     hasLoaded: hasLoaded ?? this.hasLoaded,
     errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    successMessage:
+        clearSuccess ? null : (successMessage ?? this.successMessage),
     activeTaskId: clearActiveTask ? null : (activeTaskId ?? this.activeTaskId),
     isRefreshingCompletedMission:
         isRefreshingCompletedMission ?? this.isRefreshingCompletedMission,

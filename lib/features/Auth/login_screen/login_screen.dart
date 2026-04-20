@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
+import 'package:unflappable/core/utils/session_provider_reset.dart';
 import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_provider.dart';
@@ -36,6 +37,7 @@ class LoginScreen extends ConsumerWidget {
               isPro: false,
             );
 
+        resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;
         AppSnackbar.showSuccess(context, message: 'Login successful!');
         context.go(AppRoutes.home);

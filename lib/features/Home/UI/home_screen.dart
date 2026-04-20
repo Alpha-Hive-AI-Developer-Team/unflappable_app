@@ -18,6 +18,16 @@ class HomeScreen extends ConsumerWidget {
     final userState = ref.watch(userProvider);
     final notifier = ref.read(homeProvider.notifier);
 
+    ref.listen<HomeState>(homeProvider, (previous, next) {
+      final successMessage = next.successMessage;
+      if (previous?.successMessage != successMessage &&
+          successMessage != null &&
+          context.mounted) {
+        AppSnackbar.showSuccess(context, message: successMessage);
+        notifier.clearSuccessMessage();
+      }
+    });
+
     if (!homeState.hasLoaded && !homeState.isLoading) {
       Future.microtask(() => notifier.loadHome());
     }

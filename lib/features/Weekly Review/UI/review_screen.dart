@@ -22,6 +22,16 @@ class WeeklyReviewScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(weeklyReviewProvider);
 
+    ref.listen<WeeklyReviewState>(weeklyReviewProvider, (previous, next) {
+      final successMessage = next.successMessage;
+      if (previous?.successMessage != successMessage &&
+          successMessage != null &&
+          context.mounted) {
+        AppSnackbar.showSuccess(context, message: successMessage);
+        ref.read(weeklyReviewProvider.notifier).clearSuccessMessage();
+      }
+    });
+
     if (!state.hasLoaded && !state.isLoading) {
       Future.microtask(
         () => ref.read(weeklyReviewProvider.notifier).loadInitial(),

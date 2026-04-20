@@ -8,6 +8,7 @@ class WeeklyReviewState {
   final bool isLoading;
   final bool hasLoaded;
   final String? errorMessage;
+  final String? successMessage;
   final WeeklySummary summary;
 
   const WeeklyReviewState({
@@ -18,6 +19,7 @@ class WeeklyReviewState {
     this.isLoading = false,
     this.hasLoaded = false,
     this.errorMessage,
+    this.successMessage,
     this.summary = const WeeklySummary(),
   });
 
@@ -31,8 +33,10 @@ class WeeklyReviewState {
     bool? isLoading,
     bool? hasLoaded,
     String? errorMessage,
+    String? successMessage,
     bool clearSaved = false,
     bool clearError = false,
+    bool clearSuccess = false,
   }) => WeeklyReviewState(
     showAddScreen: showAddScreen ?? this.showAddScreen,
     draft: draft ?? this.draft,
@@ -41,6 +45,8 @@ class WeeklyReviewState {
     isLoading: isLoading ?? this.isLoading,
     hasLoaded: hasLoaded ?? this.hasLoaded,
     errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    successMessage:
+        clearSuccess ? null : (successMessage ?? this.successMessage),
     summary: summary,
   );
 }

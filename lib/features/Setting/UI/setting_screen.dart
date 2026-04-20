@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:unflappable/core/theme/appText_styles.dart';
+import 'package:unflappable/core/utils/session_provider_reset.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
@@ -175,6 +176,7 @@ class SettingsScreen extends ConsumerWidget {
                               }
                               ref.read(navIndexProvider.notifier).state = 0;
                               ref.read(userProvider.notifier).clearUser();
+                              resetSessionScopedProviders(ref);
                               AppSnackbar.showSuccess(
                                 screenContext,
                                 message: "Logged out successfully.",
@@ -383,6 +385,7 @@ class SettingsScreen extends ConsumerWidget {
                     ref.read(navIndexProvider.notifier).state = 0;
                     Navigator.of(dialogContext).pop();
                     ref.read(userProvider.notifier).clearUser();
+                    resetSessionScopedProviders(ref);
                     AppSnackbar.showSuccess(
                       screenContext,
                       message: "Account deleted successfully.",
