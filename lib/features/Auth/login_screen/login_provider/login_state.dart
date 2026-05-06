@@ -10,6 +10,9 @@ class LoginState {
   final String? emailError;
   final String? passwordError;
   final String? authErrorMessage;
+  final String authenticatedEmail;
+  final String authenticatedName;
+  final String authenticatedUserId;
 
   const LoginState({
     this.email = '',
@@ -19,6 +22,9 @@ class LoginState {
     this.emailError,
     this.passwordError,
     this.authErrorMessage,
+    this.authenticatedEmail = '',
+    this.authenticatedName = '',
+    this.authenticatedUserId = '',
   });
 
   bool get isLoading => status == LoginStatus.loading;
@@ -38,6 +44,9 @@ class LoginState {
     Object? emailError = _keep,
     Object? passwordError = _keep,
     Object? authErrorMessage = _keep,
+    String? authenticatedEmail,
+    String? authenticatedName,
+    String? authenticatedUserId,
   }) {
     return LoginState(
       email: email ?? this.email,
@@ -51,6 +60,9 @@ class LoginState {
       authErrorMessage: authErrorMessage == _keep
           ? this.authErrorMessage
           : authErrorMessage as String?,
+      authenticatedEmail: authenticatedEmail ?? this.authenticatedEmail,
+      authenticatedName: authenticatedName ?? this.authenticatedName,
+      authenticatedUserId: authenticatedUserId ?? this.authenticatedUserId,
     );
   }
 }

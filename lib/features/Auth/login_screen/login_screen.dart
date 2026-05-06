@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
@@ -25,13 +26,20 @@ class LoginScreen extends ConsumerWidget {
     // Navigate away on success and update user provider
     ref.listen<LoginState>(loginProvider, (previous, next) {
       if (next.isSuccess) {
-        final email = next.email;
-        final displayName = _deriveNameFromEmail(email);
+        final email = next.authenticatedEmail.isNotEmpty
+            ? next.authenticatedEmail
+            : next.email;
+        final displayName = next.authenticatedName.isNotEmpty
+            ? next.authenticatedName
+            : _deriveNameFromEmail(email);
+        final id = next.authenticatedUserId.isNotEmpty
+            ? next.authenticatedUserId
+            : email;
 
         ref
             .read(userProvider.notifier)
             .setUserInfo(
-              id: email,
+              id: id,
               email: email,
               name: displayName,
               isPro: false,
@@ -87,6 +95,7 @@ class _LoginBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(loginProvider);
     final notifier = ref.read(loginProvider.notifier);
+    final showAppleSignIn = defaultTargetPlatform == TargetPlatform.iOS;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,9 +164,15 @@ class _LoginBody extends ConsumerWidget {
           onTap: () => notifier.submit(),
         ),
 
-        SizedBox(height: ScreenUtils.vMd),
-        AppleButton(),
-        SizedBox(height: ScreenUtils.vMd),
+        if (showAppleSignIn) ...[
+          SizedBox(height: ScreenUtils.vMd),
+          AppleButton(
+            isLoading: state.isLoading,
+            onTap: notifier.signInWithApple,
+          ),
+          SizedBox(height: ScreenUtils.vMd),
+        ] else
+          SizedBox(height: ScreenUtils.vMd),
 
         // ── Don't have an account ────────────────────────────────────────
         Center(

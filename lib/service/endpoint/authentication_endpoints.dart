@@ -19,6 +19,7 @@ class _Authentication {
 
   String get signup => '$_authController/signup';
   String get login => '$_authController/login';
+  String get apple => '$_authController/apple';
   String get forgotPassword => '$_authController/password/forgot';
   String get verifyOtp => '$_authController/password/verify-otp';
   String get verifyEmail => '$_authController/verify-email';

@@ -33,6 +33,19 @@ abstract final class AuthService {
     );
   }
 
+  static Future<Response> signInWithApple({
+    required String identityToken,
+    required String fullName,
+  }) async {
+    return DioHelper.postWithOutAuthData(
+      endPoint: EndPoints.auth.apple,
+      data: {
+        'identityToken': identityToken,
+        'fullName': fullName,
+      },
+    );
+  }
+
   static Future<Response> forgotPassword({
     required String email,
   }) async {

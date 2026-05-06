@@ -78,7 +78,14 @@ class AuthTextField extends StatelessWidget {
 // ── Apple Button ──────────────────────────────────────────────────────────────
 
 class AppleButton extends StatelessWidget {
-  const AppleButton({super.key});
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  const AppleButton({
+    super.key,
+    this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +93,7 @@ class AppleButton extends StatelessWidget {
       width: double.infinity,
       height: ScreenUtils.buttonHeight,
       child: OutlinedButton(
-        onPressed: () {
-          // TODO: handle Apple sign-in
-        },
+        onPressed: isLoading ? null : onTap,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: AppColors.borderGrey),
           shape: RoundedRectangleBorder(
@@ -96,7 +101,16 @@ class AppleButton extends StatelessWidget {
           ),
           backgroundColor: AppColors.white,
         ),
-        child: Row(
+        child: isLoading
+            ? SizedBox(
+                width: ScreenUtils.iconMd,
+                height: ScreenUtils.iconMd,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.headingText,
+                ),
+              )
+            : Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
