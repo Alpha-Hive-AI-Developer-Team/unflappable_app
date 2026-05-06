@@ -8,7 +8,7 @@
 PRODUCT_NAME = unflappable
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.unflappable
+PRODUCT_BUNDLE_IDENTIFIER = com.alphahiveai.unflappable
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.

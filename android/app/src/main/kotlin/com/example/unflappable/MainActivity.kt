@@ -1,4 +1,4 @@
-package com.example.unflappable
+package com.alphahiveai.unflappable
 
 import io.flutter.embedding.android.FlutterActivity
 

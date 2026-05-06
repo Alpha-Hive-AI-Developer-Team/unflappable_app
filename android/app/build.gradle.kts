@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.unflappable"
+    namespace = "com.alphahiveai.unflappable"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
