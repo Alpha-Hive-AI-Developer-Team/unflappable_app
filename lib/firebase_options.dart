@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDusEpe-Yi07F0-q05OYGMFUbBWo0OHEB8',
-    appId: '1:716486445461:android:4f8090d242d23552470e9c',
-    messagingSenderId: '716486445461',
-    projectId: 'lab9-52b1c',
-    storageBucket: 'lab9-52b1c.firebasestorage.app',
+    apiKey: 'AIzaSyDEPnYh3IbSceqMZEbT4U446Xvjo04M7QQ',
+    appId: '1:155479066205:android:7e6c37c39cdf177b5f6fb4',
+    messagingSenderId: '155479066205',
+    projectId: 'unflappable-c253c',
+    storageBucket: 'unflappable-c253c.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDxQ69CnpArKHQAqGbur2DzH49Rvm6sulY',
-    appId: '1:716486445461:ios:3e8f1e693dcad035470e9c',
-    messagingSenderId: '716486445461',
-    projectId: 'lab9-52b1c',
-    storageBucket: 'lab9-52b1c.firebasestorage.app',
+    apiKey: 'AIzaSyBh4EspBlTg6y7e9FxmGh8lDU4DXa7DaZ0',
+    appId: '1:155479066205:ios:aa3db9b41f32f69f5f6fb4',
+    messagingSenderId: '155479066205',
+    projectId: 'unflappable-c253c',
+    storageBucket: 'unflappable-c253c.firebasestorage.app',
     iosBundleId: 'com.alphahiveai.unflappable',
   );
 

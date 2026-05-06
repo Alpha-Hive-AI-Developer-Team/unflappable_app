@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "716486445461",
-    "project_id": "lab9-52b1c",
-    "storage_bucket": "lab9-52b1c.firebasestorage.app"
+    "project_number": "155479066205",
+    "project_id": "unflappable-c253c",
+    "storage_bucket": "unflappable-c253c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:716486445461:android:4f8090d242d23552470e9c",
+        "mobilesdk_app_id": "1:155479066205:android:7e6c37c39cdf177b5f6fb4",
         "android_client_info": {
           "package_name": "com.alphahiveai.unflappable"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDusEpe-Yi07F0-q05OYGMFUbBWo0OHEB8"
+          "current_key": "AIzaSyDEPnYh3IbSceqMZEbT4U446Xvjo04M7QQ"
         }
       ],
       "services": {
