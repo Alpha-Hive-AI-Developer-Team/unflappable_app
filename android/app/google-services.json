@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:716486445461:android:4ce393b74756803e470e9c",
+        "mobilesdk_app_id": "1:716486445461:android:4f8090d242d23552470e9c",
         "android_client_info": {
-          "package_name": "com.example.unflappable"
+          "package_name": "com.alphahiveai.unflappable"
         }
       },
       "oauth_client": [],
