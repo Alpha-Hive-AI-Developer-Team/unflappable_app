@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:unflappable/core/notifications/notification_manager.dart';
@@ -23,7 +24,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
     state = state.copyWith(
       email: v,
       emailError: error,
-      status: LoginStatus.idle,
+      loginStatus: LoginStatus.idle,
     );
   }
 
@@ -32,7 +33,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
     state = state.copyWith(
       password: v,
       passwordError: error,
-      status: LoginStatus.idle,
+      loginStatus: LoginStatus.idle,
     );
   }
 
@@ -40,7 +41,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
       state = state.copyWith(obscurePassword: !state.obscurePassword);
 
   void clearError() =>
-      state = state.copyWith(status: LoginStatus.idle, authErrorMessage: null);
+      state = state.copyWith(
+        loginStatus: LoginStatus.idle,
+        appleStatus: LoginStatus.idle,
+        authErrorMessage: null,
+      );
 
   // ── Per-field validators ─────────────────────────────────────────────────
 
@@ -61,6 +66,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
   // ── Submit ───────────────────────────────────────────────────────────────
 
   Future<void> submit() async {
+    if (state.isLoginLoading) return;
     final emailError = _validateEmail(state.email);
     final passwordError = _validatePassword(state.password);
 
@@ -72,12 +78,15 @@ class LoginNotifier extends StateNotifier<LoginState> {
         passwordError: passwordError,
         authErrorMessage:
             'Please fix the highlighted fields before continuing.',
-        status: LoginStatus.validationError,
+        loginStatus: LoginStatus.validationError,
       );
       return;
     }
 
-    state = state.copyWith(status: LoginStatus.loading, authErrorMessage: null);
+    state = state.copyWith(
+      loginStatus: LoginStatus.loading,
+      authErrorMessage: null,
+    );
 
     try {
       final response = await AuthService.login(
@@ -97,7 +106,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
             _extractUserName(response.data) ?? _deriveNameFromEmail(email);
         final id = _extractUserId(response.data) ?? email;
         state = state.copyWith(
-          status: LoginStatus.success,
+          loginStatus: LoginStatus.success,
           authenticatedEmail: email,
           authenticatedName: name,
           authenticatedUserId: id,
@@ -107,7 +116,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
             _extractMessage(response) ??
             "Email or password didn't match. Please try again.";
         state = state.copyWith(
-          status: LoginStatus.authError,
+          loginStatus: LoginStatus.authError,
           authErrorMessage: message,
         );
       }
@@ -117,33 +126,47 @@ class LoginNotifier extends StateNotifier<LoginState> {
                 "Email or password didn't match. Please try again."
           : 'Unable to connect to the server. Please try again.';
       state = state.copyWith(
-        status: LoginStatus.authError,
+        loginStatus: LoginStatus.authError,
         authErrorMessage: message,
       );
     } catch (e) {
       state = state.copyWith(
-        status: LoginStatus.authError,
+        loginStatus: LoginStatus.authError,
         authErrorMessage: "Email or password didn't match. Please try again.",
       );
     }
   }
 
   Future<void> signInWithApple() async {
-    state = state.copyWith(status: LoginStatus.loading, authErrorMessage: null);
+    if (state.isAppleLoading) return;
+    state = state.copyWith(appleStatus: LoginStatus.loading, authErrorMessage: null);
 
     try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: const [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-        webAuthenticationOptions: _buildAppleWebOptions(),
-      );
+      final webOptions = _buildAppleWebOptions();
+
+      final AuthorizationCredentialAppleID credential;
+      if (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS) {
+        credential = await SignInWithApple.getAppleIDCredential(
+          scopes: const [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+      } else {
+        credential = await SignInWithApple.getAppleIDCredential(
+          scopes: const [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          webAuthenticationOptions: webOptions,
+        );
+      }
 
       final identityToken = credential.identityToken;
       if (identityToken == null || identityToken.isEmpty) {
         state = state.copyWith(
-          status: LoginStatus.authError,
+          appleStatus: LoginStatus.authError,
           authErrorMessage:
               'Apple did not return an identity token. Please try again.',
         );
@@ -166,10 +189,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final email =
             _extractUserEmail(response.data) ?? credential.email ?? '';
         final name = _extractUserName(response.data) ?? fullName;
-        final id = _extractUserId(response.data) ?? credential.userIdentifier ?? email;
+        final id =
+            _extractUserId(response.data) ?? credential.userIdentifier ?? email;
 
         state = state.copyWith(
-          status: LoginStatus.success,
+          appleStatus: LoginStatus.success,
           authenticatedEmail: email,
           authenticatedName: name,
           authenticatedUserId: id,
@@ -179,18 +203,20 @@ class LoginNotifier extends StateNotifier<LoginState> {
             _extractMessage(response) ??
             'Unable to sign in with Apple. Please try again.';
         state = state.copyWith(
-          status: LoginStatus.authError,
+          appleStatus: LoginStatus.authError,
           authErrorMessage: message,
         );
       }
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) {
-        state = state.copyWith(status: LoginStatus.idle);
+        state = state.copyWith(appleStatus: LoginStatus.idle);
         return;
       }
       state = state.copyWith(
-        status: LoginStatus.authError,
-        authErrorMessage: 'Apple sign-in failed. Please try again.',
+        appleStatus: LoginStatus.authError,
+        authErrorMessage: e.message.trim().isEmpty
+            ? 'Apple sign-in failed (${e.code.name}).'
+            : 'Apple sign-in failed (${e.code.name}). ${e.message}'.trim(),
       );
     } on DioException catch (e) {
       final message = e.response != null
@@ -198,13 +224,13 @@ class LoginNotifier extends StateNotifier<LoginState> {
                 'Unable to sign in with Apple. Please try again.'
           : 'Unable to connect to the server. Please try again.';
       state = state.copyWith(
-        status: LoginStatus.authError,
+        appleStatus: LoginStatus.authError,
         authErrorMessage: message,
       );
     } catch (e) {
       state = state.copyWith(
-        status: LoginStatus.authError,
-        authErrorMessage: _appleConfigurationMessage(e),
+        appleStatus: LoginStatus.authError,
+        authErrorMessage: '${_appleConfigurationMessage(e)} ($e)',
       );
     }
   }
@@ -221,10 +247,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
   }
 
   String _composeAppleFullName(AuthorizationCredentialAppleID credential) {
-    final name = [
-      credential.givenName,
-      credential.familyName,
-    ].whereType<String>().map((part) => part.trim()).where((part) => part.isNotEmpty).join(' ');
+    final name = [credential.givenName, credential.familyName]
+        .whereType<String>()
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .join(' ');
 
     return name.isEmpty ? 'Apple User' : name;
   }

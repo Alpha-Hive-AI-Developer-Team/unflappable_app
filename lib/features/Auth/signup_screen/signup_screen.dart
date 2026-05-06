@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -171,9 +172,10 @@ class _SignUpBody extends ConsumerWidget {
 
           SizedBox(height: ScreenUtils.vMd),
 
-          AppleButton(),
-
-          SizedBox(height: ScreenUtils.vMd),
+          if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+            AppleButton(),
+            SizedBox(height: ScreenUtils.vMd),
+          ],
 
           // ── Already have account ─────────────────────────────────────────
           Center(

@@ -26,11 +26,11 @@ abstract final class NotificationManager {
       FlutterLocalNotificationsPlugin();
   static final AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
-    'unflappable_notifications',
-    'App Notifications',
-    description: 'Notifications from Unflappable',
-    importance: Importance.high,
-  );
+        'unflappable_notifications',
+        'App Notifications',
+        description: 'Notifications from Unflappable',
+        importance: Importance.high,
+      );
 
   static bool _isInitialized = false;
   static bool _isRegistering = false;
@@ -50,6 +50,14 @@ abstract final class NotificationManager {
       provisional: false,
       sound: true,
     );
+
+    if (!kIsWeb && Platform.isIOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -115,11 +123,12 @@ abstract final class NotificationManager {
       return;
     }
 
-    final fcmToken = await _messaging.getToken();
+    final fcmToken = await _getFcmTokenSafely();
     if (fcmToken == null || fcmToken.isEmpty) return;
 
     final cachedToken = LocalStorage.getData(LocalStorage.fcmToken);
-    if (!force && (_currentRegisteredToken == fcmToken || cachedToken == fcmToken)) {
+    if (!force &&
+        (_currentRegisteredToken == fcmToken || cachedToken == fcmToken)) {
       debugPrint('FCM token already registered. Skipping duplicate call.');
       _currentRegisteredToken = fcmToken;
       return;
@@ -142,6 +151,52 @@ abstract final class NotificationManager {
     }
   }
 
+  static Future<String?> _getFcmTokenSafely() async {
+    if (kIsWeb) return _messaging.getToken();
+
+    // On iOS, `getToken()` throws until APNs token is available.
+    if (Platform.isIOS) {
+      const maxAttempts = 6;
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          final apns = await _messaging.getAPNSToken();
+          if (apns == null || apns.isEmpty) {
+            await Future.delayed(Duration(milliseconds: 350 * attempt));
+            continue;
+          }
+        } catch (e) {
+          // Not ready yet — keep waiting.
+          await Future.delayed(Duration(milliseconds: 350 * attempt));
+          continue;
+        }
+
+        try {
+          return await _messaging.getToken();
+        } catch (e) {
+          final msg = e.toString();
+          if (msg.contains('apns-token-not-set')) {
+            await Future.delayed(Duration(milliseconds: 350 * attempt));
+            continue;
+          }
+          debugPrint('FCM getToken() failed: $e');
+          return null;
+        }
+      }
+
+      debugPrint(
+        'APNs token not available yet; skipping FCM token registration.',
+      );
+      return null;
+    }
+
+    try {
+      return await _messaging.getToken();
+    } catch (e) {
+      debugPrint('FCM getToken() failed: $e');
+      return null;
+    }
+  }
+
   static Future<void> _handleTokenRefresh(String token) async {
     if (token.isEmpty) return;
     await LocalStorage.saveData(LocalStorage.fcmToken, token);
@@ -158,7 +213,8 @@ abstract final class NotificationManager {
     if (_router == null) return;
 
     final rawScreen = message.data['screen']?.toString().trim().toLowerCase();
-    final notificationId = message.data['notificationId'] ??
+    final notificationId =
+        message.data['notificationId'] ??
         message.data['notification_id'] ??
         message.data['id'];
 
@@ -183,7 +239,9 @@ abstract final class NotificationManager {
   }
 
   static Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -204,8 +262,10 @@ abstract final class NotificationManager {
     );
 
     if (!kIsWeb) {
-      await _localNotifications.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(_androidChannel);
     }
   }

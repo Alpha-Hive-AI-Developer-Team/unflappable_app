@@ -2,12 +2,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/export.dart';
+import 'package:unflappable/firebase_options.dart';
 import 'package:unflappable/service/dio_helper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.init();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   DioHelper.init();
   await NotificationManager.init();
   runApp(const ProviderScope(child: MainApp()));
@@ -45,7 +46,7 @@ class _MainAppState extends ConsumerState<MainApp> {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp.router(
-          title: 'Framt App',
+          title: 'Unflappable App',
           debugShowCheckedModeBanner: false,
           routerConfig: router,
         );

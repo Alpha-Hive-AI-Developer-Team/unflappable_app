@@ -6,7 +6,8 @@ class LoginState {
   final String email;
   final String password;
   final bool obscurePassword;
-  final LoginStatus status;
+  final LoginStatus loginStatus;
+  final LoginStatus appleStatus;
   final String? emailError;
   final String? passwordError;
   final String? authErrorMessage;
@@ -18,7 +19,8 @@ class LoginState {
     this.email = '',
     this.password = '',
     this.obscurePassword = true,
-    this.status = LoginStatus.idle,
+    this.loginStatus = LoginStatus.idle,
+    this.appleStatus = LoginStatus.idle,
     this.emailError,
     this.passwordError,
     this.authErrorMessage,
@@ -27,20 +29,26 @@ class LoginState {
     this.authenticatedUserId = '',
   });
 
-  bool get isLoading => status == LoginStatus.loading;
-  bool get hasAuthError => status == LoginStatus.authError;
+  bool get isLoginLoading => loginStatus == LoginStatus.loading;
+  bool get isAppleLoading => appleStatus == LoginStatus.loading;
+
+  bool get hasValidationError => loginStatus == LoginStatus.validationError;
+  bool get hasAuthError =>
+      loginStatus == LoginStatus.authError ||
+      appleStatus == LoginStatus.authError;
 
   // Show overlay for both validation and auth errors
-  bool get showErrorOverlay =>
-      status == LoginStatus.validationError || status == LoginStatus.authError;
+  bool get showErrorOverlay => hasValidationError || hasAuthError;
 
-  bool get isSuccess => status == LoginStatus.success;
+  bool get isSuccess =>
+      loginStatus == LoginStatus.success || appleStatus == LoginStatus.success;
 
   LoginState copyWith({
     String? email,
     String? password,
     bool? obscurePassword,
-    LoginStatus? status,
+    LoginStatus? loginStatus,
+    LoginStatus? appleStatus,
     Object? emailError = _keep,
     Object? passwordError = _keep,
     Object? authErrorMessage = _keep,
@@ -52,7 +60,8 @@ class LoginState {
       email: email ?? this.email,
       password: password ?? this.password,
       obscurePassword: obscurePassword ?? this.obscurePassword,
-      status: status ?? this.status,
+      loginStatus: loginStatus ?? this.loginStatus,
+      appleStatus: appleStatus ?? this.appleStatus,
       emailError: emailError == _keep ? this.emailError : emailError as String?,
       passwordError: passwordError == _keep
           ? this.passwordError

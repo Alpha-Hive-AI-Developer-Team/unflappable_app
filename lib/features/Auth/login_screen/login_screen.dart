@@ -70,7 +70,7 @@ class LoginScreen extends ConsumerWidget {
             ),
             Center(
               child: ErrorDialog(
-                title: state.status == LoginStatus.validationError
+                title: state.hasValidationError
                     ? 'Invalid Fields'
                     : 'Login Failed',
                 message:
@@ -160,14 +160,14 @@ class _LoginBody extends ConsumerWidget {
         // ── Sign in button ───────────────────────────────────────────────
         PrimaryButton(
           label: 'Sign in',
-          isLoading: state.isLoading,
+          isLoading: state.isLoginLoading,
           onTap: () => notifier.submit(),
         ),
 
         if (showAppleSignIn) ...[
           SizedBox(height: ScreenUtils.vMd),
           AppleButton(
-            isLoading: state.isLoading,
+            isLoading: state.isAppleLoading,
             onTap: notifier.signInWithApple,
           ),
           SizedBox(height: ScreenUtils.vMd),
