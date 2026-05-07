@@ -32,14 +32,13 @@ class WelcomeScreen extends ConsumerWidget {
         final displayName = next.authenticatedName.isNotEmpty
             ? next.authenticatedName
             : _deriveNameFromEmail(email);
-        final id = next.authenticatedUserId.isNotEmpty ? next.authenticatedUserId : email;
+        final id = next.authenticatedUserId.isNotEmpty
+            ? next.authenticatedUserId
+            : email;
 
-        ref.read(userProvider.notifier).setUserInfo(
-              id: id,
-              email: email,
-              name: displayName,
-              isPro: false,
-            );
+        ref
+            .read(userProvider.notifier)
+            .setUserInfo(id: id, email: email, name: displayName, isPro: false);
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;
@@ -156,7 +155,10 @@ String _deriveNameFromEmail(String email) {
   if (localPart.isEmpty) return 'User';
   final segments = localPart.split(RegExp(r'[._\\- ]+'));
   return segments
-      .map((part) => part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}')
+      .map(
+        (part) =>
+            part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}',
+      )
       .where((part) => part.isNotEmpty)
       .join(' ');
 }
