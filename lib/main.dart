@@ -4,6 +4,7 @@ import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/firebase_options.dart';
 import 'package:unflappable/service/dio_helper.dart';
+import 'package:unflappable/service/in_app_purchase/in_app_purchase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,39 @@ class MainApp extends ConsumerStatefulWidget {
 
 class _MainAppState extends ConsumerState<MainApp> {
   bool _hasConfiguredRouter = false;
+  late InAppPurchaseService _iapService;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeInAppPurchase();
+  }
+
+  Future<void> _initializeInAppPurchase() async {
+    _iapService = InAppPurchaseService();
+    
+    try {
+      await _iapService.initialize(
+        onPurchaseUpdate: (purchase) {
+          _handlePurchaseUpdate(purchase);
+        },
+        onError: (error) {
+          _handlePurchaseError(error);
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to initialize in-app purchase: $e');
+    }
+  }
+
+  void _handlePurchaseUpdate(dynamic purchase) {
+    // This will be handled by the subscription notifier when a purchase is made
+    debugPrint('Purchase update: $purchase');
+  }
+
+  void _handlePurchaseError(String error) {
+    debugPrint('Purchase error: $error');
+  }
 
   @override
   void didChangeDependencies() {
@@ -34,6 +68,12 @@ class _MainAppState extends ConsumerState<MainApp> {
         NotificationManager.configureRouter(router);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _iapService.dispose();
+    super.dispose();
   }
 
   @override

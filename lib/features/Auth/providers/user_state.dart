@@ -15,7 +15,6 @@ class UserState {
 
   bool get isAuthenticated =>
       status == UserStatus.authenticated && user != null;
-  bool get isPro => user?.isPro ?? false;
   String get userName => user?.name ?? '';
   String get userEmail => user?.email ?? '';
 

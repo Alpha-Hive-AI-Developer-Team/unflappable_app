@@ -11,44 +11,15 @@ class UserNotifier extends StateNotifier<UserState> {
     required String id,
     required String email,
     required String name,
-    required bool isPro,
   }) {
     final user = User(
       id: id,
       email: email,
       name: name,
-      isPro: isPro,
       createdAt: DateTime.now(),
     );
 
     state = state.copyWith(status: UserStatus.authenticated, user: user);
-  }
-
-  Future<void> updateProStatus(bool isPro) async {
-    if (state.user == null) return;
-
-    try {
-      state = state.copyWith(status: UserStatus.loading);
-
-      // TODO: Call API to update pro status
-      // await ref.read(authRepositoryProvider).updateProStatus(isPro);
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final updatedUser = state.user!.copyWith(
-        isPro: isPro,
-        proSubscribedAt: isPro ? DateTime.now() : null,
-      );
-
-      state = state.copyWith(
-        status: UserStatus.authenticated,
-        user: updatedUser,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        status: UserStatus.error,
-        errorMessage: e.toString(),
-      );
-    }
   }
 
   /// Called on logout

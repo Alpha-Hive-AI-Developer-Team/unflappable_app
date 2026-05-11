@@ -42,7 +42,6 @@ class LoginScreen extends ConsumerWidget {
               id: id,
               email: email,
               name: displayName,
-              isPro: false,
             );
 
         resetSessionScopedProviders(ref);

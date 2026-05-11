@@ -38,7 +38,7 @@ class WelcomeScreen extends ConsumerWidget {
 
         ref
             .read(userProvider.notifier)
-            .setUserInfo(id: id, email: email, name: displayName, isPro: false);
+            .setUserInfo(id: id, email: email, name: displayName);
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;

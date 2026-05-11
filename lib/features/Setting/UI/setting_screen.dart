@@ -8,6 +8,7 @@ import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
+import 'package:unflappable/features/Subscription/Provider/subscription_notifier.dart';
 import 'package:unflappable/features/widgets/Common/setting_dialog.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
@@ -18,12 +19,19 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screenContext = context;
     final userState = ref.watch(userProvider);
+    final subscriptionState = ref.watch(subscriptionProvider);
     final settingsState = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
-    final isPro = userState.isPro;
+    final subscriptionNotifier = ref.read(subscriptionProvider.notifier);
+    final isPro = subscriptionState.isPro;
+
     if (!settingsState.hasLoadedInitialData &&
         !settingsState.isLoadingInitialData) {
       Future.microtask(notifier.loadInitialData);
+    }
+
+    if (!subscriptionState.hasLoadedInitialData) {
+      Future.microtask(subscriptionNotifier.loadInitialData);
     }
 
     return Scaffold(

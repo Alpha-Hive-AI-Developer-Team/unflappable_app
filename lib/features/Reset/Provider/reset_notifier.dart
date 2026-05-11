@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Models/reset_history_item.dart';
 import 'package:unflappable/features/Reset/Provider/reset_state.dart';
+import 'package:unflappable/features/Subscription/Provider/subscription_notifier.dart';
 import 'package:unflappable/service/reset_service.dart';
 
 class ResetNotifier extends StateNotifier<ResetState> {
   final Ref _ref;
 
-  bool get _isPro => _ref.read(userProvider).isPro;
+  bool get _isPro => _ref.read(subscriptionProvider).isPro;
 
   ResetNotifier({required Ref ref}) : _ref = ref, super(const ResetState()) {
     loadInitial();
@@ -95,10 +95,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
       final landingData = landingResponse.data;
       final historyData = await _fetchHistoryDataSafely();
       final landingPayload = _extractPrimaryPayload(landingData);
-      final historyItems = _extractHistoryItems(
-        historyData,
-        landingData,
-      );
+      final historyItems = _extractHistoryItems(historyData, landingData);
 
       // FIX: Always pull counts from the API response. Never fall back to the
       // in-memory state value — that's what caused the "shows 1, then 0 on
@@ -182,10 +179,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
       // FIX: Prefer server-returned counts. Fall back to incrementing the
       // current state value (not zero) so the UI stays consistent even when
       // the reset endpoint doesn't echo back usage counts.
-      final int? serverResetsUsedToday = _extractInt(
-        payload,
-        _resetsUsedTodayKeys,
-      ) ??
+      final int? serverResetsUsedToday =
+          _extractInt(payload, _resetsUsedTodayKeys) ??
           _extractInt(responseData, _resetsUsedTodayKeys);
       final int? serverTotalReset = _extractInt(payload, _totalResetKeys);
 
@@ -226,10 +221,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
       final landingData = landingResponse.data;
       final historyData = await _fetchHistoryDataSafely();
       final landingPayload = _extractPrimaryPayload(landingData);
-      final historyItems = _extractHistoryItems(
-        historyData,
-        landingData,
-      );
+      final historyItems = _extractHistoryItems(historyData, landingData);
 
       final int resetsUsedToday =
           _extractInt(landingPayload, _resetsUsedTodayKeys) ??
@@ -377,7 +369,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
     final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
     final nestedData = outer['data'];
     if (nestedData is Map) {
-      final payload = Map<String, dynamic>.from(nestedData.cast<String, dynamic>());
+      final payload = Map<String, dynamic>.from(
+        nestedData.cast<String, dynamic>(),
+      );
       for (final key in const ['summary', 'stats', 'usage', 'counts']) {
         final nested = payload[key];
         if (nested is Map) {

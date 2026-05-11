@@ -5,9 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Provider/reset_provider.dart';
 import 'package:unflappable/features/Reset/Provider/reset_state.dart';
+import 'package:unflappable/features/Subscription/Provider/subscription_notifier.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class ResetScreen extends ConsumerStatefulWidget {
@@ -44,7 +44,7 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
   @override
   Widget build(BuildContext context) {
     final resetState = ref.watch(resetProvider);
-    final userState = ref.watch(userProvider);
+    final subscriptionState = ref.watch(subscriptionProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -52,7 +52,7 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
         children: [
           _ResetHomeBody(
             resetState: resetState,
-            isPro: userState.isPro,
+            isPro: subscriptionState.isPro,
           ).withScreenPadding(),
         ],
       ),

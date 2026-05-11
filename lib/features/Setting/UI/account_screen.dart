@@ -2,6 +2,7 @@ import 'package:unflappable/features/Auth/create_password/create_password_export
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
+import 'package:unflappable/features/Subscription/Provider/subscription_notifier.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
@@ -42,7 +43,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(settingsProvider);
     final userState = ref.watch(userProvider);
+    final subscriptionState = ref.watch(subscriptionProvider);
     final notifier = ref.read(settingsProvider.notifier);
+    final subscriptionNotifier = ref.read(subscriptionProvider.notifier);
+
+    if (!subscriptionState.hasLoadedInitialData) {
+      Future.microtask(subscriptionNotifier.loadInitialData);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,7 +84,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     AccountField(
                       label: 'Subscription',
                       controller: TextEditingController(
-                        text: userState.isPro ? 'Pro Monthly' : 'Free',
+                        text: subscriptionState.isPro ? 'Pro Monthly' : 'Free',
                       ),
                       readOnly: true,
                       filled: true,
