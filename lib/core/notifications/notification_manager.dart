@@ -64,7 +64,13 @@ abstract final class NotificationManager {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
     _messaging.onTokenRefresh.listen(_handleTokenRefresh);
 
-    await _registerDeviceTokenIfNeeded();
+    final startupFcmToken = await _getFcmTokenSafely();
+    if (startupFcmToken != null && startupFcmToken.isNotEmpty) {
+      debugPrint('FCM token: $startupFcmToken');
+    } else {
+      debugPrint('FCM token: unavailable at startup');
+    }
+    await _registerDeviceTokenIfNeeded(prefetchedToken: startupFcmToken);
     _isInitialized = true;
   }
 
@@ -94,7 +100,7 @@ abstract final class NotificationManager {
   }
 
   static Future<void> registerDeviceToken() async {
-    await _registerDeviceTokenIfNeeded(force: true);
+    await _registerDeviceTokenIfNeeded(force: true, prefetchedToken: null);
   }
 
   static Future<void> deleteDeviceToken() async {
@@ -116,14 +122,17 @@ abstract final class NotificationManager {
     }
   }
 
-  static Future<void> _registerDeviceTokenIfNeeded({bool force = false}) async {
+  static Future<void> _registerDeviceTokenIfNeeded({
+    bool force = false,
+    String? prefetchedToken,
+  }) async {
     if (_isRegistering) return;
     final accessToken = LocalStorage.getData(LocalStorage.accessToken);
     if (accessToken == null || accessToken.trim().isEmpty) {
       return;
     }
 
-    final fcmToken = await _getFcmTokenSafely();
+    final fcmToken = prefetchedToken ?? await _getFcmTokenSafely();
     if (fcmToken == null || fcmToken.isEmpty) return;
 
     final cachedToken = LocalStorage.getData(LocalStorage.fcmToken);

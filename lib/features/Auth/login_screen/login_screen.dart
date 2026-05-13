@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,8 @@ class LoginScreen extends ConsumerWidget {
               name: displayName,
               isPro: false,
             );
+
+        unawaited(ref.read(userProvider.notifier).syncSubscriptionFromApi());
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;

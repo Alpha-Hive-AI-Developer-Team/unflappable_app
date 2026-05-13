@@ -1,13 +1,18 @@
-import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-import 'package:unflappable/features/Setting/Model/setting_model.dart';
-import 'package:unflappable/features/Setting/Provider/setting_state.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
+import 'package:unflappable/features/Setting/Model/setting_model.dart';
+import 'package:unflappable/features/Setting/Provider/setting_state.dart';
+import 'package:unflappable/features/Setting/Utils/account_full_name_merge.dart';
 import 'package:unflappable/service/settings_service.dart';
-import 'package:dio/dio.dart';
 
 class SettingsNotifier extends StateNotifier<SettingsState> {
-  SettingsNotifier() : super(const SettingsState());
+  SettingsNotifier(this._ref) : super(const SettingsState());
+
+  final Ref _ref;
 
   Future<void> loadInitialData() async {
     if (state.hasLoadedInitialData || state.isLoadingInitialData) return;
@@ -28,10 +33,23 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         ...notificationsMap,
       };
 
+      final plan = _readString(merged, ['plan']);
+      if (plan != null && plan.toLowerCase() == 'pro') {
+        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      }
+
+      final apiName = _readString(merged, ['fullName', 'name']);
+      final sessionUser = _ref.read(userProvider).user;
+      final mergedFullName = mergeAccountFullNameForDisplay(
+        apiFullName: apiName,
+        sessionUserName: sessionUser?.name ?? '',
+        fallbackDraftFullName: state.accountDraft.fullName,
+      );
+
       final nextAccount = AccountDraft(
-        fullName:
-            _readString(merged, ['fullName', 'name']) ??
-            state.accountDraft.fullName,
+        fullName: mergedFullName.isNotEmpty
+            ? mergedFullName
+            : (apiName ?? state.accountDraft.fullName),
         email: _readString(merged, ['email']) ?? state.accountDraft.email,
       );
 
@@ -259,5 +277,5 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 }
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>(
-  (_) => SettingsNotifier(),
+  (ref) => SettingsNotifier(ref),
 );

@@ -52,7 +52,7 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
         children: [
           _ResetHomeBody(
             resetState: resetState,
-            isPro: userState.isPro,
+            isPro: userState.isPro || resetState.unlimitedDailyResets,
           ).withScreenPadding(),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:unflappable/core/navigation/root_navigator_key.dart';
 import 'package:unflappable/features/Auth/create_password/create_pass.dart';
 import 'package:unflappable/features/Auth/forget_password/forget_passScreen.dart';
 import 'package:unflappable/features/Auth/login_screen/login_screen.dart';
@@ -67,6 +68,7 @@ class AppRoutes {
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
 
     routes: [

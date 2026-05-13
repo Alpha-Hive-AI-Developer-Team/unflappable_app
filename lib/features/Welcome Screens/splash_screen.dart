@@ -7,6 +7,7 @@ import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Welcome%20Screens/splash-provider/splash_notifier.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -21,10 +22,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      ref.read(splashProvider.notifier).navigateNext(() {
-        final isLoggedIn = LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty == true;
+    Future.microtask(() async {
+      await ref.read(splashProvider.notifier).navigateNext(() async {
+        final isLoggedIn =
+            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty ==
+                true;
         if (isLoggedIn) {
+          await ref.read(userProvider.notifier).restoreSessionIfNeeded();
+        }
+        if (!mounted) return;
+        final stillLoggedIn =
+            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty ==
+                true;
+        if (stillLoggedIn) {
           context.go(AppRoutes.home);
         } else {
           context.go(AppRoutes.welcome);

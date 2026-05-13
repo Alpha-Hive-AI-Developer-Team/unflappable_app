@@ -17,6 +17,8 @@ class ResetState {
   final int totalReset;
   final List<ResetHistoryItem> resetHistory;
   final bool showLimitError;
+  /// True when API marks Pro or omits a finite daily cap — unlimited resets.
+  final bool unlimitedDailyResets;
 
   const ResetState({
     this.status = ResetStatus.initial,
@@ -37,9 +39,11 @@ class ResetState {
     this.errorMessage,
     this.resetHistory = const [],
     this.showLimitError = false,
+    this.unlimitedDailyResets = false,
   });
 
-  bool get hasResetsLeft => resetsUsedToday < dailyResetLimit;
+  bool get hasResetsLeft =>
+      unlimitedDailyResets || resetsUsedToday < dailyResetLimit;
 
   ResetState copyWith({
     ResetStatus? status,
@@ -54,6 +58,7 @@ class ResetState {
     String? errorMessage,
     List<ResetHistoryItem>? resetHistory,
     bool? showLimitError,
+    bool? unlimitedDailyResets,
   }) {
     return ResetState(
       status: status ?? this.status,
@@ -68,6 +73,7 @@ class ResetState {
       errorMessage: errorMessage ?? this.errorMessage,
       resetHistory: resetHistory ?? this.resetHistory,
       showLimitError: showLimitError ?? this.showLimitError,
+      unlimitedDailyResets: unlimitedDailyResets ?? this.unlimitedDailyResets,
     );
   }
 }

@@ -1,40 +1,65 @@
 import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Pricing/Provider/pricing_notifier.dart';
 import 'package:unflappable/features/Pricing/Provider/pricing_state.dart';
+import 'package:unflappable/features/Subscription/models/subscription_models.dart';
 import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
-class PricingPlansScreen extends ConsumerWidget {
+class _PlanFeature {
+  const _PlanFeature(this.title, this.subtitle);
+  final String title;
+  final String subtitle;
+}
+
+const _fallbackProFeatures = <_PlanFeature>[
+  _PlanFeature('Unlimited Resets', 'Reset your mindset as often as you need.'),
+  _PlanFeature('Reset History Access', 'Review past triggers and reframes.'),
+  _PlanFeature('Advanced Insights', 'Track your emotional patterns over time.'),
+  _PlanFeature('Premium Templates', 'Access exclusive designed templates.'),
+  _PlanFeature(
+    'Deeper Coaching Prompts',
+    'AI-powered prompts for deeper reflection.',
+  ),
+];
+
+class PricingPlansScreen extends ConsumerStatefulWidget {
   const PricingPlansScreen({super.key});
 
-  static const _features = [
-    _PlanFeature(
-      'Unlimited Resets',
-      'Reset your mindset as often as you need.',
-    ),
-    _PlanFeature('Reset History Access', 'Review past triggers and reframes.'),
-    _PlanFeature(
-      'Advanced Insights',
-      'Track your emotional patterns over time.',
-    ),
-    _PlanFeature('Premium Templates', 'Access exclusive designed templates.'),
-    _PlanFeature(
-      'Deeper Coaching Prompts',
-      'AI-powered prompts for deeper reflection.',
-    ),
-  ];
+  @override
+  ConsumerState<PricingPlansScreen> createState() => _PricingPlansScreenState();
+}
+
+class _PricingPlansScreenState extends ConsumerState<PricingPlansScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final notifier = ref.read(pricingPlansProvider.notifier);
+      final token = LocalStorage.getData(LocalStorage.accessToken)?.trim();
+      if (token != null && token.isNotEmpty) {
+        await ref.read(userProvider.notifier).restoreSessionIfNeeded();
+      }
+      if (!mounted) return;
+      // Drop stale success/failure so toggling billing does not re-trigger pop.
+      notifier.clearError();
+      notifier.loadPlans();
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final state = ref.watch(pricingPlansProvider);
     final notifier = ref.read(pricingPlansProvider.notifier);
 
-    // Navigate away on successful upgrade
+    // Pop only when we *enter* success (not on every rebuild while still success).
     ref.listen<PricingPlansState>(pricingPlansProvider, (prev, next) {
-      if (next.status == PricingStatus.success) {
+      if (next.status == PricingStatus.success &&
+          prev?.status != PricingStatus.success) {
         Navigator.of(context).maybePop();
       }
     });
@@ -89,7 +114,7 @@ class PricingPlansScreen extends ConsumerWidget {
                         SizedBox(height: ScreenUtils.vSm),
                         _Header(),
                         SizedBox(height: ScreenUtils.vXl),
-                        _PlanCard(features: _features),
+                        const _PlanCard(),
                         SizedBox(height: ScreenUtils.vXl),
                       ],
                     ),
@@ -109,10 +134,19 @@ class PricingPlansScreen extends ConsumerWidget {
             ),
             Center(
               child: ErrorDialog(
-                title: 'Purchase Failure',
+                title: state.failureDialogTitle,
                 message:
                     state.errorMessage ?? "Your Purchase didn't go through",
                 onTryAgain: notifier.clearError,
+                secondaryLabel: state.showLoginFromPricingFailure
+                    ? 'Go to Log In'
+                    : null,
+                onSecondary: state.showLoginFromPricingFailure
+                    ? () {
+                        notifier.clearError();
+                        context.go(AppRoutes.login);
+                      }
+                    : null,
               ),
             ),
           ],
@@ -166,13 +200,25 @@ class _Header extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _PlanCard extends ConsumerWidget {
-  const _PlanCard({required this.features});
-  final List<_PlanFeature> features;
+  const _PlanCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(pricingPlansProvider);
     final notifier = ref.read(pricingPlansProvider.notifier);
+
+    final fromApi = state.plans?.pro.features
+        .where((f) => f.included)
+        .map((f) => _PlanFeature(f.label, f.subtitle ?? ''))
+        .toList();
+    final features = (fromApi != null && fromApi.isNotEmpty)
+        ? fromApi
+        : _fallbackProFeatures;
+
+    final userState = ref.watch(userProvider);
+    final monthlyLocked =
+        userState.isPro &&
+        ProProductIds.isYearlyProductId(userState.user?.proProductId);
 
     return Container(
       decoration: BoxDecoration(
@@ -191,10 +237,22 @@ class _PlanCard extends ConsumerWidget {
         children: [
           _BillingToggle(
             isYearly: state.isYearly,
+            monthlyLocked: monthlyLocked,
             onChanged: (isYearly) => notifier.setBillingCycle(
               isYearly ? BillingCycle.yearly : BillingCycle.monthly,
             ),
           ),
+          if (monthlyLocked) ...[
+            SizedBox(height: 8.h),
+            Text(
+              'You have Pro Yearly. Monthly billing is not available for this account.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMD.copyWith(
+                color: AppColors.bodyText,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
           SizedBox(height: ScreenUtils.vLg),
 
           Container(
@@ -248,10 +306,26 @@ class _PlanCard extends ConsumerWidget {
 
           Padding(
             padding: EdgeInsets.all(ScreenUtils.xl),
-            child: PrimaryButton(
-              label: 'Upgrade',
-              isLoading: state.isLoading,
-              onTap: () => notifier.upgrade(),
+            child: Column(
+              children: [
+                PrimaryButton(
+                  label: 'Upgrade',
+                  isLoading: state.isLoading || state.isRestoring,
+                  onTap: () => notifier.upgrade(),
+                ),
+                SizedBox(height: 8.h),
+                TextButton(
+                  onPressed: state.isLoading || state.isRestoring
+                      ? null
+                      : () => notifier.restorePurchases(),
+                  child: Text(
+                    state.isRestoring ? 'Restoring…' : 'Restore purchases',
+                    style: AppTextStyles.labelMD.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -265,8 +339,13 @@ class _PlanCard extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _BillingToggle extends StatelessWidget {
-  const _BillingToggle({required this.isYearly, required this.onChanged});
+  const _BillingToggle({
+    required this.isYearly,
+    required this.monthlyLocked,
+    required this.onChanged,
+  });
   final bool isYearly;
+  final bool monthlyLocked;
   final ValueChanged<bool> onChanged;
 
   @override
@@ -282,11 +361,13 @@ class _BillingToggle extends StatelessWidget {
           _ToggleTab(
             label: 'Monthly',
             isActive: !isYearly,
+            enabled: !monthlyLocked,
             onTap: () => onChanged(false),
           ),
           _ToggleTab(
             label: 'Yearly',
             isActive: isYearly,
+            enabled: true,
             onTap: () => onChanged(true),
           ),
         ],
@@ -299,39 +380,44 @@ class _ToggleTab extends StatelessWidget {
   const _ToggleTab({
     required this.label,
     required this.isActive,
+    required this.enabled,
     required this.onTap,
   });
   final String label;
   final bool isActive;
+  final bool enabled;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(ScreenUtils.radiusXs + 2.r),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.labelMD.copyWith(
-              color: isActive ? AppColors.headingText : AppColors.bodyText,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.45,
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(vertical: 8.h),
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(ScreenUtils.radiusXs + 2.r),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.labelMD.copyWith(
+                color: isActive ? AppColors.headingText : AppColors.bodyText,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              ),
             ),
           ),
         ),
@@ -343,12 +429,6 @@ class _ToggleTab extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Feature Row
 // ---------------------------------------------------------------------------
-
-class _PlanFeature {
-  const _PlanFeature(this.title, this.subtitle);
-  final String title;
-  final String subtitle;
-}
 
 class _FeatureRow extends StatelessWidget {
   const _FeatureRow({required this.feature});

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +41,8 @@ class WelcomeScreen extends ConsumerWidget {
         ref
             .read(userProvider.notifier)
             .setUserInfo(id: id, email: email, name: displayName, isPro: false);
+
+        unawaited(ref.read(userProvider.notifier).syncSubscriptionFromApi());
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;

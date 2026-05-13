@@ -1,9 +1,19 @@
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
+import 'package:unflappable/features/Auth/providers/user_state.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
+
+String _subscriptionLabel(UserState userState) {
+  if (!userState.isPro) return 'Free';
+  final id = userState.user?.proProductId ?? '';
+  final lower = id.toLowerCase();
+  if (lower.contains('yearly')) return 'Pro Yearly';
+  if (lower.contains('monthly')) return 'Pro Monthly';
+  return 'Pro';
+}
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -77,7 +87,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     AccountField(
                       label: 'Subscription',
                       controller: TextEditingController(
-                        text: userState.isPro ? 'Pro Monthly' : 'Free',
+                        text: _subscriptionLabel(userState),
                       ),
                       readOnly: true,
                       filled: true,

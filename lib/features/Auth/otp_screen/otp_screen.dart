@@ -10,6 +10,7 @@ import 'package:unflappable/core/utils/screen_paddings.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_provider.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_provider/otp_state.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
@@ -153,6 +154,10 @@ class _OtpBody extends ConsumerWidget {
                               context,
                               message: 'Email verified successfully.',
                             );
+                            await ref
+                                .read(userProvider.notifier)
+                                .restoreSessionIfNeeded();
+                            if (!context.mounted) return;
                             context.push(AppRoutes.onboarding);
                           } else {
                             AppSnackbar.showSuccess(

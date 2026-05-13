@@ -9,12 +9,12 @@ class SplashNotifier extends StateNotifier<bool> {
 
   bool _isNavigated = false;
 
-  Future<void> navigateNext(void Function() onNavigate) async {
+  Future<void> navigateNext(Future<void> Function() onNavigate) async {
     if (_isNavigated) return;
     _isNavigated = true;
 
     await Future.delayed(const Duration(seconds: 3));
 
-    onNavigate();
+    await onNavigate();
   }
 }

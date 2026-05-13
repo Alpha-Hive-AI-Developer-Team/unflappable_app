@@ -5,6 +5,8 @@ class User {
   final bool isPro;
   final DateTime createdAt;
   final DateTime? proSubscribedAt;
+  /// From `GET /api/subscription/status` when available (e.g. monthly vs yearly SKU).
+  final String? proProductId;
 
   const User({
     required this.id,
@@ -13,6 +15,7 @@ class User {
     this.isPro = false,
     required this.createdAt,
     this.proSubscribedAt,
+    this.proProductId,
   });
 
   User copyWith({
@@ -22,6 +25,8 @@ class User {
     bool? isPro,
     DateTime? createdAt,
     DateTime? proSubscribedAt,
+    String? proProductId,
+    bool clearProProductId = false,
   }) =>
       User(
         id: id ?? this.id,
@@ -30,5 +35,8 @@ class User {
         isPro: isPro ?? this.isPro,
         createdAt: createdAt ?? this.createdAt,
         proSubscribedAt: proSubscribedAt ?? this.proSubscribedAt,
+        proProductId: clearProProductId
+            ? null
+            : (proProductId ?? this.proProductId),
       );
 }

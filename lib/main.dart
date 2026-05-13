@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/export.dart';
@@ -23,6 +26,29 @@ class MainApp extends ConsumerStatefulWidget {
 
 class _MainAppState extends ConsumerState<MainApp> {
   bool _hasConfiguredRouter = false;
+  StreamSubscription<List<PurchaseDetails>>? _iapPurchaseSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // in_app_purchase: subscribe early so purchase updates are not missed
+    // (especially fast sandbox completions during Upgrade).
+    _iapPurchaseSub = InAppPurchase.instance.purchaseStream.listen(
+      (List<PurchaseDetails> _) {},
+      onError: (Object e, StackTrace st) {
+        assert(() {
+          debugPrint('IAP purchaseStream error: $e');
+          return true;
+        }());
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_iapPurchaseSub?.cancel());
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {

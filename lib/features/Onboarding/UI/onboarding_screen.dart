@@ -1,6 +1,7 @@
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
+import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Onboarding/Model/onboarding_model.dart';
 import 'package:unflappable/features/Onboarding/Provider/onboarding_provider.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
@@ -202,6 +203,10 @@ class _BottomButton extends ConsumerWidget {
                 try {
                   await notifier.completeSetup();
                   if (context.mounted) {
+                    await ref
+                        .read(userProvider.notifier)
+                        .restoreSessionIfNeeded();
+                    if (!context.mounted) return;
                     AppSnackbar.showSuccess(context,
                         message: 'Onboarding complete!');
                     context.go(AppRoutes.home);

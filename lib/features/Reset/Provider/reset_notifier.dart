@@ -93,8 +93,18 @@ class ResetNotifier extends StateNotifier<ResetState> {
     try {
       final landingResponse = await ResetService.getLanding();
       final landingData = landingResponse.data;
-      final historyData = await _fetchHistoryDataSafely();
       final landingPayload = _extractPrimaryPayload(landingData);
+      final isProLanding = _readOptionalIsProFromResponse(landingData);
+      if (isProLanding == true) {
+        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      }
+
+      final historyData = await _fetchHistoryDataSafely();
+      final isProHistory = _readOptionalIsProFromResponse(historyData);
+      if (isProHistory == true) {
+        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      }
+
       final historyItems = _extractHistoryItems(
         historyData,
         landingData,
@@ -118,6 +128,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
+      final unlimitedDailyResets =
+          isProLanding == true || isProHistory == true;
+
       state = state.copyWith(
         status: ResetStatus.initial,
         resetsUsedToday: resetsUsedToday,
@@ -125,6 +138,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
         totalReset: totalResets,
         resetHistory: historyItems,
         errorMessage: null,
+        unlimitedDailyResets: unlimitedDailyResets,
       );
     } on DioException catch (e) {
       state = state.copyWith(
@@ -224,8 +238,18 @@ class ResetNotifier extends StateNotifier<ResetState> {
     try {
       final landingResponse = await ResetService.getLanding();
       final landingData = landingResponse.data;
-      final historyData = await _fetchHistoryDataSafely();
       final landingPayload = _extractPrimaryPayload(landingData);
+      final isProLanding = _readOptionalIsProFromResponse(landingData);
+      if (isProLanding == true) {
+        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      }
+
+      final historyData = await _fetchHistoryDataSafely();
+      final isProHistory = _readOptionalIsProFromResponse(historyData);
+      if (isProHistory == true) {
+        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      }
+
       final historyItems = _extractHistoryItems(
         historyData,
         landingData,
@@ -246,6 +270,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
+      final unlimitedDailyResets =
+          isProLanding == true || isProHistory == true;
+
       // FIX: Preserve the current status (success) when refreshing — only
       // update the data fields so the success overlay stays visible.
       state = state.copyWith(
@@ -253,6 +280,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
         dailyResetLimit: dailyLimit,
         totalReset: totalResets,
         resetHistory: historyItems,
+        unlimitedDailyResets: unlimitedDailyResets,
       );
     } catch (_) {
       // If the refresh fails, keep whatever state we already have. The
@@ -271,6 +299,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
       dailyResetLimit: state.dailyResetLimit,
       emotions: state.emotions,
       resetHistory: state.resetHistory,
+      unlimitedDailyResets: state.unlimitedDailyResets,
     );
   }
 
@@ -421,6 +450,36 @@ class ResetNotifier extends StateNotifier<ResetState> {
 
   String _normalizeKey(String value) =>
       value.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toLowerCase();
+
+  bool? _readOptionalBoolKey(Map<String, dynamic> map, String key) {
+    if (!map.containsKey(key)) return null;
+    final value = map[key];
+    if (value is bool) return value;
+    if (value is String) {
+      final s = value.toLowerCase().trim();
+      if (s == 'true') return true;
+      if (s == 'false') return false;
+    }
+    return null;
+  }
+
+  bool? _readOptionalIsProFromResponse(dynamic data) {
+    if (data is! Map) return null;
+    final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
+    final nested = outer['data'];
+    final fromNested = nested is Map
+        ? _readOptionalBoolKey(Map<String, dynamic>.from(nested), 'isPro')
+        : null;
+    final fromOuter = _readOptionalBoolKey(outer, 'isPro');
+    return _mergeOptionalBoolOr(fromNested, fromOuter);
+  }
+
+  /// If either side is true, result is true. If both absent, null. If one
+  /// absent and the other false, false.
+  bool? _mergeOptionalBoolOr(bool? a, bool? b) {
+    if (a == null && b == null) return null;
+    return (a ?? false) || (b ?? false);
+  }
 
   String _dioErrorMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;

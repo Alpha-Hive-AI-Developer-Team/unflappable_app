@@ -6,6 +6,7 @@ import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
+import 'package:unflappable/features/Setting/Utils/account_full_name_merge.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/navbar_wrapper/home_shell.dart';
 import 'package:unflappable/features/widgets/Common/setting_dialog.dart';
@@ -89,7 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                       child: PrimaryButton(
                         label: 'Manage',
                         isLoading: false,
-                        onTap: () {},
+                        onTap: () => context.push(AppRoutes.pricing),
                       ),
                     ),
                   ],
@@ -112,9 +113,14 @@ class SettingsScreen extends ConsumerWidget {
                 label: 'Account',
                 onTap: () {
                   final account = ref.read(settingsProvider).accountDraft;
+                  final mergedName = mergeAccountFullNameForDisplay(
+                    apiFullName: account.fullName,
+                    sessionUserName: userState.userName,
+                    fallbackDraftFullName: account.fullName,
+                  );
                   notifier.initAccountDraft(
-                    name: account.fullName.isNotEmpty
-                        ? account.fullName
+                    name: mergedName.isNotEmpty
+                        ? mergedName
                         : userState.userName,
                     email: account.email.isNotEmpty
                         ? account.email
