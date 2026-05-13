@@ -90,7 +90,7 @@ class _TaglineSection extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Stay Calm. Execute Anyway.',
+          'Execution Under Pressure',
           textAlign: TextAlign.center,
           style: AppTextStyles.headingLG.copyWith(color: AppColors.headingText),
         ),
