@@ -75,12 +75,6 @@ class ResetNotifier extends StateNotifier<ResetState> {
     state = state.copyWith(selectedEmotions: current);
   }
 
-  // ── Load Initial ──────────────────────────────────────────────────────────
-  // FIX: This is now the single source of truth for resetsUsedToday,
-  // dailyResetLimit, totalReset, and resetHistory. It always overwrites
-  // state with values from the API, so re-opening the app always reflects
-  // the backend's reality rather than an in-memory counter that resets to 0.
-
   Future<void> loadInitial({bool silent = false}) async {
     if (state.status == ResetStatus.loading) return;
 
@@ -105,14 +99,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
         _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
       }
 
-      final historyItems = _extractHistoryItems(
-        historyData,
-        landingData,
-      );
+      final historyItems = _extractHistoryItems(historyData, landingData);
 
-      // FIX: Always pull counts from the API response. Never fall back to the
-      // in-memory state value — that's what caused the "shows 1, then 0 on
-      // restart" bug. If the API doesn't return a field, default to 0 / 1.
       final int resetsUsedToday =
           _extractInt(landingPayload, _resetsUsedTodayKeys) ??
           _extractInt(landingData, _resetsUsedTodayKeys) ??
@@ -128,8 +116,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
-      final unlimitedDailyResets =
-          isProLanding == true || isProHistory == true;
+      final unlimitedDailyResets = isProLanding == true || isProHistory == true;
 
       state = state.copyWith(
         status: ResetStatus.initial,
@@ -156,15 +143,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
     }
   }
 
-  // ── Run Reset ─────────────────────────────────────────────────────────────
-  // FIX: Guard is now purely API-driven. After a successful reset the state is
-  // updated from the server response (or by incrementing if the server doesn't
-  // return updated counts), then _refreshLanding() is called to sync the
-  // authoritative count back from the backend.
-
   Future<void> runReset() async {
-    // FIX: Check limit before proceeding. Set showLimitError so the UI can
-    // display the snackbar, but do NOT navigate forward.
     if (!state.hasResetsLeft) {
       state = state.copyWith(showLimitError: true);
       return;
@@ -193,13 +172,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
         'next_action',
       ]);
 
-      // FIX: Prefer server-returned counts. Fall back to incrementing the
-      // current state value (not zero) so the UI stays consistent even when
-      // the reset endpoint doesn't echo back usage counts.
-      final int? serverResetsUsedToday = _extractInt(
-        payload,
-        _resetsUsedTodayKeys,
-      ) ??
+      final int? serverResetsUsedToday =
+          _extractInt(payload, _resetsUsedTodayKeys) ??
           _extractInt(responseData, _resetsUsedTodayKeys);
       final int? serverTotalReset = _extractInt(payload, _totalResetKeys);
 
@@ -211,9 +185,6 @@ class ResetNotifier extends StateNotifier<ResetState> {
         totalReset: serverTotalReset ?? state.totalReset + 1,
       );
 
-      // FIX: After a successful reset, re-fetch the landing data so that
-      // resetsUsedToday is authoritative from the server on the next render.
-      // This also refreshes the history list.
       await _refreshLanding();
     } on DioException catch (e) {
       state = state.copyWith(
@@ -227,12 +198,6 @@ class ResetNotifier extends StateNotifier<ResetState> {
       );
     }
   }
-
-  // ── Refresh Landing ───────────────────────────────────────────────────────
-  // FIX: Replaces the old _refreshHistory(). Re-fetches both the landing
-  // endpoint (for accurate resetsUsedToday / dailyLimit counts) and the
-  // history endpoint. This ensures that after a reset completes, and every
-  // time the screen is revisited, the count the user sees matches the backend.
 
   Future<void> _refreshLanding() async {
     try {
@@ -250,10 +215,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
         _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
       }
 
-      final historyItems = _extractHistoryItems(
-        historyData,
-        landingData,
-      );
+      final historyItems = _extractHistoryItems(historyData, landingData);
 
       final int resetsUsedToday =
           _extractInt(landingPayload, _resetsUsedTodayKeys) ??
@@ -270,11 +232,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
-      final unlimitedDailyResets =
-          isProLanding == true || isProHistory == true;
+      final unlimitedDailyResets = isProLanding == true || isProHistory == true;
 
-      // FIX: Preserve the current status (success) when refreshing — only
-      // update the data fields so the success overlay stays visible.
       state = state.copyWith(
         resetsUsedToday: resetsUsedToday,
         dailyResetLimit: dailyLimit,
@@ -282,15 +241,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
         resetHistory: historyItems,
         unlimitedDailyResets: unlimitedDailyResets,
       );
-    } catch (_) {
-      // If the refresh fails, keep whatever state we already have. The
-      // optimistic increment in runReset() is already applied.
-    }
+    } catch (_) {}
   }
-
-  // ── Reset Flow ────────────────────────────────────────────────────────────
-  // Clears per-session fields (trigger, emotions, result) while preserving
-  // the API-sourced counters and history.
 
   void resetFlow() {
     state = ResetState(
@@ -406,7 +358,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
     final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
     final nestedData = outer['data'];
     if (nestedData is Map) {
-      final payload = Map<String, dynamic>.from(nestedData.cast<String, dynamic>());
+      final payload = Map<String, dynamic>.from(
+        nestedData.cast<String, dynamic>(),
+      );
       for (final key in const ['summary', 'stats', 'usage', 'counts']) {
         final nested = payload[key];
         if (nested is Map) {
@@ -474,8 +428,6 @@ class ResetNotifier extends StateNotifier<ResetState> {
     return _mergeOptionalBoolOr(fromNested, fromOuter);
   }
 
-  /// If either side is true, result is true. If both absent, null. If one
-  /// absent and the other false, false.
   bool? _mergeOptionalBoolOr(bool? a, bool? b) {
     if (a == null && b == null) return null;
     return (a ?? false) || (b ?? false);

@@ -247,7 +247,6 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     final screenContext = context;
-    final passwordController = TextEditingController();
     final confirmController = TextEditingController();
     final notifier = ref.read(settingsProvider.notifier);
 
@@ -297,34 +296,10 @@ class SettingsScreen extends ConsumerWidget {
 
                 // Subtitle message
                 Text(
-                  'Enter your password and type DELETE MY ACCOUNT to confirm.',
+                  'Type DELETE to confirm account deletion.',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMD.copyWith(
                     color: AppColors.bodyText,
-                  ),
-                ),
-                SizedBox(height: ScreenUtils.vMd),
-
-                // Password field
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  style: AppTextStyles.bodyMD.copyWith(
-                    color: AppColors.headingText,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    labelStyle: AppTextStyles.bodyMD.copyWith(
-                      color: AppColors.bodyText,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                      borderSide: BorderSide(color: AppColors.borderGrey),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                      borderSide: BorderSide(color: AppColors.error),
-                    ),
                   ),
                 ),
                 SizedBox(height: ScreenUtils.vMd),
@@ -337,7 +312,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   decoration: InputDecoration(
                     labelText: 'Confirmation text',
-                    hintText: 'DELETE MY ACCOUNT',
+                    hintText: 'DELETE',
                     hintStyle: AppTextStyles.bodyMD.copyWith(
                       color: AppColors.bodyText.withOpacity(0.5),
                     ),
@@ -361,19 +336,25 @@ class SettingsScreen extends ConsumerWidget {
                   label: 'Delete Account',
                   isLoading: false,
                   onTap: () async {
-                    final password = passwordController.text.trim();
                     final confirmText = confirmController.text.trim();
 
-                    if (password.isEmpty || confirmText.isEmpty) {
+                    if (confirmText.isEmpty) {
                       AppSnackbar.showError(
                         context,
-                        message: 'Both fields are required.',
+                        message: 'Confirmation text is required.',
+                      );
+                      return;
+                    }
+
+                    if (confirmText != 'DELETE') {
+                      AppSnackbar.showError(
+                        context,
+                        message: 'Confirmation text must be exactly "DELETE".',
                       );
                       return;
                     }
 
                     final success = await notifier.deleteAccount(
-                      password: password,
                       confirmText: confirmText,
                     );
                     if (!screenContext.mounted) return;

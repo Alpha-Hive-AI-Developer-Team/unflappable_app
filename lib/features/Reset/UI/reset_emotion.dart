@@ -1,5 +1,3 @@
-// lib/features/reset/screens/reset_emotion_screen.dart
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -23,12 +21,6 @@ class ResetEmotionScreen extends ConsumerWidget {
     final state = ref.watch(resetProvider);
     final notifier = ref.read(resetProvider.notifier);
     final isLoading = state.status == ResetStatus.loading;
-
-    // FIX: showLimitError is now handled on ResetScreen (the screen the user
-    // is on when they tap "Run Reset"). By the time they reach the emotion
-    // screen they have already been granted a reset, so there is no need to
-    // handle the limit error here. Removing it avoids a race condition where
-    // the flag is still true from a previous navigation cycle.
 
     return Scaffold(
       backgroundColor: AppColors.background,

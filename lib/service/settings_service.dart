@@ -47,12 +47,11 @@ abstract final class SettingsService {
   }
 
   static Future<Response> deleteAccount({
-    required String password,
     required String confirmText,
   }) {
     return DioHelper.deleteData(
       endPoint: EndPoints.settings.account,
-      data: {'password': password, 'confirmText': confirmText},
+      data: {'confirmText': confirmText},
     );
   }
 }

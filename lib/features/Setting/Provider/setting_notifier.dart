@@ -207,16 +207,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     }
   }
 
-  Future<bool> deleteAccount({
-    required String password,
-    required String confirmText,
-  }) async {
+  Future<bool> deleteAccount({required String confirmText}) async {
     state = state.copyWith(isDeletingAccount: true, clearError: true);
     try {
-      await SettingsService.deleteAccount(
-        password: password,
-        confirmText: confirmText,
-      );
+      await SettingsService.deleteAccount(confirmText: confirmText);
       await LocalStorage.clearAllData();
       state = state.copyWith(isDeletingAccount: false);
       return true;
