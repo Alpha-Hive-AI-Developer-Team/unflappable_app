@@ -99,53 +99,56 @@ class SettingsScreen extends ConsumerWidget {
               //   ),
               // ),
 
-              // Free-only release: static plan indicator, no upgrade path.
-              SectionLabel('Plan'),
-              SizedBox(height: 12.h),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ScreenUtils.md,
-                  vertical: ScreenUtils.vMd,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(ScreenUtils.sm),
-                  border: Border.all(color: AppColors.borderGrey),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.bolt_rounded,
-                      color: AppColors.primary,
-                      size: ScreenUtils.iconLg,
-                    ),
-                    SizedBox(width: ScreenUtils.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Free Plan',
-                            style: AppTextStyles.labelLG.copyWith(
-                              color: AppColors.headingText,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            'All features are free right now.',
-                            style: AppTextStyles.bodyMD.copyWith(
-                              color: AppColors.bodyText,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: ScreenUtils.vXl),
+              // PRO FEATURE — disabled for the current free-only release.
+              // (This was the free-only "Plan" tile shown in place of the
+              // Subscription card above; also removed per product request —
+              // no plan/subscription indicator on the Settings screen at all.)
+              // SectionLabel('Plan'),
+              // SizedBox(height: 12.h),
+              // Container(
+              //   padding: EdgeInsets.symmetric(
+              //     horizontal: ScreenUtils.md,
+              //     vertical: ScreenUtils.vMd,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: AppColors.white,
+              //     borderRadius: BorderRadius.circular(ScreenUtils.sm),
+              //     border: Border.all(color: AppColors.borderGrey),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       Icon(
+              //         Icons.bolt_rounded,
+              //         color: AppColors.primary,
+              //         size: ScreenUtils.iconLg,
+              //       ),
+              //       SizedBox(width: ScreenUtils.sm),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               'Free Plan',
+              //               style: AppTextStyles.labelLG.copyWith(
+              //                 color: AppColors.headingText,
+              //                 fontWeight: FontWeight.w700,
+              //               ),
+              //             ),
+              //             SizedBox(height: 4.h),
+              //             Text(
+              //               'All features are free right now.',
+              //               style: AppTextStyles.bodyMD.copyWith(
+              //                 color: AppColors.bodyText,
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              //
+              // SizedBox(height: ScreenUtils.vXl),
 
               // ── Preferences ─────────────────────────────────────────────
               SectionLabel('Preferences'),

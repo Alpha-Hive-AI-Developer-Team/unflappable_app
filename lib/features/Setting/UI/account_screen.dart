@@ -1,6 +1,8 @@
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
-import 'package:unflappable/features/Auth/providers/user_state.dart';
+// PRO FEATURE — disabled for the current free-only release (UserState was
+// only needed for the Subscription label below).
+// import 'package:unflappable/features/Auth/providers/user_state.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
@@ -15,9 +17,9 @@ import 'package:unflappable/features/widgets/Common/snackbar.dart';
 //   if (lower.contains('monthly')) return 'Pro Monthly';
 //   return 'Pro';
 // }
-
-// Free-only release: subscriptions are disabled, always show Free.
-String _subscriptionLabel(UserState userState) => 'Free';
+//
+// // Free-only release: subscriptions are disabled, always show Free.
+// String _subscriptionLabel(UserState userState) => 'Free';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -55,7 +57,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(settingsProvider);
-    final userState = ref.watch(userProvider);
+    // PRO FEATURE — disabled for the current free-only release (was only
+    // read here for the Subscription field below).
+    // final userState = ref.watch(userProvider);
     final notifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
@@ -85,17 +89,18 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       readOnly: true,
                       filled: true,
                     ),
-                    SizedBox(height: ScreenUtils.vMd),
-
-                    // Subscription — read-only
-                    AccountField(
-                      label: 'Subscription',
-                      controller: TextEditingController(
-                        text: _subscriptionLabel(userState),
-                      ),
-                      readOnly: true,
-                      filled: true,
-                    ),
+                    // PRO FEATURE — disabled for the current free-only
+                    // release. No subscription indicator on the Account
+                    // screen while the app is free-only.
+                    // SizedBox(height: ScreenUtils.vMd),
+                    // AccountField(
+                    //   label: 'Subscription',
+                    //   controller: TextEditingController(
+                    //     text: _subscriptionLabel(userState),
+                    //   ),
+                    //   readOnly: true,
+                    //   filled: true,
+                    // ),
                   ],
                 ),
               ),
