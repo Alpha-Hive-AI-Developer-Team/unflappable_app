@@ -21,7 +21,8 @@ class SettingsScreen extends ConsumerWidget {
     final userState = ref.watch(userProvider);
     final settingsState = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
-    final isPro = userState.isPro;
+    // PRO FEATURE — disabled for the current free-only release.
+    // final isPro = userState.isPro;
     if (!settingsState.hasLoadedInitialData &&
         !settingsState.isLoadingInitialData) {
       Future.microtask(notifier.loadInitialData);
@@ -43,8 +44,63 @@ class SettingsScreen extends ConsumerWidget {
 
               SizedBox(height: ScreenUtils.vXl),
 
-              // ── Subscription ────────────────────────────────────────────
-              SectionLabel('Subscription'),
+              // PRO FEATURE — disabled for the current free-only release.
+              // // ── Subscription ────────────────────────────────────────────
+              // SectionLabel('Subscription'),
+              // SizedBox(height: 12.h),
+              // Container(
+              //   padding: EdgeInsets.symmetric(
+              //     horizontal: ScreenUtils.md,
+              //     vertical: ScreenUtils.vMd,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: AppColors.white,
+              //     borderRadius: BorderRadius.circular(ScreenUtils.sm),
+              //     border: Border.all(color: AppColors.borderGrey),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       Icon(
+              //         Icons.bolt_rounded,
+              //         color: AppColors.primary,
+              //         size: ScreenUtils.iconLg,
+              //       ),
+              //       SizedBox(width: ScreenUtils.sm),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               isPro ? 'Pro Plan' : 'Free Plan',
+              //               style: AppTextStyles.labelLG.copyWith(
+              //                 color: AppColors.headingText,
+              //                 fontWeight: FontWeight.w700,
+              //               ),
+              //             ),
+              //             SizedBox(height: 4.h),
+              //             Text(
+              //               isPro ? 'Active' : 'Upgrade for more',
+              //               style: AppTextStyles.bodyMD.copyWith(
+              //                 color: AppColors.bodyText,
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       SizedBox(width: 50.w),
+              //       Expanded(
+              //         child: PrimaryButton(
+              //           label: 'Manage',
+              //           isLoading: false,
+              //           onTap: () => context.push(AppRoutes.pricing),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+
+              // Free-only release: static plan indicator, no upgrade path.
+              SectionLabel('Plan'),
               SizedBox(height: 12.h),
               Container(
                 padding: EdgeInsets.symmetric(
@@ -69,7 +125,7 @@ class SettingsScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isPro ? 'Pro Plan' : 'Free Plan',
+                            'Free Plan',
                             style: AppTextStyles.labelLG.copyWith(
                               color: AppColors.headingText,
                               fontWeight: FontWeight.w700,
@@ -77,20 +133,12 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            isPro ? 'Active' : 'Upgrade for more',
+                            'All features are free right now.',
                             style: AppTextStyles.bodyMD.copyWith(
                               color: AppColors.bodyText,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    SizedBox(width: 50.w),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: 'Manage',
-                        isLoading: false,
-                        onTap: () => context.push(AppRoutes.pricing),
                       ),
                     ),
                   ],

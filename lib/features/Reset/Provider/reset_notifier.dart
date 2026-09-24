@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Models/reset_history_item.dart';
 import 'package:unflappable/features/Reset/Provider/reset_state.dart';
 import 'package:unflappable/service/reset_service.dart';
@@ -9,7 +8,8 @@ import 'package:unflappable/service/reset_service.dart';
 class ResetNotifier extends StateNotifier<ResetState> {
   final Ref _ref;
 
-  bool get _isPro => _ref.read(userProvider).isPro;
+  // PRO FEATURE — disabled for the current free-only release.
+  // bool get _isPro => _ref.read(userProvider).isPro;
 
   ResetNotifier({required Ref ref}) : _ref = ref, super(const ResetState()) {
     loadInitial();
@@ -88,16 +88,17 @@ class ResetNotifier extends StateNotifier<ResetState> {
       final landingResponse = await ResetService.getLanding();
       final landingData = landingResponse.data;
       final landingPayload = _extractPrimaryPayload(landingData);
-      final isProLanding = _readOptionalIsProFromResponse(landingData);
-      if (isProLanding == true) {
-        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
-      }
+      // PRO FEATURE — disabled for the current free-only release.
+      // final isProLanding = _readOptionalIsProFromResponse(landingData);
+      // if (isProLanding == true) {
+      //   _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      // }
 
       final historyData = await _fetchHistoryDataSafely();
-      final isProHistory = _readOptionalIsProFromResponse(historyData);
-      if (isProHistory == true) {
-        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
-      }
+      // final isProHistory = _readOptionalIsProFromResponse(historyData);
+      // if (isProHistory == true) {
+      //   _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      // }
 
       final historyItems = _extractHistoryItems(historyData, landingData);
 
@@ -116,7 +117,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
-      final unlimitedDailyResets = isProLanding == true || isProHistory == true;
+      // final unlimitedDailyResets = isProLanding == true || isProHistory == true;
+      // Free-only release: every user gets unlimited resets.
+      const unlimitedDailyResets = true;
 
       state = state.copyWith(
         status: ResetStatus.initial,
@@ -204,16 +207,17 @@ class ResetNotifier extends StateNotifier<ResetState> {
       final landingResponse = await ResetService.getLanding();
       final landingData = landingResponse.data;
       final landingPayload = _extractPrimaryPayload(landingData);
-      final isProLanding = _readOptionalIsProFromResponse(landingData);
-      if (isProLanding == true) {
-        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
-      }
+      // PRO FEATURE — disabled for the current free-only release.
+      // final isProLanding = _readOptionalIsProFromResponse(landingData);
+      // if (isProLanding == true) {
+      //   _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      // }
 
       final historyData = await _fetchHistoryDataSafely();
-      final isProHistory = _readOptionalIsProFromResponse(historyData);
-      if (isProHistory == true) {
-        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
-      }
+      // final isProHistory = _readOptionalIsProFromResponse(historyData);
+      // if (isProHistory == true) {
+      //   _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      // }
 
       final historyItems = _extractHistoryItems(historyData, landingData);
 
@@ -232,7 +236,9 @@ class ResetNotifier extends StateNotifier<ResetState> {
           _extractInt(historyData, _totalResetKeys) ??
           historyItems.length;
 
-      final unlimitedDailyResets = isProLanding == true || isProHistory == true;
+      // final unlimitedDailyResets = isProLanding == true || isProHistory == true;
+      // Free-only release: every user gets unlimited resets.
+      const unlimitedDailyResets = true;
 
       state = state.copyWith(
         resetsUsedToday: resetsUsedToday,
@@ -377,9 +383,12 @@ class ResetNotifier extends StateNotifier<ResetState> {
 
   Future<dynamic> _fetchHistoryDataSafely() async {
     try {
-      final historyResponse = _isPro
-          ? await ResetService.getHistory(page: 1, limit: 20)
-          : await ResetService.getHistory();
+      // PRO FEATURE — disabled for the current free-only release.
+      // final historyResponse = _isPro
+      //     ? await ResetService.getHistory(page: 1, limit: 20)
+      //     : await ResetService.getHistory();
+      // Free-only release: everyone gets the fuller history page (previously Pro-only).
+      final historyResponse = await ResetService.getHistory(page: 1, limit: 20);
       return historyResponse.data;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
@@ -405,33 +414,34 @@ class ResetNotifier extends StateNotifier<ResetState> {
   String _normalizeKey(String value) =>
       value.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toLowerCase();
 
-  bool? _readOptionalBoolKey(Map<String, dynamic> map, String key) {
-    if (!map.containsKey(key)) return null;
-    final value = map[key];
-    if (value is bool) return value;
-    if (value is String) {
-      final s = value.toLowerCase().trim();
-      if (s == 'true') return true;
-      if (s == 'false') return false;
-    }
-    return null;
-  }
-
-  bool? _readOptionalIsProFromResponse(dynamic data) {
-    if (data is! Map) return null;
-    final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
-    final nested = outer['data'];
-    final fromNested = nested is Map
-        ? _readOptionalBoolKey(Map<String, dynamic>.from(nested), 'isPro')
-        : null;
-    final fromOuter = _readOptionalBoolKey(outer, 'isPro');
-    return _mergeOptionalBoolOr(fromNested, fromOuter);
-  }
-
-  bool? _mergeOptionalBoolOr(bool? a, bool? b) {
-    if (a == null && b == null) return null;
-    return (a ?? false) || (b ?? false);
-  }
+  // PRO FEATURE — disabled for the current free-only release.
+  // bool? _readOptionalBoolKey(Map<String, dynamic> map, String key) {
+  //   if (!map.containsKey(key)) return null;
+  //   final value = map[key];
+  //   if (value is bool) return value;
+  //   if (value is String) {
+  //     final s = value.toLowerCase().trim();
+  //     if (s == 'true') return true;
+  //     if (s == 'false') return false;
+  //   }
+  //   return null;
+  // }
+  //
+  // bool? _readOptionalIsProFromResponse(dynamic data) {
+  //   if (data is! Map) return null;
+  //   final outer = Map<String, dynamic>.from(data.cast<String, dynamic>());
+  //   final nested = outer['data'];
+  //   final fromNested = nested is Map
+  //       ? _readOptionalBoolKey(Map<String, dynamic>.from(nested), 'isPro')
+  //       : null;
+  //   final fromOuter = _readOptionalBoolKey(outer, 'isPro');
+  //   return _mergeOptionalBoolOr(fromNested, fromOuter);
+  // }
+  //
+  // bool? _mergeOptionalBoolOr(bool? a, bool? b) {
+  //   if (a == null && b == null) return null;
+  //   return (a ?? false) || (b ?? false);
+  // }
 
   String _dioErrorMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;

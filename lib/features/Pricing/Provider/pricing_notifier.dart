@@ -1,3 +1,11 @@
+// ============================================================================
+// PRO FEATURE — disabled for the current free-only release.
+// Drives the paywall (IAP purchase / restore, plan loading). Commented out
+// (not deleted) so it can be restored when the Pro tier relaunches.
+// See also: pricing_screen.dart, pricing_state.dart, app_routes.dart,
+// session_provider_reset.dart.
+// ============================================================================
+/*
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -324,3 +332,4 @@ final pricingPlansProvider =
     NotifierProvider<PricingPlansNotifier, PricingPlansState>(
       PricingPlansNotifier.new,
     );
+*/

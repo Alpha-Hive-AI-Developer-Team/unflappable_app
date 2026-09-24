@@ -1,7 +1,7 @@
 name: unflappable
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.10.0
@@ -24,11 +24,17 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   in_app_purchase: ^3.2.3
   in_app_purchase_storekit: ^0.4.8+1
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/launcher.png"
 
 flutter:
   uses-material-design: true

@@ -4,7 +4,8 @@ import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/models/user.dart';
 import 'package:unflappable/features/Auth/providers/user_state.dart';
 import 'package:unflappable/service/settings_service.dart';
-import 'package:unflappable/service/subscription_service.dart';
+// PRO FEATURE — disabled for the current free-only release.
+// import 'package:unflappable/service/subscription_service.dart';
 
 class UserNotifier extends StateNotifier<UserState> {
   UserNotifier() : super(const UserState());
@@ -30,48 +31,57 @@ class UserNotifier extends StateNotifier<UserState> {
     state = state.copyWith(status: UserStatus.authenticated, user: user);
   }
 
-  /// Refreshes `isPro` from `GET /api/subscription/status` (no loading state).
-  Future<void> syncSubscriptionFromApi() async {
-    if (state.user == null) return;
+  // PRO FEATURE — disabled for the current free-only release.
+  // /// Refreshes `isPro` from `GET /api/subscription/status` (no loading state).
+  // Future<void> syncSubscriptionFromApi() async {
+  //   if (state.user == null) return;
+  //
+  //   try {
+  //     final subStatus = await SubscriptionService.fetchStatus();
+  //     final updatedUser = state.user!.copyWith(
+  //       isPro: subStatus.isPro,
+  //       proSubscribedAt: subStatus.isPro
+  //           ? (state.user!.proSubscribedAt ?? DateTime.now())
+  //           : null,
+  //       proProductId: subStatus.isPro
+  //           ? (subStatus.proProductId ?? state.user!.proProductId)
+  //           : null,
+  //       clearProProductId: !subStatus.isPro,
+  //     );
+  //     state = state.copyWith(
+  //       status: UserStatus.authenticated,
+  //       user: updatedUser,
+  //       errorMessage: null,
+  //     );
+  //   } catch (_) {
+  //     // Non-blocking: login and home stay usable if status fails.
+  //   }
+  // }
+  //
+  // /// Syncs `isPro` from APIs that return it on reset/history payloads so the
+  // /// shell matches the server even before the next subscription/status poll.
+  // void syncIsProFromAuxiliaryApi(bool isPro) {
+  //   if (state.user == null) return;
+  //   state = state.copyWith(
+  //     status: UserStatus.authenticated,
+  //     user: state.user!.copyWith(
+  //       isPro: isPro,
+  //       proSubscribedAt: isPro
+  //           ? (state.user!.proSubscribedAt ?? DateTime.now())
+  //           : null,
+  //       clearProProductId: !isPro,
+  //     ),
+  //     errorMessage: null,
+  //   );
+  // }
 
-    try {
-      final subStatus = await SubscriptionService.fetchStatus();
-      final updatedUser = state.user!.copyWith(
-        isPro: subStatus.isPro,
-        proSubscribedAt: subStatus.isPro
-            ? (state.user!.proSubscribedAt ?? DateTime.now())
-            : null,
-        proProductId: subStatus.isPro
-            ? (subStatus.proProductId ?? state.user!.proProductId)
-            : null,
-        clearProProductId: !subStatus.isPro,
-      );
-      state = state.copyWith(
-        status: UserStatus.authenticated,
-        user: updatedUser,
-        errorMessage: null,
-      );
-    } catch (_) {
-      // Non-blocking: login and home stay usable if status fails.
-    }
-  }
+  /// Free-only release: no subscription tier to sync — kept as a no-op so
+  /// existing call sites (post-login, pull-to-refresh) don't need changes.
+  Future<void> syncSubscriptionFromApi() async {}
 
-  /// Syncs `isPro` from APIs that return it on reset/history payloads so the
-  /// shell matches the server even before the next subscription/status poll.
-  void syncIsProFromAuxiliaryApi(bool isPro) {
-    if (state.user == null) return;
-    state = state.copyWith(
-      status: UserStatus.authenticated,
-      user: state.user!.copyWith(
-        isPro: isPro,
-        proSubscribedAt: isPro
-            ? (state.user!.proSubscribedAt ?? DateTime.now())
-            : null,
-        clearProProductId: !isPro,
-      ),
-      errorMessage: null,
-    );
-  }
+  /// Free-only release: no subscription tier to sync — kept as a no-op so
+  /// existing call sites don't need changes.
+  void syncIsProFromAuxiliaryApi(bool isPro) {}
 
   /// Called on logout
   void clearUser() {
@@ -100,14 +110,22 @@ class UserNotifier extends StateNotifier<UserState> {
 
       if (id == null || id.isEmpty) return;
 
-      final subStatus = await SubscriptionService.fetchStatus();
+      // PRO FEATURE — disabled for the current free-only release.
+      // final subStatus = await SubscriptionService.fetchStatus();
+      //
+      // setUserInfo(
+      //   id: id,
+      //   email: email ?? id,
+      //   name: name ?? _deriveNameFromEmail(email ?? id),
+      //   isPro: subStatus.isPro,
+      //   proProductId: subStatus.proProductId,
+      // );
 
       setUserInfo(
         id: id,
         email: email ?? id,
         name: name ?? _deriveNameFromEmail(email ?? id),
-        isPro: subStatus.isPro,
-        proProductId: subStatus.proProductId,
+        isPro: false,
       );
     } on DioException catch (_) {
       // Token may be expired; leave state unchanged — splash still uses storage.

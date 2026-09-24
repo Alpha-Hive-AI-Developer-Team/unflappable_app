@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/utils/network_error.dart';
 import 'package:unflappable/features/Auth/forget_password/forget_password_provider/forget_passState.dart';
 import 'package:unflappable/service/auth_service.dart';
 
@@ -64,7 +65,7 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
               'Unable to send reset link. Please try again.'
-          : 'Unable to connect to the server. Please try again.';
+          : describeConnectionError(e);
       state = state.copyWith(
         isLoading: false,
         status: ForgotPasswordStatus.authError,

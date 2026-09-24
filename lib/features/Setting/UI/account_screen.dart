@@ -6,14 +6,18 @@ import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
-String _subscriptionLabel(UserState userState) {
-  if (!userState.isPro) return 'Free';
-  final id = userState.user?.proProductId ?? '';
-  final lower = id.toLowerCase();
-  if (lower.contains('yearly')) return 'Pro Yearly';
-  if (lower.contains('monthly')) return 'Pro Monthly';
-  return 'Pro';
-}
+// PRO FEATURE — disabled for the current free-only release.
+// String _subscriptionLabel(UserState userState) {
+//   if (!userState.isPro) return 'Free';
+//   final id = userState.user?.proProductId ?? '';
+//   final lower = id.toLowerCase();
+//   if (lower.contains('yearly')) return 'Pro Yearly';
+//   if (lower.contains('monthly')) return 'Pro Monthly';
+//   return 'Pro';
+// }
+
+// Free-only release: subscriptions are disabled, always show Free.
+String _subscriptionLabel(UserState userState) => 'Free';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});

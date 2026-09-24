@@ -1,3 +1,11 @@
+// ============================================================================
+// PRO FEATURE — disabled for the current free-only release.
+// This is the paywall / pricing screen. The whole file is commented out
+// (not deleted) so it can be restored as-is when the Pro tier relaunches.
+// See also: app_routes.dart (route removed), reset_screen.dart and
+// setting_screen.dart (entry points into this screen removed).
+// ============================================================================
+/*
 import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
@@ -519,3 +527,4 @@ class _RibbonPainter extends CustomPainter {
   bool shouldRepaint(_RibbonPainter old) =>
       old.upperColor != upperColor || old.lowerColor != lowerColor;
 }
+*/

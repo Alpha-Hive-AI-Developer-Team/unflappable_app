@@ -33,10 +33,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         ...notificationsMap,
       };
 
-      final plan = _readString(merged, ['plan']);
-      if (plan != null && plan.toLowerCase() == 'pro') {
-        _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
-      }
+      // PRO FEATURE — disabled for the current free-only release.
+      // final plan = _readString(merged, ['plan']);
+      // if (plan != null && plan.toLowerCase() == 'pro') {
+      //   _ref.read(userProvider.notifier).syncIsProFromAuxiliaryApi(true);
+      // }
 
       final apiName = _readString(merged, ['fullName', 'name']);
       final sessionUser = _ref.read(userProvider).user;

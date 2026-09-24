@@ -14,7 +14,7 @@ part 'subscription_endpoints.dart';
 abstract final class EndPoints {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://unflappable-app-backend.onrender.com',
+    defaultValue: 'https://unflappable-app-backend-ewfe.onrender.com',
   );
   static _Authentication get auth => _Authentication(apiBaseUrl: baseUrl);
   static _Home get home => _Home(apiBaseUrl: baseUrl);
@@ -23,6 +23,7 @@ abstract final class EndPoints {
   static _Settings get settings => _Settings(apiBaseUrl: baseUrl);
   static _WeeklyReview get weeklyReview => _WeeklyReview(apiBaseUrl: baseUrl);
   static _Reset get reset => _Reset(apiBaseUrl: baseUrl);
-  static _Notifications get notifications => _Notifications(apiBaseUrl: baseUrl);
+  static _Notifications get notifications =>
+      _Notifications(apiBaseUrl: baseUrl);
   static _Subscription get subscription => _Subscription(apiBaseUrl: baseUrl);
 }

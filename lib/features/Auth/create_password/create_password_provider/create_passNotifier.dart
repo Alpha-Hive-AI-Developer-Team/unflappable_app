@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/utils/network_error.dart';
 import 'package:unflappable/service/auth_service.dart';
 
 import '../create_password_export.dart';
@@ -96,7 +97,7 @@ class CreatePasswordNotifier extends StateNotifier<CreatePasswordState> {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
               'Unable to reset password. Please try again.'
-          : 'Unable to connect to the server. Please try again.';
+          : describeConnectionError(e);
       state = state.copyWith(
         isLoading: false,
         status: CreatePasswordStatus.authError,

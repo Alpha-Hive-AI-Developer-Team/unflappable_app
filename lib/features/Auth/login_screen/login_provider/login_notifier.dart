@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
+import 'package:unflappable/core/utils/network_error.dart';
 import 'package:unflappable/features/Auth/login_screen/login_provider/login_state.dart';
 import 'package:unflappable/service/auth_service.dart';
 
@@ -124,7 +125,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
                 "Email or password didn't match. Please try again."
-          : 'Unable to connect to the server. Please try again.';
+          : describeConnectionError(e);
       state = state.copyWith(
         loginStatus: LoginStatus.authError,
         authErrorMessage: message,
@@ -222,7 +223,10 @@ class LoginNotifier extends StateNotifier<LoginState> {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
                 'Unable to sign in with Apple. Please try again.'
-          : 'Unable to connect to the server. Please try again.';
+          : describeConnectionError(
+              e,
+              fallback: 'Unable to sign in with Apple. Please try again.',
+            );
       state = state.copyWith(
         appleStatus: LoginStatus.authError,
         authErrorMessage: message,

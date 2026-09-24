@@ -8,7 +8,8 @@ import 'package:unflappable/features/Mission%20History/missionHistory_screen.dar
 import '../../features/Auth/otp_screen/otp_provider/otp_state.dart';
 import 'package:unflappable/features/Auth/otp_screen/otp_screen.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
-import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
+// PRO FEATURE — disabled for the current free-only release.
+// import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_emotion.dart';
 import 'package:unflappable/features/Setting/UI/account_screen.dart';
 import 'package:unflappable/features/Setting/UI/Help%20Center/help_center.dart';
@@ -55,7 +56,8 @@ class AppRoutes {
   static const resetTrigger = '/reset/trigger';
   static const resetEmotion = '/reset/emotion';
   static const weeklyReview = '/weeklyReview';
-  static const pricing = '/pricing';
+  // PRO FEATURE — disabled for the current free-only release.
+  // static const pricing = '/pricing';
   static const helpCenter = '/help-center';
   static const legal = '/legal';
   static const account = '/account';
@@ -148,11 +150,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.weeklyReview,
         builder: (context, state) => const WeeklyReviewScreen(),
       ),
-      GoRoute(
-        name: 'pricing',
-        path: AppRoutes.pricing,
-        builder: (context, state) => const PricingPlansScreen(),
-      ),
+      // PRO FEATURE — disabled for the current free-only release.
+      // GoRoute(
+      //   name: 'pricing',
+      //   path: AppRoutes.pricing,
+      //   builder: (context, state) => const PricingPlansScreen(),
+      // ),
       GoRoute(
         name: 'settings',
         path: AppRoutes.settings,

@@ -1,12 +1,12 @@
-import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
-import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 import 'package:unflappable/features/Reset/Provider/reset_provider.dart';
 import 'package:unflappable/features/Reset/Provider/reset_state.dart';
-import 'package:unflappable/features/widgets/Common/snackbar.dart';
+// PRO FEATURE — disabled for the current free-only release (was the daily
+// reset-limit snackbar).
+// import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class ResetScreen extends ConsumerStatefulWidget {
   const ResetScreen({super.key});
@@ -42,7 +42,10 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
   @override
   Widget build(BuildContext context) {
     final resetState = ref.watch(resetProvider);
-    final userState = ref.watch(userProvider);
+
+    // PRO FEATURE — disabled for the current free-only release.
+    // final userState = ref.watch(userProvider);
+    // final isPro = userState.isPro || resetState.unlimitedDailyResets;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -50,7 +53,8 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
         children: [
           _ResetHomeBody(
             resetState: resetState,
-            isPro: userState.isPro || resetState.unlimitedDailyResets,
+            // Free-only release: every user gets full Reset access.
+            isPro: true,
           ).withScreenPadding(),
         ],
       ),
@@ -76,7 +80,8 @@ class _ResetHomeBody extends ConsumerWidget {
         SizedBox(height: ScreenUtils.vMd),
         _RunResetCard(resetState: resetState, isPro: isPro),
         SizedBox(height: ScreenUtils.vMd),
-        if (!isPro) _UpgradeBanner(),
+        // PRO FEATURE — disabled for the current free-only release.
+        // if (!isPro) _UpgradeBanner(),
         Padding(
           padding: EdgeInsets.only(top: ScreenUtils.vLg),
           child: Text(
@@ -108,14 +113,15 @@ class _RunResetCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        if (!resetState.hasResetsLeft && !isPro) {
-          AppSnackbar.showError(
-            context,
-            message:
-                'You have used your free reset for today. If you want more resets, continue to premium.',
-          );
-          return;
-        }
+        // PRO FEATURE — disabled for the current free-only release.
+        // if (!resetState.hasResetsLeft && !isPro) {
+        //   AppSnackbar.showError(
+        //     context,
+        //     message:
+        //         'You have used your free reset for today. If you want more resets, continue to premium.',
+        //   );
+        //   return;
+        // }
         context.push(AppRoutes.resetTrigger);
       },
       child: Container(
@@ -182,9 +188,11 @@ class _RunResetCard extends ConsumerWidget {
               ),
             ),
             Text(
-              isPro
-                  ? 'Pro plan - unlimited resets'
-                  : 'Free plan includes ${resetState.dailyResetLimit} reset per day.',
+              // PRO FEATURE — disabled for the current free-only release.
+              // isPro
+              //     ? 'Pro plan - unlimited resets'
+              //     : 'Free plan includes ${resetState.dailyResetLimit} reset per day.',
+              'Unlimited resets included.',
               style: AppTextStyles.bodyMD.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
@@ -197,65 +205,66 @@ class _RunResetCard extends ConsumerWidget {
   }
 }
 
-class _UpgradeBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: ScreenUtils.md,
-        vertical: ScreenUtils.vSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.secondarySurface,
-        borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.bolt, color: AppColors.primary, size: ScreenUtils.iconMd),
-          SizedBox(width: ScreenUtils.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Upgrade to Pro',
-                  style: AppTextStyles.labelMD.copyWith(
-                    color: AppColors.labelText,
-                  ),
-                ),
-                Text(
-                  'Clear your mind',
-                  style: AppTextStyles.bodySM.copyWith(
-                    color: AppColors.bodyText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.push(AppRoutes.pricing);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: EdgeInsets.symmetric(
-                horizontal: ScreenUtils.md,
-                vertical: ScreenUtils.vSm,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-              ),
-            ),
-            child: Text('Upgrade', style: AppTextStyles.buttonSM),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// PRO FEATURE — disabled for the current free-only release.
+// class _UpgradeBanner extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       width: double.infinity,
+//       padding: EdgeInsets.symmetric(
+//         horizontal: ScreenUtils.md,
+//         vertical: ScreenUtils.vSm,
+//       ),
+//       decoration: BoxDecoration(
+//         color: AppColors.secondarySurface,
+//         borderRadius: BorderRadius.circular(ScreenUtils.radiusLg),
+//       ),
+//       child: Row(
+//         children: [
+//           Icon(Icons.bolt, color: AppColors.primary, size: ScreenUtils.iconMd),
+//           SizedBox(width: ScreenUtils.sm),
+//           Expanded(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Text(
+//                   'Upgrade to Pro',
+//                   style: AppTextStyles.labelMD.copyWith(
+//                     color: AppColors.labelText,
+//                   ),
+//                 ),
+//                 Text(
+//                   'Clear your mind',
+//                   style: AppTextStyles.bodySM.copyWith(
+//                     color: AppColors.bodyText,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//           ElevatedButton(
+//             onPressed: () {
+//               context.push(AppRoutes.pricing);
+//             },
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: AppColors.primary,
+//               foregroundColor: Colors.white,
+//               elevation: 0,
+//               padding: EdgeInsets.symmetric(
+//                 horizontal: ScreenUtils.md,
+//                 vertical: ScreenUtils.vSm,
+//               ),
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+//               ),
+//             ),
+//             child: Text('Upgrade', style: AppTextStyles.buttonSM),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 class _ResetHistoryList extends StatelessWidget {
   final ResetState resetState;
@@ -294,51 +303,53 @@ class _ResetHistoryList extends StatelessWidget {
                     )
                     .toList(),
               ),
-              if (!isPro) ...[
-                Positioned.fill(
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                      child: Container(color: Colors.black.withOpacity(0.03)),
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 77.w),
-                  padding: EdgeInsets.symmetric(vertical: 24.h),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(lock, width: 38.w, height: 38.h),
-                        SizedBox(height: 5.h),
-                        Text(
-                          'History Locked',
-                          style: AppTextStyles.bodyLG.copyWith(
-                            color: AppColors.labelText,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          'Upgrade to Pro to view your past\nresets and insights',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMD.copyWith(
-                            color: AppColors.labelText,
-                          ),
-                        ),
-                        SizedBox(height: 18.h),
-                        PrimaryButton(
-                          label: 'Unlock History',
-                          isLoading: false,
-                          onTap: () {
-                            context.push(AppRoutes.pricing);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              // PRO FEATURE — disabled for the current free-only release.
+              // Reset History is fully visible to every user now.
+              // if (!isPro) ...[
+              //   Positioned.fill(
+              //     child: ClipRect(
+              //       child: BackdropFilter(
+              //         filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              //         child: Container(color: Colors.black.withOpacity(0.03)),
+              //       ),
+              //     ),
+              //   ),
+              //   Container(
+              //     margin: EdgeInsets.symmetric(horizontal: 77.w),
+              //     padding: EdgeInsets.symmetric(vertical: 24.h),
+              //     child: Center(
+              //       child: Column(
+              //         mainAxisSize: MainAxisSize.min,
+              //         children: [
+              //           Image.asset(lock, width: 38.w, height: 38.h),
+              //           SizedBox(height: 5.h),
+              //           Text(
+              //             'History Locked',
+              //             style: AppTextStyles.bodyLG.copyWith(
+              //               color: AppColors.labelText,
+              //               fontWeight: FontWeight.w700,
+              //             ),
+              //           ),
+              //           Text(
+              //             'Upgrade to Pro to view your past\nresets and insights',
+              //             textAlign: TextAlign.center,
+              //             style: AppTextStyles.bodyMD.copyWith(
+              //               color: AppColors.labelText,
+              //             ),
+              //           ),
+              //           SizedBox(height: 18.h),
+              //           PrimaryButton(
+              //             label: 'Unlock History',
+              //             isLoading: false,
+              //             onTap: () {
+              //               context.push(AppRoutes.pricing);
+              //             },
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ],
             ],
           ),
         ),
