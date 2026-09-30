@@ -25,5 +25,6 @@ abstract final class EndPoints {
   static _Reset get reset => _Reset(apiBaseUrl: baseUrl);
   static _Notifications get notifications =>
       _Notifications(apiBaseUrl: baseUrl);
-  static _Subscription get subscription => _Subscription(apiBaseUrl: baseUrl);
+  // PRO FEATURE — disabled for the current free-only release.
+  // static _Subscription get subscription => _Subscription(apiBaseUrl: baseUrl);
 }

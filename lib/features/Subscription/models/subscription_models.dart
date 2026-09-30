@@ -1,3 +1,8 @@
+// PRO FEATURE — disabled for the current free-only release.
+// Commented out (not deleted) so it can be restored when the Pro tier
+// relaunches. See also: subscription_service.dart, subscription_endpoints.dart,
+// pricing_notifier.dart, pricing_state.dart, pricing_screen.dart.
+/*
 class SubscriptionPlanFeatureItem {
   const SubscriptionPlanFeatureItem({
     required this.label,
@@ -266,3 +271,4 @@ DateTime? _parseDate(Object? value) {
   }
   return null;
 }
+*/

@@ -1,6 +1,12 @@
 // subscription_endpoints.dart
 part of 'endpoint.dart';
 
+// PRO FEATURE — disabled for the current free-only release.
+// Commented out (not deleted) so it can be restored when the Pro tier
+// relaunches. See also: endpoint.dart (the `EndPoints.subscription` getter
+// that exposed this is commented out too), subscription_service.dart,
+// subscription_models.dart, pricing_screen.dart, pricing_notifier.dart.
+/*
 class _Subscription {
   final String _apiBaseUrl;
 
@@ -21,3 +27,4 @@ class _Subscription {
   String get verify => '$_root/verify';
   String get restore => '$_root/restore';
 }
+*/
