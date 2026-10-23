@@ -55,6 +55,22 @@ class ProgressScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            SizedBox(height: ScreenUtils.vMd),
+            // GET /api/progress — This Week (data.thisWeek) and Best Streak
+            // (data.streak.bestStreak); Total Missions is already shown
+            // above via the StatCard (data.missions.totalCompleted).
+            _performanceCard(
+              mainText: 'This Week',
+              icon: progress,
+              trailingText: state.thisWeekLabel,
+            ),
+            SizedBox(height: ScreenUtils.vMd),
+            _performanceCard(
+              mainText: 'Best Streak',
+              icon: fire,
+              completionRate: state.longestStreak.toDouble(),
+              isPercent: false,
+            ),
             SizedBox(height: ScreenUtils.vLg),
             Text(
               'Performance Stats',
@@ -95,6 +111,7 @@ class _performanceCard extends StatelessWidget {
   final String icon;
   final String? subText;
   final double? completionRate;
+  final String? trailingText;
   final void Function()? onTap;
   final bool isPercent;
 
@@ -103,6 +120,7 @@ class _performanceCard extends StatelessWidget {
     required this.icon,
     this.subText,
     this.completionRate,
+    this.trailingText,
     this.onTap,
     this.isPercent = true,
   });
@@ -142,7 +160,15 @@ class _performanceCard extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            completionRate != null
+            trailingText != null
+                ? Text(
+                    trailingText!,
+                    style: AppTextStyles.bodyLG.copyWith(
+                      color: AppColors.primaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )
+                : completionRate != null
                 ? Text(
                     isPercent
                         ? '${(completionRate! * 100).round()}%'

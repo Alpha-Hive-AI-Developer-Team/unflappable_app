@@ -100,6 +100,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
+          await LocalStorage.saveData(LocalStorage.authProvider, 'password');
           await NotificationManager.registerDeviceToken();
         }
         final email = _extractUserEmail(response.data) ?? state.email.trim();
@@ -184,6 +185,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
+          await LocalStorage.saveData(LocalStorage.authProvider, 'apple');
           await NotificationManager.registerDeviceToken();
         }
 

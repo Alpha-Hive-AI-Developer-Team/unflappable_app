@@ -1,7 +1,7 @@
 name: unflappable
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+4
 
 environment:
   sdk: ^3.10.0
@@ -22,8 +22,14 @@ dependencies:
   firebase_messaging: ^16.2.0
   flutter_local_notifications: ^21.0.0
   sign_in_with_apple: ^7.0.1
-  in_app_purchase: ^3.2.3
-  in_app_purchase_storekit: ^0.4.8+1
+  # PRO FEATURE — disabled for the current free-only release. Nothing in the
+  # app calls in_app_purchase anymore (see pricing_notifier.dart /
+  # apple_receipt_io.dart, both commented out), but Flutter still bundles its
+  # native Android Play Billing Library into the AAB when it's listed here,
+  # which trips Play Console's "update Billing Library" warning even though
+  # the code path is dead. Re-add these two lines when Pro relaunches.
+  # in_app_purchase: ^3.2.3
+  # in_app_purchase_storekit: ^0.4.8+1
   flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:

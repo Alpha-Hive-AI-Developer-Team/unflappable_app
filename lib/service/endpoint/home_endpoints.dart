@@ -19,9 +19,11 @@ class _Home {
   String get missions => _missionsController;
   String get todayMission => '$_missionsController/today';
   String missionById(String missionId) => '$_missionsController/$missionId';
+  String taskById(String missionId, String taskId) =>
+      '$_missionsController/$missionId/tasks/$taskId';
   String completeTask(String missionId, String taskId) =>
-      '$_missionsController/$missionId/tasks/$taskId/complete';
+      '${taskById(missionId, taskId)}/complete';
   String uncompleteTask(String missionId, String taskId) =>
-      '$_missionsController/$missionId/tasks/$taskId/uncomplete';
+      '${taskById(missionId, taskId)}/uncomplete';
   String get missionHistory => '$_missionsController/history';
 }

@@ -48,6 +48,26 @@ abstract final class HomeService {
     );
   }
 
+  static Future<Response> updateTaskTitle({
+    required String missionId,
+    required String taskId,
+    required String title,
+  }) {
+    return DioHelper.patchData(
+      endPoint: EndPoints.home.taskById(missionId, taskId),
+      data: {'title': title},
+    );
+  }
+
+  static Future<Response> deleteTask({
+    required String missionId,
+    required String taskId,
+  }) {
+    return DioHelper.deleteData(
+      endPoint: EndPoints.home.taskById(missionId, taskId),
+    );
+  }
+
   static Future<Response> getMissionHistory({
     int? page,
     int? limit,

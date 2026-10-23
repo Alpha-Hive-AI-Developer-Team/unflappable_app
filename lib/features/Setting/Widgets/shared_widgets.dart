@@ -117,53 +117,60 @@ class TimePickerRow extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
+  final bool enabled;
 
   const TimePickerRow({
     super.key,
     required this.label,
     required this.value,
     required this.onTap,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.labelLG.copyWith(color: AppColors.headingText),
-        ),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: ScreenUtils.md,
-              vertical: ScreenUtils.vMd,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(ScreenUtils.radiusSm),
-              border: Border.all(color: AppColors.borderGrey),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  value,
-                  style: AppTextStyles.labelMD.copyWith(
-                    color: AppColors.bodyText,
-                  ),
-                ),
-                SizedBox(width: 4.w),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: ScreenUtils.iconMd,
-                  color: AppColors.bodyText,
-                ),
-              ],
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.labelLG.copyWith(
+              color: AppColors.headingText,
             ),
           ),
-        ),
-      ],
+          GestureDetector(
+            onTap: enabled ? onTap : null,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: ScreenUtils.md,
+                vertical: ScreenUtils.vMd,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(ScreenUtils.radiusSm),
+                border: Border.all(color: AppColors.borderGrey),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    value,
+                    style: AppTextStyles.labelMD.copyWith(
+                      color: AppColors.bodyText,
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: ScreenUtils.iconMd,
+                    color: AppColors.bodyText,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

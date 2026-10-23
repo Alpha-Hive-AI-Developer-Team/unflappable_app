@@ -41,16 +41,11 @@ abstract final class NotificationManager {
     if (_isInitialized) return;
 
     await _initializeLocalNotifications();
-    await _messaging.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
 
+    // Permission is requested at a contextual moment via [requestPermissions]
+    // (e.g. when the user turns on a reminder in Notification Settings), not
+    // unconditionally here at app launch. If the user already granted it in
+    // an earlier session, the token fetch below still picks it up.
     if (!kIsWeb && Platform.isIOS) {
       await _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
@@ -79,6 +74,8 @@ abstract final class NotificationManager {
     _handleInitialMessage();
   }
 
+  /// Call this at a contextual moment (e.g. the user turning on a reminder
+  /// toggle), not unconditionally at app launch.
   static Future<void> requestPermissions() async {
     final settings = await _messaging.requestPermission(
       alert: true,
@@ -90,6 +87,19 @@ abstract final class NotificationManager {
       carPlay: false,
     );
     debugPrint('FCM permission: ${settings.authorizationStatus}');
+
+    final granted =
+        settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+    if (!granted) return;
+
+    // On iOS, the APNs token (and therefore the FCM token) only becomes
+    // available once permission has actually been requested, so re-fetch
+    // and register it now rather than waiting for the next app launch.
+    final token = await _getFcmTokenSafely();
+    if (token != null && token.isNotEmpty) {
+      await _registerDeviceTokenIfNeeded(force: true, prefetchedToken: token);
+    }
   }
 
   static Future<void> _handleInitialMessage() async {
@@ -218,26 +228,46 @@ abstract final class NotificationManager {
     _showNotification(message);
   }
 
+  /// Routes a tapped notification to the screen named by the FCM/local
+  /// payload's `screen` field. Confirmed backend values (see
+  /// `POST /api/notifications/test-push`): `morning_reminder` and
+  /// `evening_reminder` -> home, `weekly_review` -> Weekly Review. Falls
+  /// back to the Notifications list for anything else/missing.
   static void _handleMessageTap(RemoteMessage message) {
     if (_router == null) return;
 
+    // Don't deep-link into an authenticated screen before a session exists
+    // (e.g. app cold-started from a notification before the user logs in).
+    final accessToken = LocalStorage.getData(LocalStorage.accessToken);
+    if (accessToken == null || accessToken.trim().isEmpty) {
+      _router!.go(AppRoutes.login);
+      return;
+    }
+
     final rawScreen = message.data['screen']?.toString().trim().toLowerCase();
-    final notificationId =
-        message.data['notificationId'] ??
-        message.data['notification_id'] ??
-        message.data['id'];
 
-    if (rawScreen == 'notifications' || rawScreen == 'notification') {
-      _router!.go(AppRoutes.notifications);
-      return;
+    switch (rawScreen) {
+      case 'morning_reminder':
+      case 'evening_reminder':
+      case 'home':
+      case 'mission':
+        _router!.go(AppRoutes.home);
+        break;
+      case 'weekly_review':
+      case 'weeklyreview':
+        _router!.go(AppRoutes.weeklyReview);
+        break;
+      case 'reset':
+        _router!.go(AppRoutes.reset);
+        break;
+      case 'settings':
+        _router!.go(AppRoutes.settings);
+        break;
+      case 'notifications':
+      case 'notification':
+      default:
+        _router!.go(AppRoutes.notifications);
     }
-
-    if (notificationId != null && notificationId.toString().isNotEmpty) {
-      _router!.go(AppRoutes.notifications);
-      return;
-    }
-
-    _router!.go(AppRoutes.notifications);
   }
 
   static String get _currentPlatform {

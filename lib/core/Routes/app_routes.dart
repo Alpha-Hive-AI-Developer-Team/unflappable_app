@@ -12,6 +12,7 @@ import 'package:unflappable/features/Auth/signup_screen/signup_screen.dart';
 // import 'package:unflappable/features/Pricing/UI/pricing_screen.dart';
 import 'package:unflappable/features/Reset/UI/reset_emotion.dart';
 import 'package:unflappable/features/Setting/UI/account_screen.dart';
+import 'package:unflappable/features/Setting/UI/change_password_screen.dart';
 import 'package:unflappable/features/Setting/UI/Help%20Center/help_center.dart';
 import 'package:unflappable/features/Setting/UI/Legal%20Screens/legal_screen.dart';
 import 'package:unflappable/features/Setting/Model/legal_model.dart';
@@ -61,6 +62,7 @@ class AppRoutes {
   static const helpCenter = '/help-center';
   static const legal = '/legal';
   static const account = '/account';
+  static const changePassword = '/account/change-password';
   static const settings = '/settings';
   static const notificationSetting = '/notificationSetting';
   static const mission_history = '/mission_history';
@@ -165,6 +167,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'account',
         path: AppRoutes.account,
         builder: (context, state) => const AccountScreen(),
+      ),
+      GoRoute(
+        name: 'change-password',
+        path: AppRoutes.changePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
         name: 'help-center',

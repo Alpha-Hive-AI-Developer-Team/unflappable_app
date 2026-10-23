@@ -26,6 +26,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
       final resetHistoryCount = _countResetHistoryItems(resetHistoryResponse.data);
       final streakPayload = _readMap(progressPayload, 'streak');
       final missionsPayload = _readMap(progressPayload, 'missions');
+      final thisWeekPayload = _readMap(progressPayload, 'thisWeek');
       final performancePayload = _readMap(progressPayload, 'performanceStats');
       final taskCompletionPayload = _readMap(
         performancePayload,
@@ -33,9 +34,23 @@ class HomeNotifier extends StateNotifier<HomeState> {
       );
       final totalResetsPayload = _readMap(performancePayload, 'totalResets');
 
+      final thisWeekCompleted = _readInt(thisWeekPayload, const [
+        'completedCount',
+      ]);
+      final thisWeekTotalRaw = _readInt(thisWeekPayload, const ['totalDays']);
+      final thisWeekTotal = thisWeekTotalRaw == 0 ? 7 : thisWeekTotalRaw;
+
       state = state.copyWith(
         dayStreak: _readInt(streakPayload, const ['currentStreak']),
-        longestStreak: _readInt(streakPayload, const ['longestStreak']),
+        // Backend field is `bestStreak`; `longestStreak` kept as a fallback
+        // key in case older responses still use that name.
+        longestStreak: _readInt(streakPayload, const [
+          'bestStreak',
+          'longestStreak',
+        ]),
+        thisWeekLabel: _readString(thisWeekPayload, const [
+          'label',
+        ], fallback: '$thisWeekCompleted/$thisWeekTotal'),
         missionCount: _readInt(missionsPayload, const ['totalCompleted']),
         totalTasks: _readTaskTotal(taskCompletionPayload),
         completedTasks: _readCompletedTasks(taskCompletionPayload),
@@ -169,6 +184,96 @@ class HomeNotifier extends StateNotifier<HomeState> {
         clearActiveTask: true,
         errorMessage: 'Unable to update the task right now.',
       );
+    }
+  }
+
+  /// Today's mission only — `title` is edited in place, server-side.
+  Future<bool> editTaskTitle({
+    required String taskId,
+    required String title,
+  }) async {
+    final mission = state.activeMission;
+    if (mission == null) return false;
+
+    try {
+      await HomeService.updateTaskTitle(
+        missionId: mission.id,
+        taskId: taskId,
+        title: title,
+      );
+      final refreshed = await _fetchMissionById(mission.id);
+      state = state.copyWith(
+        activeMission: refreshed ?? state.activeMission,
+        clearError: true,
+        successMessage: 'Task updated',
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _dioErrorMessage(e, fallback: 'Unable to update task.'),
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(errorMessage: 'Unable to update task.');
+      return false;
+    }
+  }
+
+  /// Today's mission only. Backend (and this client) require at least one
+  /// task to remain — checked before calling the API for a snappier error.
+  Future<bool> deleteTask(String taskId) async {
+    final mission = state.activeMission;
+    if (mission == null) return false;
+
+    if (mission.tasks.length <= 1) {
+      state = state.copyWith(
+        errorMessage: 'A mission must have at least one task.',
+      );
+      return false;
+    }
+
+    try {
+      await HomeService.deleteTask(missionId: mission.id, taskId: taskId);
+      final refreshed = await _fetchMissionById(mission.id);
+      state = state.copyWith(
+        activeMission: refreshed ?? state.activeMission,
+        clearError: true,
+        successMessage: 'Task removed',
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _dioErrorMessage(e, fallback: 'Unable to delete task.'),
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(errorMessage: 'Unable to delete task.');
+      return false;
+    }
+  }
+
+  /// Today's mission only. After deletion the Home screen falls back to the
+  /// "Set Daily Direction" card, from which the user can start a new one.
+  Future<bool> deleteMission() async {
+    final mission = state.activeMission;
+    if (mission == null) return false;
+
+    try {
+      await HomeService.deleteMission(mission.id);
+      state = state.copyWith(
+        clearMission: true,
+        clearError: true,
+        successMessage: 'Mission deleted',
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _dioErrorMessage(e, fallback: 'Unable to delete mission.'),
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(errorMessage: 'Unable to delete mission.');
+      return false;
     }
   }
 

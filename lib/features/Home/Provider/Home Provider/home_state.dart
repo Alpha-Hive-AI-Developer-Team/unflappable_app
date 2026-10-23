@@ -3,6 +3,7 @@ import 'package:unflappable/features/Home/model/mission.dart';
 class HomeState {
   final int dayStreak;
   final int longestStreak;
+  final String thisWeekLabel;
   final int missionCount;
   final int totalTasks;
   final int completedTasks;
@@ -26,6 +27,7 @@ class HomeState {
   const HomeState({
     this.dayStreak = 0,
     this.longestStreak = 0,
+    this.thisWeekLabel = '0/7',
     this.missionCount = 0,
     this.totalTasks = 0,
     this.completedTasks = 0,
@@ -55,6 +57,7 @@ class HomeState {
   HomeState copyWith({
     int? dayStreak,
     int? longestStreak,
+    String? thisWeekLabel,
     int? missionCount,
     int? totalTasks,
     int? completedTasks,
@@ -81,6 +84,7 @@ class HomeState {
   }) => HomeState(
     dayStreak: dayStreak ?? this.dayStreak,
     longestStreak: longestStreak ?? this.longestStreak,
+    thisWeekLabel: thisWeekLabel ?? this.thisWeekLabel,
     missionCount: missionCount ?? this.missionCount,
     totalTasks: totalTasks ?? this.totalTasks,
     completedTasks: completedTasks ?? this.completedTasks,

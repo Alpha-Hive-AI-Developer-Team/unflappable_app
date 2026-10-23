@@ -123,4 +123,19 @@ abstract final class AuthService {
       },
     );
   }
+
+  /// Change password for an already-authenticated user (Bearer token).
+  /// Distinct from the forgot-password/OTP reset flow.
+  static Future<Response> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    return DioHelper.putData(
+      endPoint: EndPoints.auth.changePassword,
+      data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+  }
 }

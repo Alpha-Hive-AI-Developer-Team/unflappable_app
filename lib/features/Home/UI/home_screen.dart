@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
@@ -7,6 +9,7 @@ import 'package:unflappable/features/Home/Provider/Home%20Provider/home_state.da
 import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
+import 'package:unflappable/features/widgets/Common/setting_dialog.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -335,6 +338,15 @@ class _ActiveMissionCard extends ConsumerWidget {
                     ),
                   ),
                 ),
+                SizedBox(width: ScreenUtils.sm),
+                GestureDetector(
+                  onTap: () => _confirmDeleteMission(context, ref),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.white.withOpacity(0.9),
+                    size: ScreenUtils.iconMd,
+                  ),
+                ),
               ],
             ),
 
@@ -387,6 +399,7 @@ class _ActiveMissionCard extends ConsumerWidget {
               return _MissionTaskRow(
                 task: task,
                 isLoading: homeState.activeTaskId == task.id,
+                canDelete: mission.tasks.length > 1,
                 onToggle: () async {
                   if (task.isCompleted) {
                     AppSnackbar.showError(
@@ -406,6 +419,8 @@ class _ActiveMissionCard extends ConsumerWidget {
 
                   await notifier.toggleTask(task.id);
                 },
+                onEdit: () => _showEditTaskDialog(context, ref, task),
+                onDelete: () => _confirmDeleteTask(context, ref, task),
               );
             }),
 
@@ -419,12 +434,18 @@ class _ActiveMissionCard extends ConsumerWidget {
 class _MissionTaskRow extends StatelessWidget {
   final MissionTask task;
   final bool isLoading;
+  final bool canDelete;
   final VoidCallback onToggle;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const _MissionTaskRow({
     required this.task,
     required this.isLoading,
+    required this.canDelete,
     required this.onToggle,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -495,9 +516,191 @@ class _MissionTaskRow extends StatelessWidget {
                 ),
               ),
             ),
+            GestureDetector(
+              onTap: onEdit,
+              child: Icon(
+                Icons.edit_outlined,
+                size: ScreenUtils.iconSm,
+                color: Colors.white.withOpacity(0.85),
+              ),
+            ),
+            SizedBox(width: ScreenUtils.sm),
+            GestureDetector(
+              onTap: canDelete ? onDelete : null,
+              child: Icon(
+                Icons.delete_outline_rounded,
+                size: ScreenUtils.iconSm,
+                color: Colors.white.withOpacity(canDelete ? 0.85 : 0.35),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Edit / delete actions — today's mission only.
+// ─────────────────────────────────────────────────────────────────────────────
+
+Future<void> _showEditTaskDialog(
+  BuildContext context,
+  WidgetRef ref,
+  MissionTask task,
+) async {
+  final controller = TextEditingController(text: task.title);
+
+  await showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: ScreenUtils.md),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: ScreenUtils.md,
+            vertical: 24.h,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            border: Border.all(color: AppColors.borderGrey),
+            borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Edit Task',
+                style: AppTextStyles.labelLG.copyWith(
+                  color: AppColors.headingText,
+                ),
+              ),
+              SizedBox(height: ScreenUtils.vMd),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                style: AppTextStyles.bodyMD.copyWith(
+                  color: AppColors.headingText,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Task title',
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                    borderSide: BorderSide(color: AppColors.borderGrey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                    borderSide: BorderSide(color: AppColors.primary),
+                  ),
+                ),
+              ),
+              SizedBox(height: ScreenUtils.vXl),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.borderGrey),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            ScreenUtils.radiusMd,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: AppTextStyles.labelLG.copyWith(
+                          color: AppColors.labelText,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: ScreenUtils.sm),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Save',
+                      isLoading: false,
+                      onTap: () async {
+                        final title = controller.text.trim();
+                        if (title.isEmpty) return;
+                        Navigator.of(dialogContext).pop();
+                        await ref
+                            .read(homeProvider.notifier)
+                            .editTaskTitle(taskId: task.id, title: title);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _confirmDeleteTask(
+  BuildContext context,
+  WidgetRef ref,
+  MissionTask task,
+) async {
+  await showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.2),
+    builder: (dialogContext) {
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Dialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
+          backgroundColor: Colors.transparent,
+          child: SettingDialog(
+            title: 'Delete Task',
+            message: 'Remove "${task.title}" from today\'s mission?',
+            button1Text: 'Delete',
+            purpose: 'delete',
+            icon: Icons.delete_outline_rounded,
+            onButton1: () async {
+              Navigator.of(dialogContext).pop();
+              await ref.read(homeProvider.notifier).deleteTask(task.id);
+            },
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _confirmDeleteMission(BuildContext context, WidgetRef ref) async {
+  await showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.2),
+    builder: (dialogContext) {
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Dialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
+          backgroundColor: Colors.transparent,
+          child: SettingDialog(
+            title: 'Delete Mission',
+            message:
+                "This removes today's mission and all of its tasks. You can "
+                'start a new one right after.',
+            button1Text: 'Delete',
+            purpose: 'delete',
+            icon: Icons.delete_outline_rounded,
+            onButton1: () async {
+              Navigator.of(dialogContext).pop();
+              await ref.read(homeProvider.notifier).deleteMission();
+            },
+          ),
+        ),
+      );
+    },
+  );
 }

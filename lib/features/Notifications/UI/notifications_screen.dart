@@ -235,7 +235,7 @@ class _NotificationTile extends ConsumerWidget {
               ),
               SizedBox(height: ScreenUtils.vSm),
               Text(
-                item.receivedAt.toLocal().toString(),
+                _formatNotificationTimestamp(item.receivedAt),
                 style: AppTextStyles.captionHint.copyWith(
                   color: AppColors.tertiaryText,
                 ),
@@ -246,4 +246,20 @@ class _NotificationTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Formats as "Oct 22, 2:30 PM" instead of `DateTime.toString()`'s raw ISO
+/// form, which leaks the fractional-seconds component (e.g. ".406") into the
+/// display.
+String _formatNotificationTimestamp(DateTime dateTime) {
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  final local = dateTime.toLocal();
+  final hour24 = local.hour;
+  final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
+  final minute = local.minute.toString().padLeft(2, '0');
+  final period = hour24 >= 12 ? 'PM' : 'AM';
+  return '${months[local.month - 1]} ${local.day}, $hour12:$minute $period';
 }
