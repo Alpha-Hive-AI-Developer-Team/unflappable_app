@@ -2,13 +2,27 @@ import 'package:unflappable/features/Auth/create_password/create_password_export
 import 'package:unflappable/features/Home/Provider/Home%20Provider/home_state.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
+import 'package:unflappable/features/Mission%20History/missionHistory_notifier.dart';
 import 'package:unflappable/service/home_service.dart';
 import 'package:unflappable/service/progress_service.dart';
 import 'package:unflappable/service/reset_service.dart';
 import 'package:dio/dio.dart';
 
 class HomeNotifier extends StateNotifier<HomeState> {
-  HomeNotifier() : super(const HomeState());
+  final Ref _ref;
+
+  HomeNotifier({required Ref ref}) : _ref = ref, super(const HomeState());
+
+  /// UC-76: Progress stats (streak, task completion, mission count) and
+  /// Mission History are each their own cached provider — editing/deleting
+  /// a task or mission only changes `activeMission` unless this is called
+  /// too, which is why those screens were showing stale data afterward.
+  Future<void> _refreshAfterMutation() async {
+    await loadHome(force: true);
+    if (mounted) {
+      _ref.invalidate(missionHistoryProvider);
+    }
+  }
 
   Future<void> loadHome({bool force = false}) async {
     if (state.isLoading) return;
@@ -201,12 +215,8 @@ class HomeNotifier extends StateNotifier<HomeState> {
         taskId: taskId,
         title: title,
       );
-      final refreshed = await _fetchMissionById(mission.id);
-      state = state.copyWith(
-        activeMission: refreshed ?? state.activeMission,
-        clearError: true,
-        successMessage: 'Task updated',
-      );
+      state = state.copyWith(clearError: true, successMessage: 'Task updated');
+      await _refreshAfterMutation();
       return true;
     } on DioException catch (e) {
       state = state.copyWith(
@@ -234,12 +244,8 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
     try {
       await HomeService.deleteTask(missionId: mission.id, taskId: taskId);
-      final refreshed = await _fetchMissionById(mission.id);
-      state = state.copyWith(
-        activeMission: refreshed ?? state.activeMission,
-        clearError: true,
-        successMessage: 'Task removed',
-      );
+      state = state.copyWith(clearError: true, successMessage: 'Task removed');
+      await _refreshAfterMutation();
       return true;
     } on DioException catch (e) {
       state = state.copyWith(
@@ -260,11 +266,15 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
     try {
       await HomeService.deleteMission(mission.id);
+      // Instant feedback (falls back to "Set Daily Direction"), then
+      // UA-77: pull fresh streak/stats — deleting today's mission can
+      // change the current streak and this was previously left stale.
       state = state.copyWith(
         clearMission: true,
         clearError: true,
         successMessage: 'Mission deleted',
       );
+      await _refreshAfterMutation();
       return true;
     } on DioException catch (e) {
       state = state.copyWith(
@@ -469,7 +479,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
 }
 
 final homeProvider = StateNotifierProvider<HomeNotifier, HomeState>(
-  (_) => HomeNotifier(),
+  (ref) => HomeNotifier(ref: ref),
 );
 
 class _TodayMissionResult {

@@ -51,77 +51,86 @@ class ChangePasswordScreen extends ConsumerWidget {
                   horizontal: ScreenUtils.authHorizontalMargin,
                   vertical: ScreenUtils.vMd,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isSettingPassword) ...[
-                      FieldLabel('Current Password'),
+                // UC-74: group the password fields so Android/iOS autofill
+                // treats this as one form and can tell "current" apart from
+                // "new" via the hints below, instead of guessing and
+                // potentially filling New Password with a saved old one.
+                child: AutofillGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isSettingPassword) ...[
+                        FieldLabel('Current Password'),
+                        SizedBox(height: ScreenUtils.vSm),
+                        AuthTextField(
+                          hint: 'Enter current password',
+                          obscureText: state.obscureCurrent,
+                          onChanged: notifier.setCurrentPassword,
+                          errorText: state.currentPasswordError,
+                          autofillHints: const [AutofillHints.password],
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              state.obscureCurrent
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: ScreenUtils.iconSm,
+                              color: AppColors.bodyText,
+                            ),
+                            onPressed: notifier.toggleObscureCurrent,
+                          ),
+                        ),
+                        SizedBox(height: ScreenUtils.vMd),
+                      ],
+
+                      FieldLabel('New Password'),
                       SizedBox(height: ScreenUtils.vSm),
                       AuthTextField(
-                        hint: 'Enter current password',
-                        obscureText: state.obscureCurrent,
-                        onChanged: notifier.setCurrentPassword,
-                        errorText: state.currentPasswordError,
+                        hint: 'Enter new password',
+                        obscureText: state.obscureNew,
+                        onChanged: notifier.setNewPassword,
+                        errorText: state.newPasswordError,
+                        autofillHints: const [AutofillHints.newPassword],
                         suffixIcon: IconButton(
                           icon: Icon(
-                            state.obscureCurrent
+                            state.obscureNew
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                             size: ScreenUtils.iconSm,
                             color: AppColors.bodyText,
                           ),
-                          onPressed: notifier.toggleObscureCurrent,
+                          onPressed: notifier.toggleObscureNew,
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        'Must be 8+ characters with at least one uppercase letter and one number.',
+                        style: AppTextStyles.bodySM.copyWith(
+                          color: AppColors.bodyText,
                         ),
                       ),
                       SizedBox(height: ScreenUtils.vMd),
+
+                      FieldLabel('Confirm New Password'),
+                      SizedBox(height: ScreenUtils.vSm),
+                      AuthTextField(
+                        hint: 'Confirm new password',
+                        obscureText: state.obscureConfirm,
+                        onChanged: notifier.setConfirmPassword,
+                        errorText: state.confirmPasswordError,
+                        autofillHints: const [AutofillHints.newPassword],
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            state.obscureConfirm
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: ScreenUtils.iconSm,
+                            color: AppColors.bodyText,
+                          ),
+                          onPressed: notifier.toggleObscureConfirm,
+                        ),
+                      ),
                     ],
-
-                    FieldLabel('New Password'),
-                    SizedBox(height: ScreenUtils.vSm),
-                    AuthTextField(
-                      hint: 'Enter new password',
-                      obscureText: state.obscureNew,
-                      onChanged: notifier.setNewPassword,
-                      errorText: state.newPasswordError,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          state.obscureNew
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: ScreenUtils.iconSm,
-                          color: AppColors.bodyText,
-                        ),
-                        onPressed: notifier.toggleObscureNew,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    Text(
-                      'Must be 8+ characters with at least one uppercase letter and one number.',
-                      style: AppTextStyles.bodySM.copyWith(
-                        color: AppColors.bodyText,
-                      ),
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-
-                    FieldLabel('Confirm New Password'),
-                    SizedBox(height: ScreenUtils.vSm),
-                    AuthTextField(
-                      hint: 'Confirm new password',
-                      obscureText: state.obscureConfirm,
-                      onChanged: notifier.setConfirmPassword,
-                      errorText: state.confirmPasswordError,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          state.obscureConfirm
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: ScreenUtils.iconSm,
-                          color: AppColors.bodyText,
-                        ),
-                        onPressed: notifier.toggleObscureConfirm,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

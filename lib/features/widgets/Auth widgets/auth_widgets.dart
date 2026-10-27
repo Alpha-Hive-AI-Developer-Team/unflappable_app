@@ -27,6 +27,11 @@ class AuthTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final Widget? suffixIcon;
   final String? errorText;
+  /// UC-74: on a multi-password-field form (current/new/confirm), Android's
+  /// autofill service can't tell the fields apart without this and may
+  /// suggest/insert the wrong saved value into "New Password" — pass
+  /// e.g. [AutofillHints.newPassword] to disambiguate.
+  final Iterable<String>? autofillHints;
 
   const AuthTextField({
     super.key,
@@ -36,6 +41,7 @@ class AuthTextField extends StatelessWidget {
     this.onChanged,
     this.suffixIcon,
     this.errorText,
+    this.autofillHints,
   });
 
   @override
@@ -44,6 +50,11 @@ class AuthTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       onChanged: onChanged,
+      autofillHints: autofillHints,
+      // UC-74: prevent the keyboard's spelling/suggestion layer from
+      // altering password input on Android.
+      autocorrect: !obscureText,
+      enableSuggestions: !obscureText,
       style: AppTextStyles.bodyMD.copyWith(color: AppColors.labelText),
       decoration: InputDecoration(
         hintText: hint,

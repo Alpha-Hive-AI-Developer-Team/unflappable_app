@@ -73,11 +73,20 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
   /// its validation are skipped, and `POST /api/auth/password/set` is
   /// called instead of `PUT /api/auth/password/change`.
   Future<bool> submit({required bool isSettingPassword}) async {
-    final currentPasswordError = (!isSettingPassword && state.currentPassword.isEmpty)
+    // UC-74: defensive trim — guards against a stray leading/trailing space
+    // from autofill/keyboard suggestions making an otherwise-compliant
+    // password fail validation.
+    final currentPassword = state.currentPassword.trim();
+    final newPassword = state.newPassword.trim();
+    final confirmPassword = state.confirmPassword.trim();
+
+    final currentPasswordError = (!isSettingPassword && currentPassword.isEmpty)
         ? 'Current password is required'
         : null;
-    final newPasswordError = _validateNewPassword(state.newPassword);
-    final confirmPasswordError = _validateConfirmPassword(state.confirmPassword);
+    final newPasswordError = _validateNewPassword(newPassword);
+    final confirmPasswordError = confirmPassword.isEmpty
+        ? 'Confirm password is required'
+        : (confirmPassword != newPassword ? 'Passwords do not match' : null);
 
     final hasErrors = currentPasswordError != null ||
         newPasswordError != null ||
@@ -102,10 +111,10 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
 
     try {
       final response = isSettingPassword
-          ? await AuthService.setPassword(newPassword: state.newPassword)
+          ? await AuthService.setPassword(newPassword: newPassword)
           : await AuthService.changePassword(
-              currentPassword: state.currentPassword,
-              newPassword: state.newPassword,
+              currentPassword: currentPassword,
+              newPassword: newPassword,
             );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
