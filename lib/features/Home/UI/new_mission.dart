@@ -16,13 +16,28 @@ class NewMissionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // UH-15: lock the form while the create-mission request is in flight so
+    // tasks can't be added/removed/edited mid-save.
+    final isSaving = ref.watch(
+      homeProvider.select((s) => s.isCreatingMission),
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             const HelpingAppBar(title: 'New Mission'),
-            const Expanded(child: _MissionBody()),
+            Expanded(
+              child: AbsorbPointer(
+                absorbing: isSaving,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: isSaving ? 0.5 : 1,
+                  child: const _MissionBody(),
+                ),
+              ),
+            ),
             const _MissionBottomButton(),
           ],
         ),
@@ -354,8 +369,10 @@ class _MissionBottomButton extends ConsumerWidget {
     final state = ref.watch(newMissionProvider);
     final homeState = ref.watch(homeProvider);
 
-    // canSubmit requires non-empty objective AND at least 1 committed task
-    final canStart = state.canSubmit;
+    // canSubmit requires non-empty objective AND at least 1 committed task.
+    // Also guard against a double-tap firing a second create while the
+    // first request is still in flight.
+    final canStart = state.canSubmit && !homeState.isCreatingMission;
 
     return Padding(
       padding: EdgeInsets.only(

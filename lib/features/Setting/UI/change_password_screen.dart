@@ -7,7 +7,12 @@ import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class ChangePasswordScreen extends ConsumerWidget {
-  const ChangePasswordScreen({super.key});
+  /// US-29: true for accounts with `hasPassword == false` (e.g. Apple-only)
+  /// — hides the Current Password field and calls the set-password endpoint
+  /// instead of change-password.
+  final bool isSettingPassword;
+
+  const ChangePasswordScreen({super.key, this.isSettingPassword = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,7 +24,9 @@ class ChangePasswordScreen extends ConsumerWidget {
           previous?.status != ChangePasswordStatus.success) {
         AppSnackbar.showSuccess(
           context,
-          message: 'Password updated successfully.',
+          message: isSettingPassword
+              ? 'Password set successfully.'
+              : 'Password updated successfully.',
         );
         context.pop();
         return;
@@ -35,7 +42,9 @@ class ChangePasswordScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            HelpingAppBar(title: 'Change Password'),
+            HelpingAppBar(
+              title: isSettingPassword ? 'Set Password' : 'Change Password',
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(
@@ -45,25 +54,27 @@ class ChangePasswordScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FieldLabel('Current Password'),
-                    SizedBox(height: ScreenUtils.vSm),
-                    AuthTextField(
-                      hint: 'Enter current password',
-                      obscureText: state.obscureCurrent,
-                      onChanged: notifier.setCurrentPassword,
-                      errorText: state.currentPasswordError,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          state.obscureCurrent
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: ScreenUtils.iconSm,
-                          color: AppColors.bodyText,
+                    if (!isSettingPassword) ...[
+                      FieldLabel('Current Password'),
+                      SizedBox(height: ScreenUtils.vSm),
+                      AuthTextField(
+                        hint: 'Enter current password',
+                        obscureText: state.obscureCurrent,
+                        onChanged: notifier.setCurrentPassword,
+                        errorText: state.currentPasswordError,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            state.obscureCurrent
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: ScreenUtils.iconSm,
+                            color: AppColors.bodyText,
+                          ),
+                          onPressed: notifier.toggleObscureCurrent,
                         ),
-                        onPressed: notifier.toggleObscureCurrent,
                       ),
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
+                      SizedBox(height: ScreenUtils.vMd),
+                    ],
 
                     FieldLabel('New Password'),
                     SizedBox(height: ScreenUtils.vSm),
@@ -122,9 +133,10 @@ class ChangePasswordScreen extends ConsumerWidget {
                 top: ScreenUtils.vMd,
               ),
               child: PrimaryButton(
-                label: 'Update Password',
+                label: isSettingPassword ? 'Set Password' : 'Update Password',
                 isLoading: state.isLoading,
-                onTap: () => notifier.submit(),
+                onTap: () =>
+                    notifier.submit(isSettingPassword: isSettingPassword),
               ),
             ),
           ],

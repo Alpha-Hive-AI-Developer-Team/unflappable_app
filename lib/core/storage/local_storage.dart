@@ -11,10 +11,6 @@ abstract final class LocalStorage {
   static const String userId = 'user_id';
   static const String userName = 'user_name';
   static const String userEmail = 'user_email';
-  /// 'password' or 'apple' — which flow the user last authenticated with.
-  /// Used to hide/disable Change Password for Apple-only accounts (no
-  /// password exists for the backend to change).
-  static const String authProvider = 'auth_provider';
 
   static SharedPreferences? _preferencesInstance;
 

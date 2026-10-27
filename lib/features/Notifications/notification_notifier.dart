@@ -20,6 +20,7 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
       state = state.copyWith(
         status: NotificationStatus.loaded,
         notifications: notifications,
+        hasLoadedOnce: true,
       );
     } on DioException catch (e) {
       state = state.copyWith(
@@ -28,11 +29,13 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
           e,
           fallback: 'Unable to fetch notifications.',
         ),
+        hasLoadedOnce: true,
       );
     } catch (_) {
       state = state.copyWith(
         status: NotificationStatus.error,
         errorMessage: 'Unable to fetch notifications.',
+        hasLoadedOnce: true,
       );
     }
   }
@@ -46,52 +49,70 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     final notification = state.notifications[currentIndex];
     if (notification.isRead) return;
 
-    final updated = List<AppNotification>.from(state.notifications);
-    updated[currentIndex] = notification.copyWith(isRead: true);
-    state = state.copyWith(notifications: updated);
+    final optimistic = List<AppNotification>.from(state.notifications);
+    optimistic[currentIndex] = notification.copyWith(isRead: true);
+    state = state.copyWith(notifications: optimistic);
 
     try {
       await NotificationService.markAsRead(notificationId: notificationId);
     } on DioException catch (e) {
+      // UN-31: don't flip `status` to error — that was replacing the whole
+      // list with a full-screen error for a single failed tap. Revert just
+      // this item and surface a toast instead.
       state = state.copyWith(
-        status: NotificationStatus.error,
-        errorMessage: _extractError(
+        actionErrorMessage: _extractError(
           e,
           fallback: 'Unable to mark notification as read.',
         ),
       );
+      _revertReadState(notificationId);
     } catch (_) {
       state = state.copyWith(
-        status: NotificationStatus.error,
-        errorMessage: 'Unable to mark notification as read.',
+        actionErrorMessage: 'Unable to mark notification as read.',
       );
+      _revertReadState(notificationId);
     }
   }
 
   Future<void> markAllAsRead() async {
     if (state.notifications.isEmpty) return;
 
-    final updatedNotifications = state.notifications
+    final previous = List<AppNotification>.from(state.notifications);
+    final optimistic = state.notifications
         .map((item) => item.copyWith(isRead: true))
         .toList(growable: false);
-    state = state.copyWith(notifications: updatedNotifications);
+    state = state.copyWith(notifications: optimistic);
 
     try {
       await NotificationService.markAllRead();
     } on DioException catch (e) {
       state = state.copyWith(
-        status: NotificationStatus.error,
-        errorMessage: _extractError(
+        notifications: previous,
+        actionErrorMessage: _extractError(
           e,
           fallback: 'Unable to mark all notifications as read.',
         ),
       );
     } catch (_) {
       state = state.copyWith(
-        status: NotificationStatus.error,
-        errorMessage: 'Unable to mark all notifications as read.',
+        notifications: previous,
+        actionErrorMessage: 'Unable to mark all notifications as read.',
       );
     }
+  }
+
+  void clearActionError() {
+    state = state.copyWith(actionErrorMessage: null);
+  }
+
+  void _revertReadState(String notificationId) {
+    final index = state.notifications.indexWhere(
+      (item) => item.id == notificationId,
+    );
+    if (index < 0) return;
+    final reverted = List<AppNotification>.from(state.notifications);
+    reverted[index] = reverted[index].copyWith(isRead: false);
+    state = state.copyWith(notifications: reverted);
   }
 
   List<AppNotification> _parseResponse(dynamic data) {

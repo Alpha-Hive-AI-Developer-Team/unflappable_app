@@ -18,6 +18,9 @@ class UserNotifier extends StateNotifier<UserState> {
     required String name,
     required bool isPro,
     String? proProductId,
+    bool onboardingCompleted = true,
+    String? authProvider,
+    bool hasPassword = true,
   }) {
     final user = User(
       id: id,
@@ -26,6 +29,9 @@ class UserNotifier extends StateNotifier<UserState> {
       isPro: isPro,
       createdAt: DateTime.now(),
       proProductId: proProductId,
+      onboardingCompleted: onboardingCompleted,
+      authProvider: authProvider,
+      hasPassword: hasPassword,
     );
 
     state = state.copyWith(status: UserStatus.authenticated, user: user);
@@ -126,6 +132,9 @@ class UserNotifier extends StateNotifier<UserState> {
         email: email ?? id,
         name: name ?? _deriveNameFromEmail(email ?? id),
         isPro: false,
+        onboardingCompleted: _readBool(accountMap, 'onboardingCompleted') ?? true,
+        authProvider: _firstNonEmptyString(accountMap, const ['authProvider']),
+        hasPassword: _readBool(accountMap, 'hasPassword') ?? true,
       );
     } on DioException catch (_) {
       // Token may be expired; leave state unchanged — splash still uses storage.
@@ -155,6 +164,17 @@ String? _firstNonEmptyString(Map<String, dynamic> source, List<String> keys) {
   for (final key in keys) {
     final value = source[key];
     if (value is String && value.trim().isNotEmpty) return value.trim();
+  }
+  return null;
+}
+
+bool? _readBool(Map<String, dynamic> source, String key) {
+  final value = source[key];
+  if (value is bool) return value;
+  if (value is String) {
+    final s = value.toLowerCase().trim();
+    if (s == 'true') return true;
+    if (s == 'false') return false;
   }
   return null;
 }

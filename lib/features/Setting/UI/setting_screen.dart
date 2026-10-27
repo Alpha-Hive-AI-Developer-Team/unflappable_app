@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/session_provider_reset.dart';
 import 'package:unflappable/export.dart';
@@ -183,18 +182,21 @@ class SettingsScreen extends ConsumerWidget {
               ),
 
               // ── Security ─────────────────────────────────────────────────
-              // Hidden for Apple-only accounts — there is no password on
-              // the backend for `PUT /api/auth/password/change` to update.
-              if (LocalStorage.getData(LocalStorage.authProvider) != 'apple') ...[
-                SizedBox(height: ScreenUtils.vXl),
-                SectionLabel('Security'),
-                SizedBox(height: ScreenUtils.vSm),
-                SettingsTile(
-                  icon: Icons.lock_outline_rounded,
-                  label: 'Change Password',
-                  onTap: () => context.push(AppRoutes.changePassword),
+              // US-29: "Set Password" for accounts with none yet (e.g.
+              // Apple-only), "Change Password" once one exists — driven by
+              // the backend's `hasPassword` field, not a local guess.
+              SizedBox(height: ScreenUtils.vXl),
+              SectionLabel('Security'),
+              SizedBox(height: ScreenUtils.vSm),
+              SettingsTile(
+                icon: Icons.lock_outline_rounded,
+                label: userState.hasPassword ? 'Change Password' : 'Set Password',
+                onTap: () => context.push(
+                  userState.hasPassword
+                      ? AppRoutes.changePassword
+                      : '${AppRoutes.changePassword}?mode=set',
                 ),
-              ],
+              ),
 
               SizedBox(height: ScreenUtils.vXl),
 

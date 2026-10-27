@@ -7,6 +7,16 @@ class User {
   final DateTime? proSubscribedAt;
   /// From `GET /api/subscription/status` when available (e.g. monthly vs yearly SKU).
   final String? proProductId;
+  /// UA-11 / UN-43: from login/Apple/verify-email/account responses.
+  /// Defaults to true (fail-open) so a missing field never traps a user in
+  /// an onboarding loop — only an explicit `false` routes to onboarding.
+  final bool onboardingCompleted;
+  /// 'password' / 'apple' / etc, as returned by the backend.
+  final String? authProvider;
+  /// Whether the account has a password set (false for Apple-only accounts
+  /// that haven't set one yet). Defaults to true (fail-open) for the same
+  /// reason as [onboardingCompleted].
+  final bool hasPassword;
 
   const User({
     required this.id,
@@ -16,6 +26,9 @@ class User {
     required this.createdAt,
     this.proSubscribedAt,
     this.proProductId,
+    this.onboardingCompleted = true,
+    this.authProvider,
+    this.hasPassword = true,
   });
 
   User copyWith({
@@ -27,6 +40,9 @@ class User {
     DateTime? proSubscribedAt,
     String? proProductId,
     bool clearProProductId = false,
+    bool? onboardingCompleted,
+    String? authProvider,
+    bool? hasPassword,
   }) =>
       User(
         id: id ?? this.id,
@@ -38,5 +54,8 @@ class User {
         proProductId: clearProProductId
             ? null
             : (proProductId ?? this.proProductId),
+        onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+        authProvider: authProvider ?? this.authProvider,
+        hasPassword: hasPassword ?? this.hasPassword,
       );
 }

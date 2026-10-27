@@ -68,9 +68,14 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     return null;
   }
 
-  Future<bool> submit() async {
-    final currentPasswordError =
-        state.currentPassword.isEmpty ? 'Current password is required' : null;
+  /// US-29: [isSettingPassword] accounts have no existing password (e.g.
+  /// Apple-only, `hasPassword == false`) — the Current Password field and
+  /// its validation are skipped, and `POST /api/auth/password/set` is
+  /// called instead of `PUT /api/auth/password/change`.
+  Future<bool> submit({required bool isSettingPassword}) async {
+    final currentPasswordError = (!isSettingPassword && state.currentPassword.isEmpty)
+        ? 'Current password is required'
+        : null;
     final newPasswordError = _validateNewPassword(state.newPassword);
     final confirmPasswordError = _validateConfirmPassword(state.confirmPassword);
 
@@ -96,10 +101,12 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     );
 
     try {
-      final response = await AuthService.changePassword(
-        currentPassword: state.currentPassword,
-        newPassword: state.newPassword,
-      );
+      final response = isSettingPassword
+          ? await AuthService.setPassword(newPassword: state.newPassword)
+          : await AuthService.changePassword(
+              currentPassword: state.currentPassword,
+              newPassword: state.newPassword,
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         state = state.copyWith(
@@ -109,7 +116,7 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
         return true;
       }
 
-      final message = _extractMessage(response) ??
+      final message = _messageFor(response.data) ??
           'Unable to update password. Please try again.';
       state = state.copyWith(
         isLoading: false,
@@ -119,7 +126,7 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
       return false;
     } on DioException catch (e) {
       final message = e.response != null
-          ? _extractMessage(e.response!) ??
+          ? _messageFor(e.response!.data) ??
                 'Unable to update password. Please try again.'
           : describeConnectionError(e);
       state = state.copyWith(
@@ -138,12 +145,17 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     }
   }
 
-  String? _extractMessage(Response response) {
-    if (response.data is Map<String, dynamic>) {
-      final body = response.data as Map<String, dynamic>;
-      return body['message']?.toString() ??
-          body['error']?.toString() ??
-          body['errors']?.toString();
+  /// Maps the backend's `PASSWORD_ALREADY_SET` code (returned when
+  /// Set Password is called on an account that already has one) to a
+  /// clearer message than the raw server text.
+  String? _messageFor(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      if (data['code'] == 'PASSWORD_ALREADY_SET') {
+        return 'This account already has a password — use Change Password instead.';
+      }
+      return data['message']?.toString() ??
+          data['error']?.toString() ??
+          data['errors']?.toString();
     }
     return null;
   }

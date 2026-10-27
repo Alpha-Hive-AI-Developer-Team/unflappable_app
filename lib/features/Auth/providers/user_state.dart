@@ -18,6 +18,9 @@ class UserState {
   bool get isPro => user?.isPro ?? false;
   String get userName => user?.name ?? '';
   String get userEmail => user?.email ?? '';
+  bool get onboardingCompleted => user?.onboardingCompleted ?? true;
+  bool get hasPassword => user?.hasPassword ?? true;
+  String? get authProvider => user?.authProvider;
 
   UserState copyWith({
     UserStatus? status,

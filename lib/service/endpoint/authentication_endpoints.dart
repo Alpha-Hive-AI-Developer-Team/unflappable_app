@@ -27,6 +27,7 @@ class _Authentication {
   String get resetPassword => '$_authController/password/reset';
   String get resendOtp => '$_authController/password/resend-otp';
   String get changePassword => '$_authController/password/change';
+  String get setPassword => '$_authController/password/set';
 
   String get deleteAccount => '$_vendorController/auth-details/delete/';
 }

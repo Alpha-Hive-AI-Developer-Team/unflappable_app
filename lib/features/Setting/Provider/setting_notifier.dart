@@ -14,8 +14,15 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   final Ref _ref;
 
-  Future<void> loadInitialData() async {
-    if (state.hasLoadedInitialData || state.isLoadingInitialData) return;
+  /// US-70 / US-24: [force] re-fetches from the server even if already
+  /// loaded this session, discarding any unsaved local edits — used when
+  /// (re)entering the Notification Settings screen so stale/unsaved state
+  /// from a previous visit can never be shown instead of what's actually
+  /// saved.
+  Future<void> loadInitialData({bool force = false}) async {
+    if ((state.hasLoadedInitialData && !force) || state.isLoadingInitialData) {
+      return;
+    }
     state = state.copyWith(isLoadingInitialData: true, clearError: true);
 
     try {

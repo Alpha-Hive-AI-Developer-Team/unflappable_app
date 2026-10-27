@@ -550,96 +550,116 @@ Future<void> _showEditTaskDialog(
   MissionTask task,
 ) async {
   final controller = TextEditingController(text: task.title);
+  // Lives outside the builder closure so it survives setDialogState rebuilds.
+  var isSaving = false;
 
   await showDialog(
     context: context,
     builder: (dialogContext) {
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.symmetric(horizontal: ScreenUtils.md),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: ScreenUtils.md,
-            vertical: 24.h,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            border: Border.all(color: AppColors.borderGrey),
-            borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Edit Task',
-                style: AppTextStyles.labelLG.copyWith(
-                  color: AppColors.headingText,
+      return StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+
+          Future<void> handleSave() async {
+            final title = controller.text.trim();
+            if (title.isEmpty || isSaving) return;
+            setDialogState(() => isSaving = true);
+            await ref
+                .read(homeProvider.notifier)
+                .editTaskTitle(taskId: task.id, title: title);
+            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+          }
+
+          return PopScope(
+            canPop: !isSaving,
+            child: Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: EdgeInsets.symmetric(horizontal: ScreenUtils.md),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ScreenUtils.md,
+                  vertical: 24.h,
                 ),
-              ),
-              SizedBox(height: ScreenUtils.vMd),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                style: AppTextStyles.bodyMD.copyWith(
-                  color: AppColors.headingText,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  border: Border.all(color: AppColors.borderGrey),
+                  borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Task title',
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                    borderSide: BorderSide(color: AppColors.borderGrey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                    borderSide: BorderSide(color: AppColors.primary),
-                  ),
-                ),
-              ),
-              SizedBox(height: ScreenUtils.vXl),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.borderGrey),
-                        shape: RoundedRectangleBorder(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Edit Task',
+                      style: AppTextStyles.labelLG.copyWith(
+                        color: AppColors.headingText,
+                      ),
+                    ),
+                    SizedBox(height: ScreenUtils.vMd),
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      enabled: !isSaving,
+                      style: AppTextStyles.bodyMD.copyWith(
+                        color: AppColors.headingText,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Task title',
+                        enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                             ScreenUtils.radiusMd,
                           ),
+                          borderSide: BorderSide(color: AppColors.borderGrey),
                         ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: AppTextStyles.labelLG.copyWith(
-                          color: AppColors.labelText,
-                          fontWeight: FontWeight.w600,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            ScreenUtils.radiusMd,
+                          ),
+                          borderSide: BorderSide(color: AppColors.primary),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: ScreenUtils.sm),
-                  Expanded(
-                    child: PrimaryButton(
-                      label: 'Save',
-                      isLoading: false,
-                      onTap: () async {
-                        final title = controller.text.trim();
-                        if (title.isEmpty) return;
-                        Navigator.of(dialogContext).pop();
-                        await ref
-                            .read(homeProvider.notifier)
-                            .editTaskTitle(taskId: task.id, title: title);
-                      },
+                    SizedBox(height: ScreenUtils.vXl),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isSaving
+                                ? null
+                                : () => Navigator.of(dialogContext).pop(),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: AppColors.borderGrey),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  ScreenUtils.radiusMd,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: AppTextStyles.labelLG.copyWith(
+                                color: AppColors.labelText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: ScreenUtils.sm),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: 'Save',
+                            isLoading: isSaving,
+                            onTap: handleSave,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );

@@ -15,6 +15,7 @@ import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/legal_links_row.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -44,6 +45,9 @@ class LoginScreen extends ConsumerWidget {
               email: email,
               name: displayName,
               isPro: false,
+              onboardingCompleted: next.authenticatedOnboardingCompleted,
+              authProvider: next.authenticatedAuthProvider,
+              hasPassword: next.authenticatedHasPassword,
             );
 
         unawaited(ref.read(userProvider.notifier).syncSubscriptionFromApi());
@@ -51,8 +55,30 @@ class LoginScreen extends ConsumerWidget {
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;
         AppSnackbar.showSuccess(context, message: 'Login successful!');
-        context.go(AppRoutes.home);
+        // UA-11 / UN-43: resume onboarding instead of opening Home if this
+        // account never finished it (e.g. abandoned mid-flow last session).
+        context.go(
+          next.authenticatedOnboardingCompleted
+              ? AppRoutes.home
+              : AppRoutes.onboarding,
+        );
         ref.read(loginProvider.notifier).clearError();
+        return;
+      }
+
+      // UA-30: an unverified-email login attempt previously dead-ended on a
+      // generic error with no way to reach the OTP screen. Redirect there
+      // instead, reusing the same signup-verification flow.
+      if (next.isEmailNotVerified) {
+        final email = next.email.trim();
+        ref.read(loginProvider.notifier).clearError();
+        AppSnackbar.showError(
+          context,
+          message: 'Please verify your email to continue.',
+        );
+        context.push(
+          '${AppRoutes.otpVerification}?purpose=signup&email=${Uri.encodeComponent(email)}',
+        );
       }
     });
 
@@ -147,7 +173,11 @@ class _LoginBody extends ConsumerWidget {
           margin: EdgeInsets.only(top: ScreenUtils.vSm),
           alignment: Alignment.centerRight,
           child: GestureDetector(
-            onTap: () => context.push(AppRoutes.forgotPassword),
+            // UN-58: don't let the user navigate away while a login/apple
+            // request is still in flight.
+            onTap: (state.isLoginLoading || state.isAppleLoading)
+                ? null
+                : () => context.push(AppRoutes.forgotPassword),
             child: Text(
               'Forgot password',
               style: AppTextStyles.labelMD.copyWith(
@@ -186,7 +216,9 @@ class _LoginBody extends ConsumerWidget {
                 const TextSpan(text: "Don't have an account? "),
                 WidgetSpan(
                   child: GestureDetector(
-                    onTap: () => context.push(AppRoutes.signup),
+                    onTap: (state.isLoginLoading || state.isAppleLoading)
+                        ? null
+                        : () => context.push(AppRoutes.signup),
                     child: Text(
                       'Sign up',
                       style: AppTextStyles.bodySM.copyWith(
@@ -200,6 +232,9 @@ class _LoginBody extends ConsumerWidget {
             ),
           ),
         ),
+
+        SizedBox(height: ScreenUtils.vSm),
+        const LegalLinksRow(),
       ],
     );
   }

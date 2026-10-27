@@ -11,21 +11,26 @@ class OnboardingQuestionnaireScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Progress bar
-            const _StepProgressBar(),
+    return PopScope(
+      // UA-11 / UN-43: onboarding is mandatory — block the hardware/gesture
+      // back button so it can't be used to bypass role/profile setup.
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Progress bar
+              const _StepProgressBar(),
 
-            // Content — scrollable in case options overflow on small screens
-            Expanded(child: const _QuestionBody()),
+              // Content — scrollable in case options overflow on small screens
+              Expanded(child: const _QuestionBody()),
 
-            // Bottom button
-            const _BottomButton(),
-          ],
-        ).withScreenPadding(),
+              // Bottom button
+              const _BottomButton(),
+            ],
+          ).withScreenPadding(),
+        ),
       ),
     );
   }

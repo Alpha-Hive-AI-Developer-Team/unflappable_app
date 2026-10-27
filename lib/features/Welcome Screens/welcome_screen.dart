@@ -40,14 +40,28 @@ class WelcomeScreen extends ConsumerWidget {
 
         ref
             .read(userProvider.notifier)
-            .setUserInfo(id: id, email: email, name: displayName, isPro: false);
+            .setUserInfo(
+              id: id,
+              email: email,
+              name: displayName,
+              isPro: false,
+              onboardingCompleted: next.authenticatedOnboardingCompleted,
+              authProvider: next.authenticatedAuthProvider,
+              hasPassword: next.authenticatedHasPassword,
+            );
 
         unawaited(ref.read(userProvider.notifier).syncSubscriptionFromApi());
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;
         AppSnackbar.showSuccess(context, message: 'Login successful!');
-        context.go(AppRoutes.home);
+        // UA-11 / UN-43: resume onboarding instead of opening Home if this
+        // account never finished it.
+        context.go(
+          next.authenticatedOnboardingCompleted
+              ? AppRoutes.home
+              : AppRoutes.onboarding,
+        );
         ref.read(loginProvider.notifier).clearError();
       }
     });

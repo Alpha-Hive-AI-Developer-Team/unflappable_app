@@ -1,5 +1,6 @@
 import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
+import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Setting/Provider/setting_notifier.dart';
 import 'package:unflappable/features/Setting/Widgets/shared_widgets.dart';
@@ -7,14 +8,40 @@ import 'package:unflappable/features/widgets/Common/buttons.dart';
 import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
-class NotificationsSetting extends ConsumerWidget {
+class NotificationsSetting extends ConsumerStatefulWidget {
   const NotificationsSetting({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsSetting> createState() =>
+      _NotificationsSettingState();
+}
+
+class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
+  bool? _osPermissionGranted;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationManager.hasPermission().then((granted) {
+      if (mounted) setState(() => _osPermissionGranted = granted);
+    });
+    // US-70 / US-24: always re-pull the saved preferences on entry so a
+    // previous visit's unsaved edits (or stale cached state) can never be
+    // shown in place of what's actually saved server-side.
+    ref.read(settingsProvider.notifier).loadInitialData(force: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
     final n = state.notifications;
+    // US-68: a toggle can be saved ON from a previous session while the OS
+    // permission is actually off (revoked in system settings, fresh
+    // install restoring old prefs, etc.) — don't let the UI silently imply
+    // reminders are active in that case.
+    final showPermissionWarning =
+        _osPermissionGranted == false && (n.dailyReminders || n.weeklyReview);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -29,6 +56,43 @@ class NotificationsSetting extends ConsumerWidget {
                   vertical: ScreenUtils.vLg,
                 ),
                 children: [
+                  if (showPermissionWarning) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(ScreenUtils.md),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(
+                          ScreenUtils.radiusSm,
+                        ),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: AppColors.error,
+                            size: ScreenUtils.iconMd,
+                          ),
+                          SizedBox(width: ScreenUtils.sm),
+                          Expanded(
+                            child: Text(
+                              'Notifications are turned off at the system '
+                              'level, so these reminders won\'t actually be '
+                              'delivered until you re-enable the permission.',
+                              style: AppTextStyles.bodySM.copyWith(
+                                color: AppColors.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: ScreenUtils.vMd),
+                  ],
+
                   // Daily Reminders toggle
                   ToggleRow(
                     label: 'Daily Reminders',
@@ -37,7 +101,26 @@ class NotificationsSetting extends ConsumerWidget {
                       // Request notification permission at this relevant
                       // moment (the user is explicitly asking for a
                       // reminder) rather than unconditionally at app launch.
-                      if (v) await NotificationManager.requestPermissions();
+                      if (v) {
+                        final granted =
+                            await NotificationManager.requestPermissions();
+                        if (mounted) {
+                          setState(() => _osPermissionGranted = granted);
+                        }
+                        if (!granted) {
+                          // US-68: don't leave the toggle showing ON when
+                          // permission was actually denied/dismissed.
+                          notifier.toggleDailyReminders(false);
+                          if (context.mounted) {
+                            AppSnackbar.showError(
+                              context,
+                              message:
+                                  'Notifications permission is required for reminders.',
+                            );
+                          }
+                          return;
+                        }
+                      }
                       notifier.toggleDailyReminders(v);
                     },
                   ),
@@ -84,7 +167,24 @@ class NotificationsSetting extends ConsumerWidget {
                     label: 'Weekly Review',
                     value: n.weeklyReview,
                     onChanged: (v) async {
-                      if (v) await NotificationManager.requestPermissions();
+                      if (v) {
+                        final granted =
+                            await NotificationManager.requestPermissions();
+                        if (mounted) {
+                          setState(() => _osPermissionGranted = granted);
+                        }
+                        if (!granted) {
+                          notifier.toggleWeeklyReview(false);
+                          if (context.mounted) {
+                            AppSnackbar.showError(
+                              context,
+                              message:
+                                  'Notifications permission is required for reminders.',
+                            );
+                          }
+                          return;
+                        }
+                      }
                       notifier.toggleWeeklyReview(v);
                     },
                   ),

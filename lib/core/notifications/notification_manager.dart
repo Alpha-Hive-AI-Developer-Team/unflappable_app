@@ -76,7 +76,11 @@ abstract final class NotificationManager {
 
   /// Call this at a contextual moment (e.g. the user turning on a reminder
   /// toggle), not unconditionally at app launch.
-  static Future<void> requestPermissions() async {
+  ///
+  /// Returns whether permission was actually granted (or provisional) —
+  /// US-68: callers must use this to revert UI state (e.g. a toggle) if the
+  /// user dismisses/denies the prompt, instead of assuming success.
+  static Future<bool> requestPermissions() async {
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -91,7 +95,7 @@ abstract final class NotificationManager {
     final granted =
         settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional;
-    if (!granted) return;
+    if (!granted) return false;
 
     // On iOS, the APNs token (and therefore the FCM token) only becomes
     // available once permission has actually been requested, so re-fetch
@@ -100,6 +104,14 @@ abstract final class NotificationManager {
     if (token != null && token.isNotEmpty) {
       await _registerDeviceTokenIfNeeded(force: true, prefetchedToken: token);
     }
+    return true;
+  }
+
+  /// Current OS-level notification permission, without prompting.
+  static Future<bool> hasPermission() async {
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
   }
 
   static Future<void> _handleInitialMessage() async {

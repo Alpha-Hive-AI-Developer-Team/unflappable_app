@@ -138,4 +138,14 @@ abstract final class AuthService {
       },
     );
   }
+
+  /// US-29: for accounts with no password yet (e.g. Apple-only, `hasPassword
+  /// == false`). Distinct from [changePassword] — no current password to
+  /// verify. Backend returns `PASSWORD_ALREADY_SET` if one already exists.
+  static Future<Response> setPassword({required String newPassword}) async {
+    return DioHelper.postData(
+      endPoint: EndPoints.auth.setPassword,
+      data: {'newPassword': newPassword},
+    );
+  }
 }

@@ -35,7 +35,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty ==
                 true;
         if (stillLoggedIn) {
-          context.go(AppRoutes.home);
+          // UA-11 / UN-43: resume onboarding instead of opening Home if the
+          // account never finished it (e.g. the app was killed/crashed
+          // mid-onboarding in an earlier session).
+          final onboardingCompleted =
+              ref.read(userProvider).onboardingCompleted;
+          context.go(
+            onboardingCompleted ? AppRoutes.home : AppRoutes.onboarding,
+          );
         } else {
           context.go(AppRoutes.welcome);
         }

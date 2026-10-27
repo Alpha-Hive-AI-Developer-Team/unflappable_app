@@ -385,18 +385,28 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ReviewField(label: 'Biggest Win', controller: _winCtrl),
+                    _ReviewField(
+                      label: 'Biggest Win',
+                      controller: _winCtrl,
+                      errorText: state.biggestWinError,
+                    ),
                     SizedBox(height: ScreenUtils.vMd),
-                    _ReviewField(label: 'Biggest Miss', controller: _missCtrl),
+                    _ReviewField(
+                      label: 'Biggest Miss',
+                      controller: _missCtrl,
+                      errorText: state.biggestMissError,
+                    ),
                     SizedBox(height: ScreenUtils.vMd),
                     _ReviewField(
                       label: 'Cause of Drift',
                       controller: _driftCtrl,
+                      errorText: state.causeOfDriftError,
                     ),
                     SizedBox(height: ScreenUtils.vMd),
                     _ReviewField(
                       label: 'One Shift for Next Week',
                       controller: _shiftCtrl,
+                      errorText: state.oneShiftError,
                     ),
                   ],
                 ),
@@ -414,9 +424,10 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
               child: PrimaryButton(
                 label: 'Save Changes',
                 isLoading: state.isLoading,
-                onTap: state.draft.hasAnyEntry
-                    ? () => ref.read(weeklyReviewProvider.notifier).saveReview()
-                    : null,
+                // UW-40: always tappable — saveReview() validates required
+                // fields itself and surfaces per-field errors instead of
+                // the button silently refusing to respond.
+                onTap: () => ref.read(weeklyReviewProvider.notifier).saveReview(),
               ),
             ),
           ],
@@ -429,8 +440,13 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
 class _ReviewField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
+  final String? errorText;
 
-  const _ReviewField({required this.label, required this.controller});
+  const _ReviewField({
+    required this.label,
+    required this.controller,
+    this.errorText,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +459,9 @@ class _ReviewField extends StatelessWidget {
         ),
         SizedBox(height: ScreenUtils.vSm),
         SizedBox(
-          height: ScreenUtils.inputHeight,
+          height: errorText == null
+              ? ScreenUtils.inputHeight
+              : ScreenUtils.inputHeight + 20.h,
           child: TextField(
             controller: controller,
             style: AppTextStyles.bodyMD.copyWith(color: AppColors.labelText),
@@ -452,6 +470,7 @@ class _ReviewField extends StatelessWidget {
               hintStyle: AppTextStyles.bodyMD.copyWith(
                 color: AppColors.bodyText,
               ),
+              errorText: errorText,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: ScreenUtils.md,
                 vertical: ScreenUtils.vMd,
@@ -463,6 +482,14 @@ class _ReviewField extends StatelessWidget {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
                 borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
               ),
             ),
           ),

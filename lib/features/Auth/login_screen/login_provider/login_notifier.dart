@@ -100,7 +100,6 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
-          await LocalStorage.saveData(LocalStorage.authProvider, 'password');
           await NotificationManager.registerDeviceToken();
         }
         final email = _extractUserEmail(response.data) ?? state.email.trim();
@@ -112,6 +111,17 @@ class LoginNotifier extends StateNotifier<LoginState> {
           authenticatedEmail: email,
           authenticatedName: name,
           authenticatedUserId: id,
+          authenticatedOnboardingCompleted:
+              _extractUserBoolField(response.data, const [
+                'onboardingCompleted',
+              ]) ??
+              true,
+          authenticatedAuthProvider: _extractUserField(response.data, const [
+            'authProvider',
+          ]),
+          authenticatedHasPassword:
+              _extractUserBoolField(response.data, const ['hasPassword']) ??
+              true,
         );
       } else {
         final message =
@@ -123,6 +133,13 @@ class LoginNotifier extends StateNotifier<LoginState> {
         );
       }
     } on DioException catch (e) {
+      // UA-30: detect the unverified-email case by status + code, not by
+      // parsing message text.
+      if (e.response?.statusCode == 403 &&
+          _extractCode(e.response?.data) == 'EMAIL_NOT_VERIFIED') {
+        state = state.copyWith(loginStatus: LoginStatus.emailNotVerified);
+        return;
+      }
       final message = e.response != null
           ? _extractMessage(e.response!) ??
                 "Email or password didn't match. Please try again."
@@ -185,7 +202,6 @@ class LoginNotifier extends StateNotifier<LoginState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
-          await LocalStorage.saveData(LocalStorage.authProvider, 'apple');
           await NotificationManager.registerDeviceToken();
         }
 
@@ -200,6 +216,17 @@ class LoginNotifier extends StateNotifier<LoginState> {
           authenticatedEmail: email,
           authenticatedName: name,
           authenticatedUserId: id,
+          authenticatedOnboardingCompleted:
+              _extractUserBoolField(response.data, const [
+                'onboardingCompleted',
+              ]) ??
+              true,
+          authenticatedAuthProvider: _extractUserField(response.data, const [
+            'authProvider',
+          ]) ?? 'apple',
+          authenticatedHasPassword:
+              _extractUserBoolField(response.data, const ['hasPassword']) ??
+              true,
         );
       } else {
         final message =
@@ -337,6 +364,43 @@ class LoginNotifier extends StateNotifier<LoginState> {
       }
     }
 
+    return null;
+  }
+
+  /// Same recursive data/user-container search as [_extractUserField], but
+  /// for boolean fields like onboardingCompleted / hasPassword.
+  bool? _extractUserBoolField(dynamic data, List<String> keys) {
+    if (data is! Map<String, dynamic>) return null;
+
+    for (final key in keys) {
+      final value = data[key];
+      if (value is bool) return value;
+      if (value is String) {
+        final s = value.toLowerCase().trim();
+        if (s == 'true') return true;
+        if (s == 'false') return false;
+      }
+    }
+
+    for (final containerKey in const ['data', 'user']) {
+      final nested = data[containerKey];
+      if (nested is Map<String, dynamic>) {
+        final value = _extractUserBoolField(nested, keys);
+        if (value != null) return value;
+      }
+    }
+
+    return null;
+  }
+
+  /// UA-30: pulls the backend's machine-readable error `code` (e.g.
+  /// "EMAIL_NOT_VERIFIED"), checking both top-level and nested `data`.
+  String? _extractCode(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    final code = data['code'];
+    if (code is String && code.isNotEmpty) return code;
+    final nested = data['data'];
+    if (nested is Map<String, dynamic>) return _extractCode(nested);
     return null;
   }
 }

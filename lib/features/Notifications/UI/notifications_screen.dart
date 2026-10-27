@@ -8,6 +8,7 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Notifications/notification_model.dart';
 import 'package:unflappable/features/Notifications/notification_notifier.dart';
 import 'package:unflappable/features/Notifications/notification_state.dart';
+import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -34,6 +35,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(notificationsProvider);
+
+    ref.listen<NotificationsState>(notificationsProvider, (previous, next) {
+      final message = next.actionErrorMessage;
+      if (message != null && message != previous?.actionErrorMessage) {
+        AppSnackbar.showError(context, message: message);
+        ref.read(notificationsProvider.notifier).clearActionError();
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -98,7 +107,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _buildBody(NotificationsState state) {
-    if (state.isLoading) {
+    // UN-31: only the very first load shows a full-screen spinner; a
+    // pull-to-refresh relies on RefreshIndicator's own spinner so the two
+    // don't stack.
+    if (state.isInitialLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 

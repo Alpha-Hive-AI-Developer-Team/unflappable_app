@@ -19,36 +19,81 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
   void openAddScreen() => state = state.copyWith(
     showAddScreen: true,
     draft: state.saved ?? const WeeklyReviewData(),
+    clearFieldErrors: true,
   );
 
   void closeAddScreen() => state = state.copyWith(showAddScreen: false);
 
-  void setBiggestWin(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(biggestWin: v));
+  void setBiggestWin(String v) => state = state.copyWith(
+    draft: state.draft.copyWith(biggestWin: v),
+    biggestWinError: v.trim().isEmpty ? state.biggestWinError : null,
+  );
 
-  void setBiggestMiss(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(biggestMiss: v));
+  void setBiggestMiss(String v) => state = state.copyWith(
+    draft: state.draft.copyWith(biggestMiss: v),
+    biggestMissError: v.trim().isEmpty ? state.biggestMissError : null,
+  );
 
-  void setCauseOfDrift(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(causeOfDrift: v));
+  void setCauseOfDrift(String v) => state = state.copyWith(
+    draft: state.draft.copyWith(causeOfDrift: v),
+    causeOfDriftError: v.trim().isEmpty ? state.causeOfDriftError : null,
+  );
 
-  void setOneShift(String v) =>
-      state = state.copyWith(draft: state.draft.copyWith(oneShiftNextWeek: v));
+  void setOneShift(String v) => state = state.copyWith(
+    draft: state.draft.copyWith(oneShiftNextWeek: v),
+    oneShiftError: v.trim().isEmpty ? state.oneShiftError : null,
+  );
 
+  /// UW-40: all four fields are required by the create API; validate before
+  /// submitting instead of silently disabling the button with no explanation.
   Future<void> saveReview() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    final biggestWinError =
+        state.draft.biggestWin.trim().isEmpty ? 'This field is required' : null;
+    final biggestMissError = state.draft.biggestMiss.trim().isEmpty
+        ? 'This field is required'
+        : null;
+    final causeOfDriftError = state.draft.causeOfDrift.trim().isEmpty
+        ? 'This field is required'
+        : null;
+    final oneShiftError = state.draft.oneShiftNextWeek.trim().isEmpty
+        ? 'This field is required'
+        : null;
+
+    if (biggestWinError != null ||
+        biggestMissError != null ||
+        causeOfDriftError != null ||
+        oneShiftError != null) {
+      state = state.copyWith(
+        biggestWinError: biggestWinError,
+        biggestMissError: biggestMissError,
+        causeOfDriftError: causeOfDriftError,
+        oneShiftError: oneShiftError,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      clearFieldErrors: true,
+    );
     try {
-      await WeeklyReviewService.createReview(
+      final response = await WeeklyReviewService.createReview(
         biggestWin: state.draft.biggestWin,
         biggestMiss: state.draft.biggestMiss,
         causeOfDrift: state.draft.causeOfDrift,
         oneShiftForNextWeek: state.draft.oneShiftNextWeek,
       );
+      // One review per ISO week: the first submit in a week creates a new
+      // history entry, a resubmit in the same week updates it instead.
+      final created = _extractCreatedFlag(response.data) ?? true;
       await _loadReviews(showLoader: false);
       state = state.copyWith(
         isLoading: false,
         showAddScreen: false,
-        successMessage: "Successfully added this weeks review",
+        successMessage: created
+            ? 'Successfully added this week\'s review'
+            : 'This week\'s review was updated',
       );
     } on DioException catch (e) {
       state = state.copyWith(
@@ -120,6 +165,15 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
         errorMessage: 'Unable to load weekly review.',
       );
     }
+  }
+
+  bool? _extractCreatedFlag(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    final value = data['created'];
+    if (value is bool) return value;
+    final nested = data['data'];
+    if (nested is Map<String, dynamic>) return _extractCreatedFlag(nested);
+    return null;
   }
 
   Map<String, dynamic> _extractPayload(dynamic data) {

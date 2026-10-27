@@ -57,7 +57,11 @@ class _ForgotPasswordBody extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: SecondaryButton(label: 'Back', onTap: () => context.pop()),
+              child: SecondaryButton(
+                label: 'Back',
+                // UN-58: don't let the user navigate away mid-submit.
+                onTap: state.isLoading ? null : () => context.pop(),
+              ),
             ),
             SizedBox(width: ScreenUtils.md),
             Expanded(

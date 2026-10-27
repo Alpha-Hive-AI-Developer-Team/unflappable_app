@@ -27,9 +27,24 @@ class OtpVerificationScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: _OtpBody(purpose: purpose, email: email).withAuthScreenPadding(),
+    return PopScope(
+      // UA-30: take explicit control of back navigation (hardware/gesture
+      // back) instead of leaving it to the platform default, which was
+      // landing on Home or crashing. If there's nothing to pop to, send the
+      // user to a known-safe screen instead of letting it fall through.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRoutes.login);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: _OtpBody(purpose: purpose, email: email).withAuthScreenPadding(),
+      ),
     );
   }
 }

@@ -45,7 +45,12 @@ class AppNotification {
     }
 
     return AppNotification(
-      id: json['id']?.toString() ?? json['notificationId']?.toString() ?? '',
+      // UN-31: backend confirmed items include both `id` and `_id` — prefer
+      // `id` (already first here), `_id` as a fallback.
+      id: json['id']?.toString() ??
+          json['_id']?.toString() ??
+          json['notificationId']?.toString() ??
+          '',
       title: json['title']?.toString() ?? json['notificationTitle']?.toString() ?? 'Notification',
       body: json['body']?.toString() ?? json['message']?.toString() ?? '',
       isRead: json['isRead'] == true || json['read'] == true || json['is_read'] == true,

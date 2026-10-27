@@ -171,7 +171,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: 'change-password',
         path: AppRoutes.changePassword,
-        builder: (context, state) => const ChangePasswordScreen(),
+        builder: (context, state) {
+          // US-29: /account/change-password?mode=set shows the Set
+          // Password variant for accounts with no password yet.
+          final isSettingPassword = state.uri.queryParameters['mode'] == 'set';
+          return ChangePasswordScreen(isSettingPassword: isSettingPassword);
+        },
       ),
       GoRoute(
         name: 'help-center',

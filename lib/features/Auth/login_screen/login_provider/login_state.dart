@@ -1,4 +1,13 @@
-enum LoginStatus { idle, loading, validationError, authError, success }
+enum LoginStatus {
+  idle,
+  loading,
+  validationError,
+  authError,
+  // UA-30: distinct status for a 403 + code "EMAIL_NOT_VERIFIED" response —
+  // routes to the OTP/verify-email flow instead of showing an error dialog.
+  emailNotVerified,
+  success,
+}
 
 const _keep = Object();
 
@@ -14,6 +23,9 @@ class LoginState {
   final String authenticatedEmail;
   final String authenticatedName;
   final String authenticatedUserId;
+  final bool authenticatedOnboardingCompleted;
+  final String? authenticatedAuthProvider;
+  final bool authenticatedHasPassword;
 
   const LoginState({
     this.email = '',
@@ -27,6 +39,9 @@ class LoginState {
     this.authenticatedEmail = '',
     this.authenticatedName = '',
     this.authenticatedUserId = '',
+    this.authenticatedOnboardingCompleted = true,
+    this.authenticatedAuthProvider,
+    this.authenticatedHasPassword = true,
   });
 
   bool get isLoginLoading => loginStatus == LoginStatus.loading;
@@ -37,7 +52,10 @@ class LoginState {
       loginStatus == LoginStatus.authError ||
       appleStatus == LoginStatus.authError;
 
-  // Show overlay for both validation and auth errors
+  bool get isEmailNotVerified => loginStatus == LoginStatus.emailNotVerified;
+
+  // Show overlay for both validation and auth errors (not emailNotVerified —
+  // that's handled by redirecting to OTP instead).
   bool get showErrorOverlay => hasValidationError || hasAuthError;
 
   bool get isSuccess =>
@@ -55,6 +73,9 @@ class LoginState {
     String? authenticatedEmail,
     String? authenticatedName,
     String? authenticatedUserId,
+    bool? authenticatedOnboardingCompleted,
+    String? authenticatedAuthProvider,
+    bool? authenticatedHasPassword,
   }) {
     return LoginState(
       email: email ?? this.email,
@@ -72,6 +93,12 @@ class LoginState {
       authenticatedEmail: authenticatedEmail ?? this.authenticatedEmail,
       authenticatedName: authenticatedName ?? this.authenticatedName,
       authenticatedUserId: authenticatedUserId ?? this.authenticatedUserId,
+      authenticatedOnboardingCompleted: authenticatedOnboardingCompleted ??
+          this.authenticatedOnboardingCompleted,
+      authenticatedAuthProvider:
+          authenticatedAuthProvider ?? this.authenticatedAuthProvider,
+      authenticatedHasPassword:
+          authenticatedHasPassword ?? this.authenticatedHasPassword,
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:unflappable/features/widgets/Common/app_header.dart';
 import 'package:unflappable/features/widgets/Auth%20widgets/auth_widgets.dart';
 import 'package:unflappable/features/widgets/Common/error_dialog.dart';
 import 'package:unflappable/features/widgets/Common/buttons.dart';
+import 'package:unflappable/features/widgets/Common/legal_links_row.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class SignUpScreen extends ConsumerWidget {
@@ -186,7 +187,10 @@ class _SignUpBody extends ConsumerWidget {
                   const TextSpan(text: 'Already have an account? '),
                   WidgetSpan(
                     child: GestureDetector(
-                      onTap: () => context.push(AppRoutes.login),
+                      // UN-58: don't let the user navigate away mid-submit.
+                      onTap: state.isLoading
+                          ? null
+                          : () => context.push(AppRoutes.login),
                       child: Text(
                         'Log in',
                         style: AppTextStyles.bodySM.copyWith(
@@ -200,6 +204,9 @@ class _SignUpBody extends ConsumerWidget {
               ),
             ),
           ),
+
+          SizedBox(height: ScreenUtils.vSm),
+          const LegalLinksRow(),
         ],
       ),
     );

@@ -128,7 +128,6 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
         final token = _extractAuthToken(response.data);
         if (token != null) {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
-          await LocalStorage.saveData(LocalStorage.authProvider, 'password');
           await NotificationManager.registerDeviceToken();
         }
         state = state.copyWith(status: SignUpStatus.success);
