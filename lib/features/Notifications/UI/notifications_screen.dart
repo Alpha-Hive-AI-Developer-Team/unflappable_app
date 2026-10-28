@@ -56,18 +56,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ),
               child: Row(
                 children: [
+                  // UN-53: match HelpingAppBar's icon size/title style used
+                  // on every other screen's header.
                   GestureDetector(
                     onTap: () => context.pop(),
                     child: Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      size: ScreenUtils.iconSm,
+                      size: ScreenUtils.iconMd,
                       color: AppColors.headingText,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     'Notifications',
-                    style: AppTextStyles.headingMD.copyWith(
+                    style: AppTextStyles.headingLG.copyWith(
                       color: AppColors.headingText,
                     ),
                   ),

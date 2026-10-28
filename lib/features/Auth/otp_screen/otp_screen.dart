@@ -107,12 +107,15 @@ class _OtpBody extends ConsumerWidget {
                             AppSnackbar.showSuccess(
                               context,
                               message: 'A new code was sent to your email.',
+                              // UA-6: extra clearance above the Back/Next row.
+                              extraBottomMargin: 72.h,
                             );
                           } else {
                             AppSnackbar.showError(
                               context,
                               message:
                                   'Unable to resend code. Please try again.',
+                              extraBottomMargin: 72.h,
                             );
                           }
                         },
@@ -168,6 +171,7 @@ class _OtpBody extends ConsumerWidget {
                             AppSnackbar.showSuccess(
                               context,
                               message: 'Email verified successfully.',
+                              extraBottomMargin: 72.h,
                             );
                             await ref
                                 .read(userProvider.notifier)
@@ -178,6 +182,7 @@ class _OtpBody extends ConsumerWidget {
                             AppSnackbar.showSuccess(
                               context,
                               message: 'Code verified. Please create your new password.',
+                              extraBottomMargin: 72.h,
                             );
                             context.push(
                               '${AppRoutes.createNewPassword}?resetToken=${Uri.encodeComponent(resetToken)}',
@@ -187,6 +192,7 @@ class _OtpBody extends ConsumerWidget {
                           AppSnackbar.showError(
                             context,
                             message: 'Invalid code. Please try again.',
+                            extraBottomMargin: 72.h,
                           );
                         }
                       }

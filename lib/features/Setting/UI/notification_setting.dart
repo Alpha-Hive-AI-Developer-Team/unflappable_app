@@ -205,7 +205,11 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
                   PrimaryButton(
                     label: 'Save Preferences',
                     isLoading: state.isSavingNotifications,
-                    onTap: () async {
+                    // US-23 / US-69: disabled until something actually
+                    // changed from the last saved preferences.
+                    onTap: !state.hasUnsavedNotificationChanges
+                        ? null
+                        : () async {
                       await notifier.saveNotifications();
                       if (!context.mounted) return;
                       final latest = ref.read(settingsProvider);
@@ -246,6 +250,41 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: hour, minute: min),
+      // UN-59: the unthemed app falls back to Material's default colors,
+      // where the AM/PM selector and the Hour selector don't share a color
+      // role — force both to the app's primary color explicitly.
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.primary),
+            timePickerTheme: TimePickerThemeData(
+              dayPeriodColor: WidgetStateColor.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primaryWithOpacity(0.15)
+                    : AppColors.secondarySurface,
+              ),
+              dayPeriodTextColor: WidgetStateColor.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primary
+                    : AppColors.bodyText,
+              ),
+              hourMinuteColor: WidgetStateColor.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primaryWithOpacity(0.15)
+                    : AppColors.secondarySurface,
+              ),
+              hourMinuteTextColor: WidgetStateColor.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primary
+                    : AppColors.bodyText,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked == null) return null;
     return picked.format(context);

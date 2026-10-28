@@ -9,6 +9,7 @@ class SignUpState {
   final String password;
   final String confirmPassword;
   final bool obscurePassword;
+  final bool obscureConfirmPassword;
   final String? fullNameError;
   final String? emailError;
   final String? passwordError;
@@ -22,6 +23,7 @@ class SignUpState {
     this.password = '',
     this.confirmPassword = '',
     this.obscurePassword = true,
+    this.obscureConfirmPassword = true,
     this.fullNameError,
     this.emailError,
     this.passwordError,
@@ -50,6 +52,7 @@ class SignUpState {
     String? password,
     String? confirmPassword,
     bool? obscurePassword,
+    bool? obscureConfirmPassword,
     Object? fullNameError = _keep,
     Object? emailError = _keep,
     Object? passwordError = _keep,
@@ -63,6 +66,8 @@ class SignUpState {
       password: password ?? this.password,
       confirmPassword: confirmPassword ?? this.confirmPassword,
       obscurePassword: obscurePassword ?? this.obscurePassword,
+      obscureConfirmPassword:
+          obscureConfirmPassword ?? this.obscureConfirmPassword,
       fullNameError: fullNameError == _keep
           ? this.fullNameError
           : fullNameError as String?,

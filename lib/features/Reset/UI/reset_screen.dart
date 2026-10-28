@@ -55,7 +55,13 @@ class _ResetScreenState extends ConsumerState<ResetScreen>
             resetState: resetState,
             // Free-only release: every user gets full Reset access.
             isPro: true,
-          ).withScreenPadding(),
+          ).withScreenPadding(
+            // UC-80: align the header position with Home/Progress
+            // (24.w / vMd) instead of this helper's own defaults.
+            left: 24.w,
+            right: 24.w,
+            top: ScreenUtils.vMd,
+          ),
         ],
       ),
     );

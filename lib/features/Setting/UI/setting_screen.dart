@@ -32,9 +32,13 @@ class SettingsScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: ScreenUtils.authHorizontalMargin,
-            vertical: ScreenUtils.authBottomMargin,
+          // UC-80: align the header position with Home/Progress (24.w /
+          // vMd) instead of the auth-screen margins previously used here.
+          padding: EdgeInsets.only(
+            left: 24.w,
+            right: 24.w,
+            top: ScreenUtils.vMd,
+            bottom: ScreenUtils.authBottomMargin,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

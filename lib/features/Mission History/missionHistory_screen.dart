@@ -9,6 +9,7 @@ import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
 import 'package:unflappable/features/Mission%20History/missionHistory_notifier.dart';
 import 'package:unflappable/features/Mission%20History/missionHistory_state.dart';
+import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 
 // ---------------------------------------------------------------------------
 // SCREEN
@@ -26,7 +27,9 @@ class MissionHistoryScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const _AppBar(),
+            // UP-54: use the same header everywhere else uses, instead of a
+            // one-off with mismatched icon/typography.
+            const HelpingAppBar(title: 'Mission History'),
             Expanded(child: _buildBody(context, ref, state)),
           ],
         ),
@@ -99,46 +102,6 @@ class MissionHistoryScreen extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// APP BAR
-// ---------------------------------------------------------------------------
-
-class _AppBar extends StatelessWidget {
-  const _AppBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: ScreenUtils.md,
-        vertical: ScreenUtils.vSm,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).maybePop(),
-              child: Icon(
-                Icons.chevron_left,
-                size: ScreenUtils.iconLg,
-                color: AppColors.headingText,
-              ),
-            ),
-          ),
-          Text(
-            'Mission History',
-            style: AppTextStyles.headingSM.copyWith(
-              color: AppColors.headingText,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // MISSION CARD
@@ -265,20 +228,27 @@ class _TaskRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // ── Checkbox icon ──
-        task.isCompleted
-            ? Icon(
-                Icons.check_circle_outline_rounded,
-                size: ScreenUtils.iconMd,
-                color: AppColors.primary,
-              )
-            : Container(
-                width: ScreenUtils.iconMd,
-                height: ScreenUtils.iconMd,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.borderGrey, width: 1.5),
-                ),
-              ),
+        // UN-62: one fixed-size circle for both states, with the checkmark
+        // drawn inside it — avoids the Icon-glyph-vs-border-circle size
+        // mismatch the two different widgets previously produced.
+        Container(
+          width: ScreenUtils.iconMd,
+          height: ScreenUtils.iconMd,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: task.isCompleted ? AppColors.primary : AppColors.borderGrey,
+              width: 1.5,
+            ),
+          ),
+          child: task.isCompleted
+              ? Icon(
+                  Icons.check_rounded,
+                  size: ScreenUtils.iconMd * 0.65,
+                  color: AppColors.primary,
+                )
+              : null,
+        ),
 
         SizedBox(width: ScreenUtils.sm),
 

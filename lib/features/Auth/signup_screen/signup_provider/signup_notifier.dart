@@ -50,6 +50,12 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
   void toggleObscure() =>
       state = state.copyWith(obscurePassword: !state.obscurePassword);
 
+  // UA-67: independent from toggleObscure so the Password and Confirm
+  // Password eye icons no longer control the same flag.
+  void toggleObscureConfirm() => state = state.copyWith(
+    obscureConfirmPassword: !state.obscureConfirmPassword,
+  );
+
   void clearError() =>
       state = state.copyWith(status: SignUpStatus.idle, authErrorMessage: null);
 

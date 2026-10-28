@@ -54,13 +54,16 @@ class ResetHistoryItem {
     return const [];
   }
 
+  // UR-21 / UC-78: the backend returns UTC timestamps — convert to local
+  // time here so every hour/day comparison downstream (formattedTime,
+  // isToday/isYesterday) uses the device's local timezone, not UTC.
   static DateTime _parseTimestamp(dynamic value) {
     if (value is int) {
-      return DateTime.fromMillisecondsSinceEpoch(value);
+      return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
     }
     if (value is String) {
       try {
-        return DateTime.parse(value);
+        return DateTime.parse(value).toLocal();
       } catch (_) {
         return DateTime.now();
       }

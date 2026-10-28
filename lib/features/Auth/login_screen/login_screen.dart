@@ -216,9 +216,12 @@ class _LoginBody extends ConsumerWidget {
                 const TextSpan(text: "Don't have an account? "),
                 WidgetSpan(
                   child: GestureDetector(
+                    // UA-3: go() instead of push() — toggling Login/Signup
+                    // repeatedly no longer stacks routes that the iOS
+                    // swipe-back gesture can tunnel through to Welcome.
                     onTap: (state.isLoginLoading || state.isAppleLoading)
                         ? null
-                        : () => context.push(AppRoutes.signup),
+                        : () => context.go(AppRoutes.signup),
                     child: Text(
                       'Sign up',
                       style: AppTextStyles.bodySM.copyWith(

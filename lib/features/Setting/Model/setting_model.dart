@@ -33,6 +33,27 @@ class NotificationSettings {
     weeklyReminder: weeklyReminder ?? this.weeklyReminder,
   );
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationSettings &&
+          dailyReminders == other.dailyReminders &&
+          morningReminder == other.morningReminder &&
+          eveningReminder == other.eveningReminder &&
+          weeklyReview == other.weeklyReview &&
+          weeklyReminderDay == other.weeklyReminderDay &&
+          weeklyReminder == other.weeklyReminder);
+
+  @override
+  int get hashCode => Object.hash(
+    dailyReminders,
+    morningReminder,
+    eveningReminder,
+    weeklyReview,
+    weeklyReminderDay,
+    weeklyReminder,
+  );
+
   String get morningReminder24h => _to24Hour(morningReminder);
   String get eveningReminder24h => _to24Hour(eveningReminder);
   String get weeklyReminderTime24h => _to24Hour(weeklyReminder);

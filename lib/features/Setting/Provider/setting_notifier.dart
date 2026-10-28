@@ -86,7 +86,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
       state = state.copyWith(
         accountDraft: nextAccount,
+        savedAccountDraft: nextAccount,
         notifications: nextNotifications,
+        savedNotifications: nextNotifications,
         isLoadingInitialData: false,
         hasLoadedInitialData: true,
       );
@@ -129,26 +131,62 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   );
 
   // ── Account ────────────────────────────────────────────────────────────────
-  void initAccountDraft({required String name, required String email}) =>
-      state = state.copyWith(
-        accountDraft: AccountDraft(fullName: name, email: email),
-      );
+  // US-26 / US-27: also resets [savedAccountDraft] to this same baseline so
+  // "unsaved changes" tracking starts clean each time Account is opened,
+  // rather than comparing against a stale snapshot from a prior visit.
+  void initAccountDraft({required String name, required String email}) {
+    final draft = AccountDraft(fullName: name, email: email);
+    state = state.copyWith(
+      accountDraft: draft,
+      savedAccountDraft: draft,
+      accountNameError: null,
+    );
+  }
+
+  // US-26: enforce a max length and non-empty name on every keystroke.
+  String? _validateAccountName(String v) {
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return 'Full name is required';
+    if (trimmed.length > 50) return 'Name must be 50 characters or fewer';
+    return null;
+  }
 
   void setDraftName(String v) => state = state.copyWith(
     accountDraft: state.accountDraft.copyWith(fullName: v),
+    accountNameError: _validateAccountName(v),
   );
 
   void setDraftEmail(String v) => state = state.copyWith(
     accountDraft: state.accountDraft.copyWith(email: v),
   );
 
+  // US-27: revert to the last loaded/saved value — called when the Account
+  // screen is left without tapping Save Changes, so an unsaved edit can
+  // never reappear next time the screen is opened.
+  void discardUnsavedAccountDraft() {
+    if (!state.hasUnsavedAccountChanges) return;
+    state = state.copyWith(
+      accountDraft: state.savedAccountDraft,
+      accountNameError: null,
+    );
+  }
+
   Future<void> saveAccount() async {
+    final nameError = _validateAccountName(state.accountDraft.fullName);
+    if (nameError != null) {
+      state = state.copyWith(accountNameError: nameError);
+      return;
+    }
+
     state = state.copyWith(isSavingAccount: true, clearError: true);
     try {
       await SettingsService.updateAccount(
         fullName: state.accountDraft.fullName,
       );
-      state = state.copyWith(isSavingAccount: false);
+      state = state.copyWith(
+        isSavingAccount: false,
+        savedAccountDraft: state.accountDraft,
+      );
     } on DioException catch (e) {
       state = state.copyWith(
         isSavingAccount: false,
@@ -171,7 +209,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       await SettingsService.updateNotifications(
         notifications: state.notifications,
       );
-      state = state.copyWith(isSavingNotifications: false);
+      state = state.copyWith(
+        isSavingNotifications: false,
+        savedNotifications: state.notifications,
+      );
     } on DioException catch (e) {
       state = state.copyWith(
         isSavingNotifications: false,

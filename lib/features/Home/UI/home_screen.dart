@@ -390,29 +390,20 @@ class _ActiveMissionCard extends ConsumerWidget {
 
             // Task list
             ...mission.tasks.asMap().entries.map((entry) {
-              final taskIndex = entry.key;
               final task = entry.value;
-              final hasIncompleteBefore = mission.tasks
-                  .take(taskIndex)
-                  .any((previousTask) => !previousTask.isCompleted);
 
               return _MissionTaskRow(
                 task: task,
                 isLoading: homeState.activeTaskId == task.id,
                 canDelete: mission.tasks.length > 1,
                 onToggle: () async {
+                  // UH-16: tasks can be completed independently, out of
+                  // order — the old "previous tasks first" gate was a
+                  // frontend-only restriction with no backend requirement.
                   if (task.isCompleted) {
                     AppSnackbar.showError(
                       context,
                       message: 'Already completed task.',
-                    );
-                    return;
-                  }
-
-                  if (hasIncompleteBefore) {
-                    AppSnackbar.showError(
-                      context,
-                      message: 'Please complete previous tasks first.',
                     );
                     return;
                   }

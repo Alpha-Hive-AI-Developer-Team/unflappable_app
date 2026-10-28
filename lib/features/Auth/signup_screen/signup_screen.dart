@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
@@ -147,22 +146,25 @@ class _SignUpBody extends ConsumerWidget {
           SizedBox(height: ScreenUtils.vSm),
           AuthTextField(
             hint: 'Confirm Your Password',
-            obscureText: state.obscurePassword,
+            obscureText: state.obscureConfirmPassword,
             onChanged: notifier.setConfirmPassword,
             errorText: state.confirmPasswordError,
             suffixIcon: IconButton(
               icon: Icon(
-                state.obscurePassword
+                state.obscureConfirmPassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
                 size: ScreenUtils.iconSm,
                 color: AppColors.bodyText,
               ),
-              onPressed: notifier.toggleObscure,
+              onPressed: notifier.toggleObscureConfirm,
             ),
           ),
 
-          SizedBox(height: 320.h),
+          // UA-1: was a fixed 320.h gap — ~8x the screen's largest spacing
+          // token — pushing Apple Sign-In/the Login link off-screen below
+          // the fold with no real content filling the space.
+          SizedBox(height: ScreenUtils.vXl),
 
           // ── Create Account button ────────────────────────────────────────
           PrimaryButton(
@@ -188,9 +190,10 @@ class _SignUpBody extends ConsumerWidget {
                   WidgetSpan(
                     child: GestureDetector(
                       // UN-58: don't let the user navigate away mid-submit.
+                      // UA-3: go() instead of push() — see login_screen.dart.
                       onTap: state.isLoading
                           ? null
-                          : () => context.push(AppRoutes.login),
+                          : () => context.go(AppRoutes.login),
                       child: Text(
                         'Log in',
                         style: AppTextStyles.bodySM.copyWith(

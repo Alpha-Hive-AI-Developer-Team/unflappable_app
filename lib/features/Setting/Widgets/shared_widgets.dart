@@ -180,6 +180,8 @@ class AccountField extends StatelessWidget {
   final TextEditingController controller;
   final bool readOnly;
   final bool filled;
+  final String? errorText;
+  final int? maxLength;
 
   const AccountField({
     super.key,
@@ -187,6 +189,8 @@ class AccountField extends StatelessWidget {
     required this.controller,
     this.readOnly = false,
     this.filled = false,
+    this.errorText,
+    this.maxLength,
   });
 
   @override
@@ -204,24 +208,30 @@ class AccountField extends StatelessWidget {
           child: TextField(
             controller: controller,
             readOnly: readOnly,
+            maxLength: maxLength,
             style: AppTextStyles.bodyMD.copyWith(
               color: readOnly ? AppColors.bodyText : AppColors.labelText,
             ),
             decoration: InputDecoration(
               filled: filled,
               fillColor: filled ? AppColors.secondarySurface : null,
+              counterText: '',
               contentPadding: EdgeInsets.symmetric(
                 horizontal: ScreenUtils.md,
                 vertical: ScreenUtils.vMd,
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                borderSide: BorderSide(color: AppColors.borderGrey),
+                borderSide: BorderSide(
+                  color: errorText != null ? Colors.red : AppColors.borderGrey,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
                 borderSide: BorderSide(
-                  color: readOnly ? AppColors.borderGrey : AppColors.primary,
+                  color: errorText != null
+                      ? Colors.red
+                      : (readOnly ? AppColors.borderGrey : AppColors.primary),
                   width: 1.5,
                 ),
               ),
@@ -232,6 +242,13 @@ class AccountField extends StatelessWidget {
             ),
           ),
         ),
+        if (errorText != null) ...[
+          SizedBox(height: ScreenUtils.vXs),
+          Text(
+            errorText!,
+            style: AppTextStyles.bodySM.copyWith(color: Colors.red),
+          ),
+        ],
       ],
     );
   }

@@ -58,9 +58,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
     return null;
   }
 
+  // UA-13: Login only needs to know a password was entered — the signup
+  // strength/minimum-length rule doesn't apply here. Invalid credentials are
+  // reported by the server and shown as a toast, not an inline field error.
   String? _validatePassword(String v) {
     if (v.isEmpty) return 'Password is required';
-    if (v.length < 6) return 'Password must be at least 6 characters';
     return null;
   }
 

@@ -14,6 +14,10 @@ class AppSnackbar {
     required String message,
     String? title,
     Duration duration = const Duration(seconds: 3),
+    // UA-6: screens with their own bottom-pinned buttons (e.g. OTP's
+    // Back/Next row) can pass extra clearance so the floating snackbar
+    // doesn't crowd them.
+    double extraBottomMargin = 0,
   }) {
     _show(
       context,
@@ -21,6 +25,7 @@ class AppSnackbar {
       message: message,
       title: title,
       duration: duration,
+      extraBottomMargin: extraBottomMargin,
     );
   }
 
@@ -29,6 +34,7 @@ class AppSnackbar {
     required String message,
     String? title,
     Duration duration = const Duration(seconds: 3),
+    double extraBottomMargin = 0,
   }) {
     _show(
       context,
@@ -36,6 +42,7 @@ class AppSnackbar {
       message: message,
       title: title,
       duration: duration,
+      extraBottomMargin: extraBottomMargin,
     );
   }
 
@@ -45,6 +52,7 @@ class AppSnackbar {
     required String message,
     String? title,
     required Duration duration,
+    double extraBottomMargin = 0,
   }) {
     // Remove any existing snackbar first
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -58,7 +66,7 @@ class AppSnackbar {
         margin: EdgeInsets.only(
           left: ScreenUtils.authHorizontalMargin,
           right: ScreenUtils.authHorizontalMargin,
-          bottom: 24.h,
+          bottom: 24.h + extraBottomMargin,
         ),
         content: _AppSnackbarContent(
           type: type,

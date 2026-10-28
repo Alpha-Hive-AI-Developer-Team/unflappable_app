@@ -49,6 +49,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
   @override
   void dispose() {
+    // US-27: discard any unsaved name edit so it can't reappear next time
+    // this screen opens.
+    ref.read(settingsProvider.notifier).discardUnsavedAccountDraft();
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     super.dispose();
@@ -79,7 +82,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Full Name
-                    AccountField(label: 'Full Name', controller: _nameCtrl),
+                    AccountField(
+                      label: 'Full Name',
+                      controller: _nameCtrl,
+                      errorText: state.accountNameError,
+                      maxLength: 50,
+                    ),
                     SizedBox(height: ScreenUtils.vMd),
 
                     // Email — read-only
@@ -117,7 +125,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               child: PrimaryButton(
                 label: 'Save Changes',
                 isLoading: state.isSavingAccount,
-                onTap: () async {
+                // US-26 / US-27: disabled until the name actually changed
+                // from what's saved, and is itself valid.
+                onTap:
+                    (!state.hasUnsavedAccountChanges ||
+                        state.accountNameError != null)
+                    ? null
+                    : () async {
                   await notifier.saveAccount();
                   if (!context.mounted) return;
                   final latest = ref.read(settingsProvider);
