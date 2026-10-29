@@ -40,7 +40,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
     required String email,
     required OtpPurpose purpose,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isVerifying: true);
     try {
       final code = state.digits.join();
       final response = purpose == OtpPurpose.signup
@@ -53,7 +53,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
               code: code,
             );
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isVerifying: false);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (purpose == OtpPurpose.forgotPassword) {
@@ -70,10 +70,10 @@ class OtpNotifier extends StateNotifier<OtpState> {
       }
       return null;
     } on DioException {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isVerifying: false);
       return null;
     } catch (_) {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isVerifying: false);
       return null;
     }
   }
@@ -108,7 +108,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
     required String email,
     required OtpPurpose purpose,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isResending: true);
     try {
       final response = purpose == OtpPurpose.signup
           ? await AuthService.resendEmailVerificationOtp(email: email.trim())
@@ -116,16 +116,16 @@ class OtpNotifier extends StateNotifier<OtpState> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         resend();
-        state = state.copyWith(isLoading: false);
+        state = state.copyWith(isResending: false);
         return true;
       }
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isResending: false);
       return false;
     } on DioException {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isResending: false);
       return false;
     } catch (_) {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isResending: false);
       return false;
     }
   }

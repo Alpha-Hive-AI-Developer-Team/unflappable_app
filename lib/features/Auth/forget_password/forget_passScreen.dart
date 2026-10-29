@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
@@ -71,13 +72,28 @@ class _ForgotPasswordBody extends ConsumerWidget {
                 onTap: () async {
                   final success = await notifier.submit();
                   if (!context.mounted) return;
+                  // UA-6: this screen's Back/Next row is pinned to the
+                  // bottom via Spacer(), same layout as OTP — give the
+                  // toast the same extra clearance so it doesn't crowd it.
                   if (success) {
                     AppSnackbar.showSuccess(
                       context,
                       message: 'A reset code has been sent to your email.',
+                      extraBottomMargin: 72.h,
                     );
                     context.push(
                       '${AppRoutes.otpVerification}?purpose=forgotPassword&email=${Uri.encodeComponent(state.email)}',
+                    );
+                  } else {
+                    // UA-4: the notifier already captures the failure
+                    // message (e.g. the backend's 404 for an unknown
+                    // email) — it just never reached the user before.
+                    final latest = ref.read(forgotPasswordProvider);
+                    AppSnackbar.showError(
+                      context,
+                      message: latest.authErrorMessage ??
+                          'Unable to send reset link. Please try again.',
+                      extraBottomMargin: 72.h,
                     );
                   }
                 },

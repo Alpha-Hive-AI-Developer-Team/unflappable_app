@@ -68,9 +68,12 @@ class _ResetTriggerScreenState extends ConsumerState<ResetTriggerScreen> {
                     SizedBox(height: ScreenUtils.vMd),
 
                     // ── Text Field ───────────────────────────────────────
+                    // UR-18: no autofocus — the keyboard should only open
+                    // when the user actually taps the field, not every
+                    // time this screen mounts (including returning here
+                    // via Back from the next screen).
                     TextField(
                       controller: _controller,
-                      autofocus: true,
                       style: AppTextStyles.bodyLG.copyWith(
                         color: AppColors.labelText,
                       ),
@@ -92,7 +95,10 @@ class _ResetTriggerScreenState extends ConsumerState<ResetTriggerScreen> {
                       onChanged: (val) =>
                           ref.read(resetProvider.notifier).setTrigger(val),
                       textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _onContinue(),
+                      // UR-18: Done/Tick should only dismiss the keyboard,
+                      // never trigger navigation on its own — moving
+                      // forward requires an explicit tap on Continue.
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
                     ),
                   ],
                 ),

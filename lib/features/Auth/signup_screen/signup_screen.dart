@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
@@ -28,10 +30,13 @@ class SignUpScreen extends ConsumerWidget {
     // Navigate away on success
     ref.listen<SignUpState>(signUpProvider, (previous, next) {
       if (next.isSuccess) {
+        // UA-6: persists across the navigation into OTP's bottom-pinned
+        // Back/Next row — same clearance as OTP's own toasts.
         AppSnackbar.showSuccess(
           context,
           message:
               'Account created. Please verify your email using the code we sent.',
+          extraBottomMargin: 72.h,
         );
         context.push(
           '${AppRoutes.otpVerification}?purpose=signup&email=${Uri.encodeComponent(next.email)}',
@@ -102,6 +107,16 @@ class _SignUpBody extends ConsumerWidget {
             onChanged: notifier.setFullName,
             obscureText: false,
             errorText: state.fullNameError,
+            // UA-12: letters, spaces, hyphens, apostrophes only — blocks
+            // disallowed characters at input time rather than after submit.
+            // Length is capped generously (80) so the field itself never
+            // produces a dashboard-breaking value.
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r"[\p{L} '\-]", unicode: true),
+              ),
+              LengthLimitingTextInputFormatter(80),
+            ],
           ),
 
           SizedBox(height: ScreenUtils.vLg),

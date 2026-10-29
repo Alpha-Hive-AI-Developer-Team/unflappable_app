@@ -54,7 +54,14 @@ class LoginScreen extends ConsumerWidget {
 
         resetSessionScopedProviders(ref);
         ref.read(navIndexProvider.notifier).state = 0;
-        AppSnackbar.showSuccess(context, message: 'Login successful!');
+        // UA-6: this toast persists across the navigation below, landing
+        // on Home/Onboarding's own bottom-pinned button — give it the same
+        // clearance as OTP/Forgot Password's toasts.
+        AppSnackbar.showSuccess(
+          context,
+          message: 'Login successful!',
+          extraBottomMargin: 72.h,
+        );
         // UA-11 / UN-43: resume onboarding instead of opening Home if this
         // account never finished it (e.g. abandoned mid-flow last session).
         context.go(
@@ -75,6 +82,7 @@ class LoginScreen extends ConsumerWidget {
         AppSnackbar.showError(
           context,
           message: 'Please verify your email to continue.',
+          extraBottomMargin: 72.h,
         );
         context.push(
           '${AppRoutes.otpVerification}?purpose=signup&email=${Uri.encodeComponent(email)}',

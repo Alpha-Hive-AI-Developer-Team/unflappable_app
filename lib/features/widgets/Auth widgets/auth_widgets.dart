@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
@@ -32,6 +33,10 @@ class AuthTextField extends StatelessWidget {
   /// suggest/insert the wrong saved value into "New Password" — pass
   /// e.g. [AutofillHints.newPassword] to disambiguate.
   final Iterable<String>? autofillHints;
+  // UA-12: lets a specific field (e.g. Full Name) block disallowed
+  // characters/length at input time instead of only flagging them after
+  // the fact.
+  final List<TextInputFormatter>? inputFormatters;
 
   const AuthTextField({
     super.key,
@@ -42,6 +47,7 @@ class AuthTextField extends StatelessWidget {
     this.suffixIcon,
     this.errorText,
     this.autofillHints,
+    this.inputFormatters,
   });
 
   @override
@@ -51,6 +57,7 @@ class AuthTextField extends StatelessWidget {
       keyboardType: keyboardType,
       onChanged: onChanged,
       autofillHints: autofillHints,
+      inputFormatters: inputFormatters,
       // UC-74: prevent the keyboard's spelling/suggestion layer from
       // altering password input on Android.
       autocorrect: !obscureText,

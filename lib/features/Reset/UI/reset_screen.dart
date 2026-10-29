@@ -128,6 +128,10 @@ class _RunResetCard extends ConsumerWidget {
         //   );
         //   return;
         // }
+        // UR-19: starting a new Add Reset flow should never carry over an
+        // abandoned attempt's title/message or emotion selection — clear
+        // them before navigating in, not just after a completed reset.
+        ref.read(resetProvider.notifier).resetFlow();
         context.push(AppRoutes.resetTrigger);
       },
       child: Container(

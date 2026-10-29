@@ -50,7 +50,15 @@ class HomeScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppHeader(title: userState.userName, subtitle: 'Welcome Back'),
+                // UA-12: without Expanded, a long name has no width limit
+                // to ellipsize within and can push/overflow past the bell
+                // icon instead.
+                Expanded(
+                  child: AppHeader(
+                    title: userState.userName,
+                    subtitle: 'Welcome Back',
+                  ),
+                ),
                 IconButton(
                   onPressed: () {
                     context.push(AppRoutes.notifications);

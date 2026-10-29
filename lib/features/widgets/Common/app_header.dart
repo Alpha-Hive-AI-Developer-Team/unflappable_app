@@ -13,8 +13,13 @@ class AppHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // UA-12: truncate rather than overflow/wrap awkwardly — guards
+        // against a long display name (legacy data, Apple-derived, etc.)
+        // breaking whatever row this header sits in.
         Text(
           title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: AppTextStyles.headingLG.copyWith(color: AppColors.headingText),
         ),
         SizedBox(height: ScreenUtils.vSm),

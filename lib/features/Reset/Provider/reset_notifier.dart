@@ -65,14 +65,16 @@ class ResetNotifier extends StateNotifier<ResetState> {
 
   // ── Emotions ──────────────────────────────────────────────────────────────
 
+  // UR-17: single-select only — the backend takes one `feeling` value, not
+  // a composite of several, which is what made Continue behave
+  // inconsistently (silently failing with all selected, erroring with one).
+  // Tapping the already-selected pill deselects it; tapping another
+  // replaces the current selection instead of adding to it.
   void toggleEmotion(String emotion) {
-    final current = List<String>.from(state.selectedEmotions);
-    if (current.contains(emotion)) {
-      current.remove(emotion);
-    } else {
-      current.add(emotion);
-    }
-    state = state.copyWith(selectedEmotions: current);
+    final isAlreadySelected = state.selectedEmotions.contains(emotion);
+    state = state.copyWith(
+      selectedEmotions: isAlreadySelected ? const [] : [emotion],
+    );
   }
 
   Future<void> loadInitial({bool silent = false}) async {
@@ -155,7 +157,10 @@ class ResetNotifier extends StateNotifier<ResetState> {
     state = state.copyWith(status: ResetStatus.loading, errorMessage: null);
 
     try {
-      final feeling = state.selectedEmotions.join(', ');
+      // UR-17: at most one selected now — send the single value the
+      // backend expects instead of a comma-joined composite.
+      final feeling =
+          state.selectedEmotions.isNotEmpty ? state.selectedEmotions.first : '';
       final response = await ResetService.triggerReset(
         feeling: feeling,
         trigger: state.trigger ?? '',

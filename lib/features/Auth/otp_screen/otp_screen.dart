@@ -95,7 +95,9 @@ class _OtpBody extends ConsumerWidget {
         Center(
           child: state.secondsLeft == 0
               ? GestureDetector(
-                  onTap: state.isLoading
+                  // UA-9: guard against either in-flight request, not just
+                  // this one — resend shouldn't fire mid-verify either.
+                  onTap: state.isBusy
                       ? null
                       : () async {
                           final success = await notifier.resendCode(
@@ -119,14 +121,33 @@ class _OtpBody extends ConsumerWidget {
                             );
                           }
                         },
-                  child: Text(
-                    'Resend code',
-                    style: AppTextStyles.bodyLG.copyWith(
-                      color: state.isLoading
-                          ? AppColors.bodyText
-                          : AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // UA-9: the loading state now shows here, on the
+                      // actual Resend action, instead of on the Next
+                      // button (which was misleading).
+                      if (state.isResending) ...[
+                        SizedBox(
+                          width: 14.w,
+                          height: 14.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.bodyText,
+                          ),
+                        ),
+                        SizedBox(width: ScreenUtils.sm),
+                      ],
+                      Text(
+                        state.isResending ? 'Sending...' : 'Resend code',
+                        style: AppTextStyles.bodyLG.copyWith(
+                          color: state.isBusy
+                              ? AppColors.bodyText
+                              : AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 )
               : RichText(
@@ -152,14 +173,22 @@ class _OtpBody extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: SecondaryButton(label: 'Back', onTap: () => context.pop()),
+              // UA-9: disabled during either verify or resend — previously
+              // had no guard at all and stayed tappable throughout.
+              child: SecondaryButton(
+                label: 'Back',
+                onTap: state.isBusy ? null : () => context.pop(),
+              ),
             ),
             SizedBox(width: ScreenUtils.md),
             Expanded(
               child: PrimaryButton(
                 label: 'Next',
-                isLoading: state.isLoading,
-                onTap: state.isComplete
+                // UA-9: only reflects verify's own loading now — resend no
+                // longer makes this button spin for an action it didn't
+                // trigger.
+                isLoading: state.isVerifying,
+                onTap: (state.isComplete && !state.isBusy)
                     ? () async {
                         final resetToken = await notifier.verify(
                           email: email,

@@ -61,9 +61,19 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
 
   // ── Per-field validators (shared by real-time + submit) ──────────────────
 
+  // UA-12: input formatters already block disallowed characters at the
+  // field, but validate again here too — paste, autofill, or any other
+  // bypass of the formatter shouldn't be able to reach the backend.
+  static final _fullNamePattern = RegExp(r"^[\p{L} '\-]+$", unicode: true);
+
   String? _validateFullName(String v) {
-    if (v.trim().isEmpty) return 'Full name is required';
-    if (v.trim().length < 2) return 'Name must be at least 2 characters';
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return 'Full name is required';
+    if (trimmed.length < 2) return 'Name must be at least 2 characters';
+    if (trimmed.length > 80) return 'Name must be 80 characters or fewer';
+    if (!_fullNamePattern.hasMatch(trimmed)) {
+      return 'Name can only contain letters, spaces, hyphens, and apostrophes';
+    }
     return null;
   }
 
@@ -136,7 +146,19 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
           await NotificationManager.registerDeviceToken();
         }
-        state = state.copyWith(status: SignUpStatus.success);
+        // UA-7: explicitly clear every field error and the auth error
+        // message — status alone gates the error dialog, but the inline
+        // per-field error text isn't gated by status at all, so a stale
+        // message from an earlier failed attempt would otherwise silently
+        // persist and reappear if the user navigates back to this screen.
+        state = state.copyWith(
+          status: SignUpStatus.success,
+          fullNameError: null,
+          emailError: null,
+          passwordError: null,
+          confirmPasswordError: null,
+          authErrorMessage: null,
+        );
       } else {
         final errorMessage = _extractMessage(response) ??
             'Failed to create account. Please try again.';
