@@ -28,7 +28,15 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
     // US-70 / US-24: always re-pull the saved preferences on entry so a
     // previous visit's unsaved edits (or stale cached state) can never be
     // shown in place of what's actually saved server-side.
-    ref.read(settingsProvider.notifier).loadInitialData(force: true);
+    // loadInitialData() mutates provider state synchronously before its
+    // first `await` — calling it directly in initState() modifies the
+    // provider while the widget tree is still building, which Riverpod
+    // throws on. Defer it to after the first frame instead.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(settingsProvider.notifier).loadInitialData(force: true);
+      }
+    });
   }
 
   @override

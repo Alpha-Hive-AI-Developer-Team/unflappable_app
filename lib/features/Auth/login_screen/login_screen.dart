@@ -240,7 +240,7 @@ class _LoginBody extends ConsumerWidget {
         ),
 
         SizedBox(height: ScreenUtils.vSm),
-        const LegalLinksRow(),
+        LegalLinksRow(enabled: !(state.isLoginLoading || state.isAppleLoading)),
       ],
     );
   }

@@ -22,13 +22,14 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         notifications: notifications,
         hasLoadedOnce: true,
       );
-    } on DioException catch (e) {
+    } on DioException catch (_) {
+      // Always show a plain, user-facing message here — this is a
+      // full-screen error state, unlike the action-error toast below, so a
+      // raw backend route/technical string (e.g. a 404's internal message)
+      // must never be shown directly to the user.
       state = state.copyWith(
         status: NotificationStatus.error,
-        errorMessage: _extractError(
-          e,
-          fallback: 'Unable to fetch notifications.',
-        ),
+        errorMessage: 'Unable to fetch notifications.',
         hasLoadedOnce: true,
       );
     } catch (_) {

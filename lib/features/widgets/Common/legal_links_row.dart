@@ -8,10 +8,16 @@ import 'package:unflappable/features/Setting/Model/legal_model.dart';
 /// UN-46: Privacy Policy / Terms of Use links for Login and Signup — reuses
 /// the same generic Policy screen route/content Settings → Legal uses.
 class LegalLinksRow extends StatelessWidget {
-  const LegalLinksRow({super.key});
+  // UN-58: Terms of Use / Privacy Policy had no loading guard at all —
+  // tappable even while a sign-in/sign-up request is in flight.
+  final bool enabled;
+
+  const LegalLinksRow({super.key, this.enabled = true});
 
   @override
   Widget build(BuildContext context) {
+    final linkColor = enabled ? AppColors.primary : AppColors.bodyText;
+
     return Center(
       child: RichText(
         textAlign: TextAlign.center,
@@ -21,18 +27,20 @@ class LegalLinksRow extends StatelessWidget {
             const TextSpan(text: 'By continuing, you agree to our '),
             WidgetSpan(
               child: GestureDetector(
-                onTap: () => context.push(
-                  AppRoutes.privacyPolicy,
-                  extra: const PolicyScreenArgs(
-                    title: 'Terms of Use',
-                    lastUpdated: 'September 1, 2023',
-                    sections: termsOfUseSections,
-                  ),
-                ),
+                onTap: enabled
+                    ? () => context.push(
+                        AppRoutes.privacyPolicy,
+                        extra: const PolicyScreenArgs(
+                          title: 'Terms of Use',
+                          lastUpdated: 'September 1, 2023',
+                          sections: termsOfUseSections,
+                        ),
+                      )
+                    : null,
                 child: Text(
                   'Terms of Use',
                   style: AppTextStyles.bodySM.copyWith(
-                    color: AppColors.primary,
+                    color: linkColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -41,18 +49,20 @@ class LegalLinksRow extends StatelessWidget {
             const TextSpan(text: ' and '),
             WidgetSpan(
               child: GestureDetector(
-                onTap: () => context.push(
-                  AppRoutes.privacyPolicy,
-                  extra: const PolicyScreenArgs(
-                    title: 'Privacy Policy',
-                    lastUpdated: 'September 1, 2023',
-                    sections: privacyPolicySections,
-                  ),
-                ),
+                onTap: enabled
+                    ? () => context.push(
+                        AppRoutes.privacyPolicy,
+                        extra: const PolicyScreenArgs(
+                          title: 'Privacy Policy',
+                          lastUpdated: 'September 1, 2023',
+                          sections: privacyPolicySections,
+                        ),
+                      )
+                    : null,
                 child: Text(
                   'Privacy Policy',
                   style: AppTextStyles.bodySM.copyWith(
-                    color: AppColors.primary,
+                    color: linkColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

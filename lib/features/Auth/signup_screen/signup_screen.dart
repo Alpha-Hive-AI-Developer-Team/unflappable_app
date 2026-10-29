@@ -209,7 +209,7 @@ class _SignUpBody extends ConsumerWidget {
           ),
 
           SizedBox(height: ScreenUtils.vSm),
-          const LegalLinksRow(),
+          LegalLinksRow(enabled: !state.isLoading),
         ],
       ),
     );
