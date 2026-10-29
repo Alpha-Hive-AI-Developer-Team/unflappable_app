@@ -36,12 +36,21 @@ abstract final class AuthService {
   static Future<Response> signInWithApple({
     required String identityToken,
     required String fullName,
+    // US-33: Apple only sends these on the very first authorization —
+    // backend accepts them as an alternative to `fullName` and uses them
+    // for its placeholder-upgrade logic, so send them raw (unjoined) when
+    // available instead of relying solely on our own composed string.
+    String? givenName,
+    String? familyName,
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.apple,
       data: {
         'identityToken': identityToken,
         'fullName': fullName,
+        if (givenName != null && givenName.isNotEmpty) 'givenName': givenName,
+        if (familyName != null && familyName.isNotEmpty)
+          'familyName': familyName,
       },
     );
   }

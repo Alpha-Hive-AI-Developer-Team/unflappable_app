@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show MaxLengthEnforcement;
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/export.dart';
@@ -209,6 +210,11 @@ class AccountField extends StatelessWidget {
             controller: controller,
             readOnly: readOnly,
             maxLength: maxLength,
+            // US-26: TextField's default enforcement silently blocks typing
+            // past maxLength, so the "too long" validation message below
+            // could never actually appear — allow typing past the limit so
+            // the error text has something to show instead of a silent wall.
+            maxLengthEnforcement: MaxLengthEnforcement.none,
             style: AppTextStyles.bodyMD.copyWith(
               color: readOnly ? AppColors.bodyText : AppColors.labelText,
             ),

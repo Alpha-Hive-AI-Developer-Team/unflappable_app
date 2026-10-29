@@ -31,27 +31,26 @@ class AccountScreen extends ConsumerStatefulWidget {
 class _AccountScreenState extends ConsumerState<AccountScreen> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _emailCtrl;
+  // Using `ref` inside dispose() is unsafe (the widget is already
+  // unmounting) — capture the notifier here instead, while it's still safe.
+  late final SettingsNotifier _notifier;
 
   @override
   void initState() {
     super.initState();
+    _notifier = ref.read(settingsProvider.notifier);
     final draft = ref.read(settingsProvider).accountDraft;
     _nameCtrl = TextEditingController(text: draft.fullName)
-      ..addListener(
-        () => ref.read(settingsProvider.notifier).setDraftName(_nameCtrl.text),
-      );
+      ..addListener(() => _notifier.setDraftName(_nameCtrl.text));
     _emailCtrl = TextEditingController(text: draft.email)
-      ..addListener(
-        () =>
-            ref.read(settingsProvider.notifier).setDraftEmail(_emailCtrl.text),
-      );
+      ..addListener(() => _notifier.setDraftEmail(_emailCtrl.text));
   }
 
   @override
   void dispose() {
     // US-27: discard any unsaved name edit so it can't reappear next time
     // this screen opens.
-    ref.read(settingsProvider.notifier).discardUnsavedAccountDraft();
+    _notifier.discardUnsavedAccountDraft();
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     super.dispose();

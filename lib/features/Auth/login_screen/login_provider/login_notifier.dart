@@ -198,6 +198,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       final response = await AuthService.signInWithApple(
         identityToken: identityToken,
         fullName: fullName,
+        givenName: credential.givenName,
+        familyName: credential.familyName,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
