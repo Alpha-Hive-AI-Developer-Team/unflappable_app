@@ -265,20 +265,28 @@ abstract final class NotificationManager {
       case 'mission':
         _router!.go(AppRoutes.home);
         break;
+      // UN-48: reset/weeklyReview/settings are bare standalone routes with
+      // no HomeShell/bottom-nav wrapper — go()-ing straight to one wipes
+      // the stack and leaves the user with no screen to go back to. Land
+      // on Home first, then push the destination on top so Back works.
       case 'weekly_review':
       case 'weeklyreview':
-        _router!.go(AppRoutes.weeklyReview);
+        _router!.go(AppRoutes.home);
+        _router!.push(AppRoutes.weeklyReview);
         break;
       case 'reset':
-        _router!.go(AppRoutes.reset);
+        _router!.go(AppRoutes.home);
+        _router!.push(AppRoutes.reset);
         break;
       case 'settings':
-        _router!.go(AppRoutes.settings);
+        _router!.go(AppRoutes.home);
+        _router!.push(AppRoutes.settings);
         break;
       case 'notifications':
       case 'notification':
       default:
-        _router!.go(AppRoutes.notifications);
+        _router!.go(AppRoutes.home);
+        _router!.push(AppRoutes.notifications);
     }
   }
 

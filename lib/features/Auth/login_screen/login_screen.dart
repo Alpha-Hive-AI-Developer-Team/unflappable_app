@@ -191,17 +191,20 @@ class _LoginBody extends ConsumerWidget {
         const Spacer(),
 
         // ── Sign in button ───────────────────────────────────────────────
+        // UN-58: each button previously only checked its own loading flag,
+        // so Apple Sign-In stayed tappable during an email/password login
+        // (and vice versa) — guard both against either flag.
         PrimaryButton(
           label: 'Sign in',
           isLoading: state.isLoginLoading,
-          onTap: () => notifier.submit(),
+          onTap: state.isAppleLoading ? null : () => notifier.submit(),
         ),
 
         if (showAppleSignIn) ...[
           SizedBox(height: ScreenUtils.vMd),
           AppleButton(
             isLoading: state.isAppleLoading,
-            onTap: notifier.signInWithApple,
+            onTap: state.isLoginLoading ? null : notifier.signInWithApple,
           ),
           SizedBox(height: ScreenUtils.vMd),
         ] else

@@ -209,7 +209,10 @@ class LoginNotifier extends StateNotifier<LoginState> {
 
         final email =
             _extractUserEmail(response.data) ?? credential.email ?? '';
-        final name = _extractUserName(response.data) ?? fullName;
+        final backendName = _extractUserName(response.data);
+        final name = _isPlaceholderAppleName(backendName)
+            ? (email.isNotEmpty ? _deriveNameFromEmail(email) : fullName)
+            : backendName!;
         final id =
             _extractUserId(response.data) ?? credential.userIdentifier ?? email;
 
@@ -281,14 +284,34 @@ class LoginNotifier extends StateNotifier<LoginState> {
     );
   }
 
+  // US-33: Apple only shares givenName/familyName on the very first
+  // authorization ever for this app — every later sign-in (which is what
+  // every retest after the first actually exercises) gets nulls here, so
+  // falling back to a hardcoded "Apple User" string was the bug itself.
+  // Derive a real name from the email instead, same as email/password
+  // signup does.
   String _composeAppleFullName(AuthorizationCredentialAppleID credential) {
     final name = [credential.givenName, credential.familyName]
         .whereType<String>()
         .map((part) => part.trim())
         .where((part) => part.isNotEmpty)
         .join(' ');
+    if (name.isNotEmpty) return name;
 
-    return name.isEmpty ? 'Apple User' : name;
+    final email = credential.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      return _deriveNameFromEmail(email);
+    }
+    return 'Apple User';
+  }
+
+  // US-33: catches accounts whose name was already poisoned with the old
+  // "Apple User" placeholder by a prior sign-in (before this fix) — the
+  // backend keeps returning that stored value, so self-heal it here too.
+  bool _isPlaceholderAppleName(String? name) {
+    if (name == null) return true;
+    final normalized = name.trim().toLowerCase();
+    return normalized.isEmpty || normalized == 'apple user';
   }
 
   String _appleConfigurationMessage(Object error) {

@@ -177,7 +177,12 @@ class _OtpBody extends ConsumerWidget {
                                 .read(userProvider.notifier)
                                 .restoreSessionIfNeeded();
                             if (!context.mounted) return;
-                            context.push(AppRoutes.onboarding);
+                            // UA-11: go() instead of push() — leaving the
+                            // OTP screen in the stack behind onboarding is
+                            // what lets the iOS edge-swipe gesture engage
+                            // at all, even with PopScope(canPop: false)
+                            // blocking the pop itself.
+                            context.go(AppRoutes.onboarding);
                           } else {
                             AppSnackbar.showSuccess(
                               context,

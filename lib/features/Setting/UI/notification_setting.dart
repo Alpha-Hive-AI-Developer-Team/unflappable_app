@@ -49,6 +49,14 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
         child: Column(
           children: [
             HelpingAppBar(title: 'Notifications'),
+            // US-24: show a loader while the force-reload is in flight
+            // instead of briefly rendering stale pre-fetch values with no
+            // indication a fresh load is happening.
+            if (state.isLoadingInitialData)
+              const Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
             Expanded(
               child: ListView(
                 padding: EdgeInsets.symmetric(

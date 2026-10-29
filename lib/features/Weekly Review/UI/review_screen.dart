@@ -337,14 +337,19 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
   void initState() {
     super.initState();
     final notifier = ref.read(weeklyReviewProvider.notifier);
+    // UW-40: openAddScreen() pre-fills the draft from an existing saved
+    // review when editing one — sync the controllers to match, otherwise
+    // the fields render blank while the draft (and validation) still sees
+    // the old non-empty values.
+    final draft = ref.read(weeklyReviewProvider).draft;
 
-    _winCtrl = TextEditingController()
+    _winCtrl = TextEditingController(text: draft.biggestWin)
       ..addListener(() => notifier.setBiggestWin(_winCtrl.text));
-    _missCtrl = TextEditingController()
+    _missCtrl = TextEditingController(text: draft.biggestMiss)
       ..addListener(() => notifier.setBiggestMiss(_missCtrl.text));
-    _driftCtrl = TextEditingController()
+    _driftCtrl = TextEditingController(text: draft.causeOfDrift)
       ..addListener(() => notifier.setCauseOfDrift(_driftCtrl.text));
-    _shiftCtrl = TextEditingController()
+    _shiftCtrl = TextEditingController(text: draft.oneShiftNextWeek)
       ..addListener(() => notifier.setOneShift(_shiftCtrl.text));
   }
 

@@ -124,10 +124,15 @@ class _TaglineSection extends StatelessWidget {
 
 // ── Auth Buttons ──────────────────────────────────────────────────────────────
 
-class _AuthButtons extends StatelessWidget {
+class _AuthButtons extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final showAppleSignIn = defaultTargetPlatform == TargetPlatform.iOS;
+    // UN-58: don't let the user navigate away from this screen while an
+    // in-flight Apple Sign-In would otherwise be abandoned mid-request.
+    final isAppleLoading = ref.watch(
+      loginProvider.select((s) => s.isAppleLoading),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -139,7 +144,9 @@ class _AuthButtons extends StatelessWidget {
         // Sign Up
         PrimaryButton(
           label: 'Sign Up',
-          onTap: () => context.push(AppRoutes.signup),
+          onTap: isAppleLoading
+              ? null
+              : () => context.push(AppRoutes.signup),
           isLoading: false,
         ),
 
@@ -148,7 +155,9 @@ class _AuthButtons extends StatelessWidget {
         // Log In
         SecondaryButton(
           label: 'Log In',
-          onTap: () => context.push(AppRoutes.login),
+          onTap: isAppleLoading
+              ? null
+              : () => context.push(AppRoutes.login),
         ),
       ],
     );
