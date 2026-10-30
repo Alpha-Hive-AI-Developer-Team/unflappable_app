@@ -80,6 +80,8 @@ class ResetNotifier extends StateNotifier<ResetState> {
   Future<void> loadInitial({bool silent = false}) async {
     if (state.status == ResetStatus.loading) return;
 
+    final preserveSuccess = silent && state.status == ResetStatus.success;
+
     if (!silent) {
       state = state.copyWith(status: ResetStatus.loading, errorMessage: null);
     } else {
@@ -124,7 +126,7 @@ class ResetNotifier extends StateNotifier<ResetState> {
       const unlimitedDailyResets = true;
 
       state = state.copyWith(
-        status: ResetStatus.initial,
+        status: preserveSuccess ? ResetStatus.success : ResetStatus.initial,
         resetsUsedToday: resetsUsedToday,
         dailyResetLimit: dailyLimit,
         totalReset: totalResets,

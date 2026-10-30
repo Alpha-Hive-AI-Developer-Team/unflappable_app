@@ -10,11 +10,7 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.signup,
-      data: {
-        'fullName': fullName,
-        'email': email,
-        'password': password,
-      },
+      data: {'fullName': fullName, 'email': email, 'password': password},
     );
   }
 
@@ -25,17 +21,13 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.login,
-      data: {
-        'fullName': fullName,
-        'email': email,
-        'password': password,
-      },
+      data: {'fullName': fullName, 'email': email, 'password': password},
     );
   }
 
   static Future<Response> signInWithApple({
     required String identityToken,
-    required String fullName,
+    String? fullName,
     // US-33: Apple only sends these on the very first authorization —
     // backend accepts them as an alternative to `fullName` and uses them
     // for its placeholder-upgrade logic, so send them raw (unjoined) when
@@ -47,7 +39,8 @@ abstract final class AuthService {
       endPoint: EndPoints.auth.apple,
       data: {
         'identityToken': identityToken,
-        'fullName': fullName,
+        if (fullName != null && fullName.trim().isNotEmpty)
+          'fullName': fullName.trim(),
         if (givenName != null && givenName.isNotEmpty) 'givenName': givenName,
         if (familyName != null && familyName.isNotEmpty)
           'familyName': familyName,
@@ -55,14 +48,10 @@ abstract final class AuthService {
     );
   }
 
-  static Future<Response> forgotPassword({
-    required String email,
-  }) async {
+  static Future<Response> forgotPassword({required String email}) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.forgotPassword,
-      data: {
-        'email': email,
-      },
+      data: {'email': email},
     );
   }
 
@@ -72,10 +61,7 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.verifyOtp,
-      data: {
-        'email': email,
-        'otp': code,
-      },
+      data: {'email': email, 'otp': code},
     );
   }
 
@@ -85,10 +71,7 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.verifyEmail,
-      data: {
-        'email': email,
-        'otp': code,
-      },
+      data: {'email': email, 'otp': code},
     );
   }
 
@@ -97,10 +80,7 @@ abstract final class AuthService {
     required String newPassword,
     String? confirmPassword,
   }) async {
-    final payload = {
-      'resetToken': resetToken,
-      'newPassword': newPassword,
-    };
+    final payload = {'resetToken': resetToken, 'newPassword': newPassword};
     if (confirmPassword != null) {
       payload['confirmPassword'] = confirmPassword;
     }
@@ -111,14 +91,10 @@ abstract final class AuthService {
     );
   }
 
-  static Future<Response> resendOtp({
-    required String email,
-  }) async {
+  static Future<Response> resendOtp({required String email}) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.resendOtp,
-      data: {
-        'email': email,
-      },
+      data: {'email': email},
     );
   }
 
@@ -127,9 +103,7 @@ abstract final class AuthService {
   }) async {
     return DioHelper.postWithOutAuthData(
       endPoint: EndPoints.auth.verifyEmailResend,
-      data: {
-        'email': email,
-      },
+      data: {'email': email},
     );
   }
 
@@ -141,10 +115,7 @@ abstract final class AuthService {
   }) async {
     return DioHelper.putData(
       endPoint: EndPoints.auth.changePassword,
-      data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      },
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
   }
 

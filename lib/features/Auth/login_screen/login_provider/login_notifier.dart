@@ -41,12 +41,13 @@ class LoginNotifier extends StateNotifier<LoginState> {
   void toggleObscure() =>
       state = state.copyWith(obscurePassword: !state.obscurePassword);
 
-  void clearError() =>
-      state = state.copyWith(
-        loginStatus: LoginStatus.idle,
-        appleStatus: LoginStatus.idle,
-        authErrorMessage: null,
-      );
+  void clearError() => state = state.copyWith(
+    loginStatus: LoginStatus.idle,
+    appleStatus: LoginStatus.idle,
+    authErrorMessage: null,
+  );
+
+  void resetForm() => state = const LoginState();
 
   // ── Per-field validators ─────────────────────────────────────────────────
 
@@ -160,7 +161,10 @@ class LoginNotifier extends StateNotifier<LoginState> {
 
   Future<void> signInWithApple() async {
     if (state.isAppleLoading) return;
-    state = state.copyWith(appleStatus: LoginStatus.loading, authErrorMessage: null);
+    state = state.copyWith(
+      appleStatus: LoginStatus.loading,
+      authErrorMessage: null,
+    );
 
     try {
       final webOptions = _buildAppleWebOptions();
@@ -213,7 +217,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
             _extractUserEmail(response.data) ?? credential.email ?? '';
         final backendName = _extractUserName(response.data);
         final name = _isPlaceholderAppleName(backendName)
-            ? (email.isNotEmpty ? _deriveNameFromEmail(email) : fullName)
+            ? (email.isNotEmpty ? _deriveNameFromEmail(email) : fullName ?? '')
             : backendName!;
         final id =
             _extractUserId(response.data) ?? credential.userIdentifier ?? email;
@@ -228,9 +232,9 @@ class LoginNotifier extends StateNotifier<LoginState> {
                 'onboardingCompleted',
               ]) ??
               true,
-          authenticatedAuthProvider: _extractUserField(response.data, const [
-            'authProvider',
-          ]) ?? 'apple',
+          authenticatedAuthProvider:
+              _extractUserField(response.data, const ['authProvider']) ??
+              'apple',
           authenticatedHasPassword:
               _extractUserBoolField(response.data, const ['hasPassword']) ??
               true,
@@ -286,25 +290,17 @@ class LoginNotifier extends StateNotifier<LoginState> {
     );
   }
 
-  // US-33: Apple only shares givenName/familyName on the very first
-  // authorization ever for this app — every later sign-in (which is what
-  // every retest after the first actually exercises) gets nulls here, so
-  // falling back to a hardcoded "Apple User" string was the bug itself.
-  // Derive a real name from the email instead, same as email/password
-  // signup does.
-  String _composeAppleFullName(AuthorizationCredentialAppleID credential) {
+  // Apple only shares givenName/familyName on the first authorization. Do not
+  // send a placeholder when those values are unavailable; the backend can
+  // derive a display name from the email instead.
+  String? _composeAppleFullName(AuthorizationCredentialAppleID credential) {
     final name = [credential.givenName, credential.familyName]
         .whereType<String>()
         .map((part) => part.trim())
         .where((part) => part.isNotEmpty)
         .join(' ');
     if (name.isNotEmpty) return name;
-
-    final email = credential.email?.trim();
-    if (email != null && email.isNotEmpty) {
-      return _deriveNameFromEmail(email);
-    }
-    return 'Apple User';
+    return null;
   }
 
   // US-33: catches accounts whose name was already poisoned with the old

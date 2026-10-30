@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
@@ -18,9 +19,7 @@ class NewMissionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // UH-15: lock the form while the create-mission request is in flight so
     // tasks can't be added/removed/edited mid-save.
-    final isSaving = ref.watch(
-      homeProvider.select((s) => s.isCreatingMission),
-    );
+    final isSaving = ref.watch(homeProvider.select((s) => s.isCreatingMission));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -295,47 +294,60 @@ class _TaskRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(ScreenUtils.sm),
+            width: ScreenUtils.iconMd + ScreenUtils.sm,
+            height: ScreenUtils.iconMd + ScreenUtils.sm,
             decoration: BoxDecoration(
               color: AppColors.borderGrey.withOpacity(0.3),
               shape: BoxShape.circle,
             ),
-            child: Text(
-              '${index + 1}',
-              style: AppTextStyles.headingSM.copyWith(
-                color: AppColors.headingText,
+            child: Center(
+              child: Text(
+                '${index + 1}',
+                style: AppTextStyles.headingSM.copyWith(
+                  color: AppColors.headingText,
+                ),
               ),
             ),
           ),
           SizedBox(width: ScreenUtils.sm),
           Expanded(
-            child: SizedBox(
-              height: ScreenUtils.inputHeight,
-              child: TextField(
-                controller: controller,
-                focusNode: focusNode,
-                onChanged: onChanged,
-                style: AppTextStyles.bodyMD.copyWith(
-                  color: AppColors.labelText,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Task ${index + 1}',
-                  hintStyle: AppTextStyles.bodyMD.copyWith(
-                    color: AppColors.bodyText,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: ScreenUtils.inputHeight),
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: controller,
+                builder: (context, value, child) => TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onChanged: onChanged,
+                  maxLength: kMaxTaskTitleLength,
+                  maxLengthEnforcement: MaxLengthEnforcement.none,
+                  style: AppTextStyles.bodyMD.copyWith(
+                    color: AppColors.labelText,
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: ScreenUtils.md,
-                    vertical: ScreenUtils.vMd,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                    borderSide: BorderSide(color: AppColors.borderGrey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
-                    borderSide: BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
+                  decoration: InputDecoration(
+                    hintText: 'Task ${index + 1}',
+                    hintStyle: AppTextStyles.bodyMD.copyWith(
+                      color: AppColors.bodyText,
+                    ),
+                    errorText: value.text.length > kMaxTaskTitleLength
+                        ? 'Task title must be no more than '
+                              '$kMaxTaskTitleLength characters'
+                        : null,
+                    counterText: '',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: ScreenUtils.md,
+                      vertical: ScreenUtils.vMd,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                      borderSide: BorderSide(color: AppColors.borderGrey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),

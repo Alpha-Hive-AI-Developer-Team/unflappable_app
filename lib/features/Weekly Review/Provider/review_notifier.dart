@@ -26,38 +26,55 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
 
   void setBiggestWin(String v) => state = state.copyWith(
     draft: state.draft.copyWith(biggestWin: v),
-    biggestWinError: v.trim().isEmpty ? state.biggestWinError : null,
+    biggestWinError: _fieldError(v, 'Biggest Win', state.biggestWinError),
   );
 
   void setBiggestMiss(String v) => state = state.copyWith(
     draft: state.draft.copyWith(biggestMiss: v),
-    biggestMissError: v.trim().isEmpty ? state.biggestMissError : null,
+    biggestMissError: _fieldError(v, 'Biggest Miss', state.biggestMissError),
   );
 
   void setCauseOfDrift(String v) => state = state.copyWith(
     draft: state.draft.copyWith(causeOfDrift: v),
-    causeOfDriftError: v.trim().isEmpty ? state.causeOfDriftError : null,
+    causeOfDriftError: _fieldError(
+      v,
+      'Cause of Drift',
+      state.causeOfDriftError,
+    ),
   );
 
   void setOneShift(String v) => state = state.copyWith(
     draft: state.draft.copyWith(oneShiftNextWeek: v),
-    oneShiftError: v.trim().isEmpty ? state.oneShiftError : null,
+    oneShiftError: _fieldError(
+      v,
+      'One Shift for Next Week',
+      state.oneShiftError,
+    ),
   );
 
   /// UW-40: all four fields are required by the create API; validate before
   /// submitting instead of silently disabling the button with no explanation.
   Future<void> saveReview() async {
-    final biggestWinError =
-        state.draft.biggestWin.trim().isEmpty ? 'This field is required' : null;
-    final biggestMissError = state.draft.biggestMiss.trim().isEmpty
-        ? 'This field is required'
-        : null;
-    final causeOfDriftError = state.draft.causeOfDrift.trim().isEmpty
-        ? 'This field is required'
-        : null;
-    final oneShiftError = state.draft.oneShiftNextWeek.trim().isEmpty
-        ? 'This field is required'
-        : null;
+    final biggestWinError = _fieldError(
+      state.draft.biggestWin,
+      'Biggest Win',
+      null,
+    );
+    final biggestMissError = _fieldError(
+      state.draft.biggestMiss,
+      'Biggest Miss',
+      null,
+    );
+    final causeOfDriftError = _fieldError(
+      state.draft.causeOfDrift,
+      'Cause of Drift',
+      null,
+    );
+    final oneShiftError = _fieldError(
+      state.draft.oneShiftNextWeek,
+      'One Shift for Next Week',
+      null,
+    );
 
     if (biggestWinError != null ||
         biggestMissError != null ||
@@ -110,6 +127,15 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
 
   void clearSuccessMessage() {
     state = state.copyWith(clearSuccess: true);
+  }
+
+  String? _fieldError(String value, String label, String? currentError) {
+    if (value.length > kMaxWeeklyReviewFieldLength) {
+      return '$label must be no more than '
+          '$kMaxWeeklyReviewFieldLength characters';
+    }
+    if (value.trim().isEmpty) return currentError;
+    return null;
   }
 
   Future<void> _loadReviews({bool showLoader = true}) async {

@@ -50,7 +50,10 @@ class SignUpScreen extends ConsumerWidget {
       body: Stack(
         children: [
           // ── Main body ────────────────────────────────────────────────────
-          const _SignUpBody().withAuthScreenPadding(),
+          AbsorbPointer(
+            absorbing: state.isLoading,
+            child: const _SignUpBody().withAuthScreenPadding(),
+          ),
 
           // ── Error overlay (validation OR auth error) ─────────────────────
           if (state.showErrorOverlay) ...[
@@ -176,9 +179,8 @@ class _SignUpBody extends ConsumerWidget {
             ),
           ),
 
-          // UA-1: was a fixed 320.h gap — ~8x the screen's largest spacing
-          // token — pushing Apple Sign-In/the Login link off-screen below
-          // the fold with no real content filling the space.
+          // UA-1: spacer after the text fields, before the button — was a
+          // fixed 320.h gap (~8x the screen's largest spacing token).
           SizedBox(height: ScreenUtils.vXl),
 
           // ── Create Account button ────────────────────────────────────────
@@ -187,6 +189,12 @@ class _SignUpBody extends ConsumerWidget {
             isLoading: state.isLoading,
             onTap: () => notifier.submit(context),
           ),
+
+          SizedBox(height: ScreenUtils.vMd),
+
+          // Terms/Privacy — moved directly below the primary action instead
+          // of sitting at the very bottom with a large empty gap above it.
+          LegalLinksRow(enabled: !state.isLoading),
 
           SizedBox(height: ScreenUtils.vMd),
 
@@ -212,7 +220,9 @@ class _SignUpBody extends ConsumerWidget {
                       child: Text(
                         'Log in',
                         style: AppTextStyles.bodySM.copyWith(
-                          color: AppColors.primary,
+                          color: state.isLoading
+                              ? AppColors.bodyText
+                              : AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -223,8 +233,10 @@ class _SignUpBody extends ConsumerWidget {
             ),
           ),
 
-          SizedBox(height: ScreenUtils.vSm),
-          LegalLinksRow(enabled: !state.isLoading),
+          // Bottom margin — the screen's own safe-area padding (bottom:
+          // authBottomMargin) ends right at this content, so without this
+          // the last row sits flush against it.
+          SizedBox(height: ScreenUtils.vLg),
         ],
       ),
     );

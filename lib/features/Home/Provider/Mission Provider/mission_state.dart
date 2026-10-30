@@ -1,4 +1,5 @@
 const int kMaxTasks = 3;
+const int kMaxTaskTitleLength = 100;
 
 class NewMissionState {
   final String objective;
@@ -7,7 +8,12 @@ class NewMissionState {
   const NewMissionState({this.objective = '', this.tasks = const []});
 
   bool get canAddTask => tasks.length < kMaxTasks;
-  bool get canSubmit => objective.trim().isNotEmpty && tasks.isNotEmpty;
+    bool get hasInvalidTaskTitle =>
+      tasks.any((task) => task.length > kMaxTaskTitleLength);
+    bool get canSubmit =>
+      objective.trim().isNotEmpty &&
+      tasks.isNotEmpty &&
+      !hasInvalidTaskTitle;
   int get taskCount => tasks.length;
 
   NewMissionState copyWith({String? objective, List<String>? tasks}) =>

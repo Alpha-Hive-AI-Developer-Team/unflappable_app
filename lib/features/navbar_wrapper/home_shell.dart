@@ -34,9 +34,18 @@ class HomeShell extends ConsumerWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            child: AppNavBar(
-              currentIndex: index,
-              onTap: (i) => ref.read(navIndexProvider.notifier).state = i,
+            child: Container(
+              color: AppColors.background,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: AppNavBar(
+                    currentIndex: index,
+                    onTap: (i) => ref.read(navIndexProvider.notifier).state = i,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

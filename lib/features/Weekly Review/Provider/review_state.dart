@@ -1,5 +1,7 @@
 import 'package:unflappable/features/Weekly%20Review/Model/review_model.dart';
 
+const int kMaxWeeklyReviewFieldLength = 100;
+
 const _keep = Object();
 
 class WeeklyReviewState {
@@ -61,8 +63,9 @@ class WeeklyReviewState {
     isLoading: isLoading ?? this.isLoading,
     hasLoaded: hasLoaded ?? this.hasLoaded,
     errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    successMessage:
-        clearSuccess ? null : (successMessage ?? this.successMessage),
+    successMessage: clearSuccess
+        ? null
+        : (successMessage ?? this.successMessage),
     summary: summary,
     biggestWinError: clearFieldErrors
         ? null
@@ -81,6 +84,8 @@ class WeeklyReviewState {
               : causeOfDriftError as String?),
     oneShiftError: clearFieldErrors
         ? null
-        : (oneShiftError == _keep ? this.oneShiftError : oneShiftError as String?),
+        : (oneShiftError == _keep
+              ? this.oneShiftError
+              : oneShiftError as String?),
   );
 }

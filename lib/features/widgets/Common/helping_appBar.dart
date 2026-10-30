@@ -6,7 +6,15 @@ import 'package:unflappable/core/utils/screen_utils.dart';
 
 class HelpingAppBar extends StatelessWidget {
   final String title;
-  const HelpingAppBar({super.key, required this.title});
+  final VoidCallback? onBack;
+  final Widget? trailing;
+
+  const HelpingAppBar({
+    super.key,
+    required this.title,
+    this.onBack,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +32,7 @@ class HelpingAppBar extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: GestureDetector(
-              onTap: () => context.pop(),
+              onTap: onBack ?? context.pop,
               child: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: ScreenUtils.iconMd,
@@ -42,6 +50,9 @@ class HelpingAppBar extends StatelessWidget {
               ),
             ),
           ),
+
+          if (trailing != null)
+            Align(alignment: Alignment.centerRight, child: trailing!),
         ],
       ),
     );

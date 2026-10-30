@@ -95,7 +95,10 @@ class LoginScreen extends ConsumerWidget {
       body: Stack(
         children: [
           // ── Main body ────────────────────────────────────────────────────
-          const _LoginBody().withAuthScreenPadding(),
+          AbsorbPointer(
+            absorbing: state.isLoginLoading || state.isAppleLoading,
+            child: const _LoginBody().withAuthScreenPadding(),
+          ),
 
           // ── Error overlay (validation OR auth error) ─────────────────────
           if (state.showErrorOverlay) ...[
@@ -185,7 +188,10 @@ class _LoginBody extends ConsumerWidget {
             // request is still in flight.
             onTap: (state.isLoginLoading || state.isAppleLoading)
                 ? null
-                : () => context.push(AppRoutes.forgotPassword),
+                : () {
+                    notifier.resetForm();
+                    context.push(AppRoutes.forgotPassword);
+                  },
             child: Text(
               'Forgot password',
               style: AppTextStyles.labelMD.copyWith(

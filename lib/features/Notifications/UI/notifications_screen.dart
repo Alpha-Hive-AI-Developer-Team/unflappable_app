@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/screen_utils.dart';
 import 'package:unflappable/features/Notifications/notification_model.dart';
 import 'package:unflappable/features/Notifications/notification_notifier.dart';
 import 'package:unflappable/features/Notifications/notification_state.dart';
+import 'package:unflappable/features/widgets/Common/helping_appBar.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -49,47 +49,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: ScreenUtils.authHorizontalMargin,
-                vertical: ScreenUtils.vMd,
-              ),
-              child: Row(
-                children: [
-                  // UN-53: match HelpingAppBar's icon size/title style used
-                  // on every other screen's header.
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: ScreenUtils.iconMd,
-                      color: AppColors.headingText,
-                    ),
+            HelpingAppBar(
+              title: 'Notifications',
+              trailing: TextButton(
+                onPressed: state.notifications.isEmpty
+                    ? null
+                    : () => ref
+                          .read(notificationsProvider.notifier)
+                          .markAllAsRead(),
+                child: Text(
+                  'Mark all read',
+                  style: AppTextStyles.bodySM.copyWith(
+                    color: state.notifications.isEmpty
+                        ? AppColors.tertiaryText
+                        : AppColors.primary,
                   ),
-                  const Spacer(),
-                  Text(
-                    'Notifications',
-                    style: AppTextStyles.headingLG.copyWith(
-                      color: AppColors.headingText,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: state.notifications.isEmpty
-                        ? null
-                        : () => ref
-                              .read(notificationsProvider.notifier)
-                              .markAllAsRead(),
-                    child: Text(
-                      'Mark all read',
-                      style: AppTextStyles.bodySM.copyWith(
-                        color: state.notifications.isEmpty
-                            ? AppColors.tertiaryText
-                            : AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             Expanded(
@@ -267,8 +242,18 @@ class _NotificationTile extends ConsumerWidget {
 /// display.
 String _formatNotificationTimestamp(DateTime dateTime) {
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   final local = dateTime.toLocal();
   final hour24 = local.hour;

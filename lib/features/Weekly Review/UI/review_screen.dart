@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
@@ -365,6 +366,7 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(weeklyReviewProvider);
+    final notifier = ref.read(weeklyReviewProvider.notifier);
 
     ref.listen<WeeklyReviewState>(weeklyReviewProvider, (previous, next) {
       if (previous?.errorMessage != next.errorMessage &&
@@ -377,65 +379,75 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            HelpingAppBar(title: 'Add Review'),
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) notifier.closeAddScreen();
+          },
+          child: Column(
+            children: [
+              HelpingAppBar(
+                title: 'Add Review',
+                onBack: notifier.closeAddScreen,
+              ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ScreenUtils.authHorizontalMargin,
-                  vertical: ScreenUtils.vMd,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _ReviewField(
-                      label: 'Biggest Win',
-                      controller: _winCtrl,
-                      errorText: state.biggestWinError,
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-                    _ReviewField(
-                      label: 'Biggest Miss',
-                      controller: _missCtrl,
-                      errorText: state.biggestMissError,
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-                    _ReviewField(
-                      label: 'Cause of Drift',
-                      controller: _driftCtrl,
-                      errorText: state.causeOfDriftError,
-                    ),
-                    SizedBox(height: ScreenUtils.vMd),
-                    _ReviewField(
-                      label: 'One Shift for Next Week',
-                      controller: _shiftCtrl,
-                      errorText: state.oneShiftError,
-                    ),
-                  ],
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ScreenUtils.authHorizontalMargin,
+                    vertical: ScreenUtils.vMd,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ReviewField(
+                        label: 'Biggest Win',
+                        controller: _winCtrl,
+                        errorText: state.biggestWinError,
+                      ),
+                      SizedBox(height: ScreenUtils.vMd),
+                      _ReviewField(
+                        label: 'Biggest Miss',
+                        controller: _missCtrl,
+                        errorText: state.biggestMissError,
+                      ),
+                      SizedBox(height: ScreenUtils.vMd),
+                      _ReviewField(
+                        label: 'Cause of Drift',
+                        controller: _driftCtrl,
+                        errorText: state.causeOfDriftError,
+                      ),
+                      SizedBox(height: ScreenUtils.vMd),
+                      _ReviewField(
+                        label: 'One Shift for Next Week',
+                        controller: _shiftCtrl,
+                        errorText: state.oneShiftError,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Save button
-            Padding(
-              padding: EdgeInsets.only(
-                left: ScreenUtils.authHorizontalMargin,
-                right: ScreenUtils.authHorizontalMargin,
-                bottom: ScreenUtils.vXxl,
-                top: ScreenUtils.vMd,
+              // Save button
+              Padding(
+                padding: EdgeInsets.only(
+                  left: ScreenUtils.authHorizontalMargin,
+                  right: ScreenUtils.authHorizontalMargin,
+                  bottom: ScreenUtils.vXxl,
+                  top: ScreenUtils.vMd,
+                ),
+                child: PrimaryButton(
+                  label: 'Save Changes',
+                  isLoading: state.isLoading,
+                  // UW-40: always tappable — saveReview() validates required
+                  // fields itself and surfaces per-field errors instead of
+                  // the button silently refusing to respond.
+                  onTap: () =>
+                      ref.read(weeklyReviewProvider.notifier).saveReview(),
+                ),
               ),
-              child: PrimaryButton(
-                label: 'Save Changes',
-                isLoading: state.isLoading,
-                // UW-40: always tappable — saveReview() validates required
-                // fields itself and surfaces per-field errors instead of
-                // the button silently refusing to respond.
-                onTap: () => ref.read(weeklyReviewProvider.notifier).saveReview(),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -463,12 +475,12 @@ class _ReviewField extends StatelessWidget {
           style: AppTextStyles.labelMD.copyWith(color: AppColors.headingText),
         ),
         SizedBox(height: ScreenUtils.vSm),
-        SizedBox(
-          height: errorText == null
-              ? ScreenUtils.inputHeight
-              : ScreenUtils.inputHeight + 20.h,
+        ConstrainedBox(
+          constraints: BoxConstraints(minHeight: ScreenUtils.inputHeight),
           child: TextField(
             controller: controller,
+            maxLength: kMaxWeeklyReviewFieldLength,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
             style: AppTextStyles.bodyMD.copyWith(color: AppColors.labelText),
             decoration: InputDecoration(
               hintText: 'Enter here',
@@ -476,6 +488,7 @@ class _ReviewField extends StatelessWidget {
                 color: AppColors.bodyText,
               ),
               errorText: errorText,
+              counterText: '',
               contentPadding: EdgeInsets.symmetric(
                 horizontal: ScreenUtils.md,
                 vertical: ScreenUtils.vMd,

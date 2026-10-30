@@ -154,6 +154,8 @@ class SecondaryButton extends StatelessWidget {
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: AppColors.borderGrey),
+          foregroundColor: AppColors.headingText,
+          disabledForegroundColor: AppColors.bodyText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(ScreenUtils.radiusMd),
           ),
