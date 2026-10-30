@@ -194,7 +194,7 @@ class SettingsScreen extends ConsumerWidget {
               SizedBox(height: ScreenUtils.vSm),
               SettingsTile(
                 icon: Icons.lock_outline_rounded,
-                label: userState.hasPassword ? 'Change Password' : 'Set Password',
+                label: 'Change Password',
                 onTap: () => context.push(
                   userState.hasPassword
                       ? AppRoutes.changePassword
@@ -486,4 +486,3 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
-

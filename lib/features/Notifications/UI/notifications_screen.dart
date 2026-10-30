@@ -108,18 +108,26 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     if (state.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(
-          horizontal: ScreenUtils.authHorizontalMargin,
-        ),
-        children: [
-          SizedBox(height: ScreenUtils.xxl),
-          Text(
-            'No notifications yet.',
-            style: AppTextStyles.bodySM.copyWith(color: AppColors.bodyText),
-          ),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Text(
+                    'No notifications yet.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodySM.copyWith(
+                      color: AppColors.bodyText,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       );
     }
 
