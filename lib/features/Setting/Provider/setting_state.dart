@@ -39,6 +39,8 @@ class SettingsState {
   });
 
   bool get hasUnsavedNotificationChanges => notifications != savedNotifications;
+  bool get canSaveNotifications =>
+      hasLoadedInitialData && hasUnsavedNotificationChanges;
 
   bool get hasUnsavedAccountChanges =>
       accountDraft.fullName.trim() != savedAccountDraft.fullName.trim();

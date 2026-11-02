@@ -79,7 +79,8 @@ class _OnboardingBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // ── Logo ──────────────────────────────────────────────────────────────
+        // ── Logo ─────────────────────────────────────────────────────────
+        // logo is a .png — see app_strings.dart for why it's not SVG.
         Image.asset(logo, width: 106.w, height: 110.h),
 
         SizedBox(height: ScreenUtils.vXl),
@@ -144,9 +145,7 @@ class _AuthButtons extends ConsumerWidget {
         // Sign Up
         PrimaryButton(
           label: 'Sign Up',
-          onTap: isAppleLoading
-              ? null
-              : () => context.push(AppRoutes.signup),
+          onTap: isAppleLoading ? null : () => context.push(AppRoutes.signup),
           isLoading: false,
         ),
 
@@ -155,9 +154,7 @@ class _AuthButtons extends ConsumerWidget {
         // Log In
         SecondaryButton(
           label: 'Log In',
-          onTap: isAppleLoading
-              ? null
-              : () => context.push(AppRoutes.login),
+          onTap: isAppleLoading ? null : () => context.push(AppRoutes.login),
         ),
       ],
     );

@@ -9,17 +9,50 @@ import 'package:unflappable/features/Home/Provider/Home%20Provider/home_state.da
 import 'package:unflappable/features/Home/UI/stat_card.dart';
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
+import 'package:unflappable/features/Notifications/notification_notifier.dart';
 import 'package:unflappable/features/widgets/Common/setting_dialog.dart';
 import 'package:unflappable/features/widgets/Common/snackbar.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(notificationsProvider.notifier).fetchNotifications();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
     final userState = ref.watch(userProvider);
+    final notificationsState = ref.watch(notificationsProvider);
     final notifier = ref.read(homeProvider.notifier);
+
+    if (!notificationsState.hasLoadedOnce && !notificationsState.isLoading) {
+      Future.microtask(
+        () => ref.read(notificationsProvider.notifier).fetchNotifications(),
+      );
+    }
 
     ref.listen<HomeState>(homeProvider, (previous, next) {
       final successMessage = next.successMessage;
@@ -59,15 +92,49 @@ class HomeScreen extends ConsumerWidget {
                     subtitle: 'Welcome Back',
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    context.push(AppRoutes.notifications);
-                  },
-                  icon: Icon(
-                    Icons.notifications_none_rounded,
-                    color: AppColors.headingText,
-                    size: ScreenUtils.iconMd,
-                  ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        context.push(AppRoutes.notifications);
+                      },
+                      icon: Icon(
+                        Icons.notifications_none_rounded,
+                        color: AppColors.headingText,
+                        size: ScreenUtils.iconMd,
+                      ),
+                    ),
+                    if (notificationsState.unreadCount > 0)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          constraints: BoxConstraints(minWidth: 18.w),
+                          height: 18.w,
+                          padding: EdgeInsets.symmetric(horizontal: 4.w),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(9.r),
+                            border: Border.all(
+                              color: AppColors.background,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            notificationsState.unreadCount > 99
+                                ? '99+'
+                                : '${notificationsState.unreadCount}',
+                            style: AppTextStyles.labelSM.copyWith(
+                              color: AppColors.white,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -261,10 +328,7 @@ class _ActiveMissionCard extends ConsumerWidget {
   final Mission mission;
   final HomeState homeState;
 
-  const _ActiveMissionCard({
-    required this.mission,
-    required this.homeState,
-  });
+  const _ActiveMissionCard({required this.mission, required this.homeState});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -422,7 +486,6 @@ class _ActiveMissionCard extends ConsumerWidget {
                 onDelete: () => _confirmDeleteTask(context, ref, task),
               );
             }),
-
           ],
         ),
       ),
@@ -557,7 +620,6 @@ Future<void> _showEditTaskDialog(
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (dialogContext, setDialogState) {
-
           Future<void> handleSave() async {
             final title = controller.text.trim();
             if (title.isEmpty || isSaving) return;
@@ -598,7 +660,7 @@ Future<void> _showEditTaskDialog(
                     TextField(
                       controller: controller,
                       autofocus: true,
-                      enabled: !isSaving,
+                      readOnly: isSaving,
                       style: AppTextStyles.bodyMD.copyWith(
                         color: AppColors.headingText,
                       ),

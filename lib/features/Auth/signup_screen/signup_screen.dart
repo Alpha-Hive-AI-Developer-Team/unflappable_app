@@ -190,20 +190,13 @@ class _SignUpBody extends ConsumerWidget {
             onTap: () => notifier.submit(context),
           ),
 
-          SizedBox(height: ScreenUtils.vMd),
-
-          // Terms/Privacy — moved directly below the primary action instead
-          // of sitting at the very bottom with a large empty gap above it.
-          LegalLinksRow(enabled: !state.isLoading),
-
-          SizedBox(height: ScreenUtils.vMd),
-
           if (defaultTargetPlatform == TargetPlatform.iOS) ...[
-            AppleButton(),
             SizedBox(height: ScreenUtils.vMd),
+            AppleButton(),
           ],
 
           // ── Already have account ─────────────────────────────────────────
+          SizedBox(height: ScreenUtils.vMd),
           Center(
             child: RichText(
               text: TextSpan(
@@ -232,6 +225,11 @@ class _SignUpBody extends ConsumerWidget {
               ),
             ),
           ),
+
+          SizedBox(height: ScreenUtils.vSm),
+          // Keep the account switch and legal consent links together beneath
+          // the authentication actions, matching the Login screen layout.
+          LegalLinksRow(enabled: !state.isLoading),
 
           // Bottom margin — the screen's own safe-area padding (bottom:
           // authBottomMargin) ends right at this content, so without this

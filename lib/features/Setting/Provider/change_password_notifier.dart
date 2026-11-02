@@ -11,6 +11,7 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     currentPassword: v,
     currentPasswordError: null,
     status: ChangePasswordStatus.idle,
+    authErrorMessage: null,
   );
 
   void setNewPassword(String v) {
@@ -24,6 +25,7 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
       newPasswordError: newPasswordError,
       confirmPasswordError: confirmPasswordError,
       status: ChangePasswordStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -33,6 +35,7 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
       confirmPassword: v,
       confirmPasswordError: error,
       status: ChangePasswordStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -45,8 +48,10 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
   void toggleObscureConfirm() =>
       state = state.copyWith(obscureConfirm: !state.obscureConfirm);
 
-  void clearError() =>
-      state = state.copyWith(status: ChangePasswordStatus.idle, authErrorMessage: null);
+  void clearError() => state = state.copyWith(
+    status: ChangePasswordStatus.idle,
+    authErrorMessage: null,
+  );
 
   // ── Validators — backend rule: 8+ chars, 1 uppercase, 1 number ───────────
 
@@ -88,7 +93,8 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
         ? 'Confirm password is required'
         : (confirmPassword != newPassword ? 'Passwords do not match' : null);
 
-    final hasErrors = currentPasswordError != null ||
+    final hasErrors =
+        currentPasswordError != null ||
         newPasswordError != null ||
         confirmPasswordError != null;
 
@@ -97,7 +103,8 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
         currentPasswordError: currentPasswordError,
         newPasswordError: newPasswordError,
         confirmPasswordError: confirmPasswordError,
-        authErrorMessage: 'Please fix the highlighted fields before continuing.',
+        authErrorMessage:
+            'Please fix the highlighted fields before continuing.',
         status: ChangePasswordStatus.validationError,
       );
       return false;
@@ -117,7 +124,9 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
               newPassword: newPassword,
             );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
         state = state.copyWith(
           isLoading: false,
           status: ChangePasswordStatus.success,
@@ -125,7 +134,8 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
         return true;
       }
 
-      final message = _messageFor(response.data) ??
+      final message =
+          _messageFor(response.data) ??
           'Unable to update password. Please try again.';
       state = state.copyWith(
         isLoading: false,
@@ -170,5 +180,8 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
   }
 }
 
-final changePasswordProvider = StateNotifierProvider.autoDispose<
-    ChangePasswordNotifier, ChangePasswordState>((_) => ChangePasswordNotifier());
+final changePasswordProvider =
+    StateNotifierProvider.autoDispose<
+      ChangePasswordNotifier,
+      ChangePasswordState
+    >((_) => ChangePasswordNotifier());

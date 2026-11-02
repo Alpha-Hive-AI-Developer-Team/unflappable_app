@@ -17,6 +17,7 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
       fullName: v,
       fullNameError: error, // null when valid, message when invalid
       status: SignUpStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -26,6 +27,7 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
       email: v,
       emailError: error,
       status: SignUpStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -34,7 +36,11 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     state = state.copyWith(
       password: v,
       passwordError: error,
+      confirmPasswordError: state.confirmPassword.isEmpty
+          ? state.confirmPasswordError
+          : (v == state.confirmPassword ? null : 'Passwords do not match'),
       status: SignUpStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -44,6 +50,7 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
       confirmPassword: v,
       confirmPasswordError: error,
       status: SignUpStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -111,10 +118,15 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     final fullNameError = _validateFullName(state.fullName);
     final emailError = _validateEmail(state.email);
     final passwordError = _validatePassword(state.password);
-    final confirmPasswordError = _validateConfirmPassword(state.confirmPassword);
+    final confirmPasswordError = _validateConfirmPassword(
+      state.confirmPassword,
+    );
 
     final hasErrors =
-        fullNameError != null || emailError != null || passwordError != null || confirmPasswordError != null;
+        fullNameError != null ||
+        emailError != null ||
+        passwordError != null ||
+        confirmPasswordError != null;
 
     if (hasErrors) {
       // Write all field errors and show the overlay
@@ -160,7 +172,8 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
           authErrorMessage: null,
         );
       } else {
-        final errorMessage = _extractMessage(response) ??
+        final errorMessage =
+            _extractMessage(response) ??
             'Failed to create account. Please try again.';
         state = state.copyWith(
           status: SignUpStatus.authError,

@@ -26,6 +26,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       email: v,
       emailError: error,
       loginStatus: LoginStatus.idle,
+      appleStatus: LoginStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -35,6 +37,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       password: v,
       passwordError: error,
       loginStatus: LoginStatus.idle,
+      appleStatus: LoginStatus.idle,
+      authErrorMessage: null,
     );
   }
 

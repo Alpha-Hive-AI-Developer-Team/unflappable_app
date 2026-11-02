@@ -13,6 +13,7 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
       email: v,
       emailError: error,
       status: ForgotPasswordStatus.idle,
+      authErrorMessage: null,
     );
   }
 
@@ -53,7 +54,8 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
         return true;
       }
 
-      final errorMessage = _extractMessage(response) ??
+      final errorMessage =
+          _extractMessage(response) ??
           'Unable to send reset link. Please try again.';
       state = state.copyWith(
         isLoading: false,
@@ -64,7 +66,7 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
     } on DioException catch (e) {
       final message = e.response != null
           ? _extractMessage(e.response!) ??
-              'Unable to send reset link. Please try again.'
+                'Unable to send reset link. Please try again.'
           : describeConnectionError(e);
       state = state.copyWith(
         isLoading: false,

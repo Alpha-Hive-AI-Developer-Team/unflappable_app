@@ -1,13 +1,26 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/features/Notifications/notification_model.dart';
 import 'package:unflappable/features/Notifications/notification_state.dart';
 import 'package:unflappable/service/notification_service.dart';
 
 class NotificationsNotifier extends StateNotifier<NotificationsState> {
-  NotificationsNotifier() : super(const NotificationsState());
+  NotificationsNotifier() : super(const NotificationsState()) {
+    _notificationSubscription = NotificationManager.onNotificationReceived
+        .listen((_) {
+          if (state.hasLoadedOnce) unawaited(fetchNotifications());
+        });
+  }
+
+  late final StreamSubscription<void> _notificationSubscription;
+  bool _isFetching = false;
 
   Future<void> fetchNotifications() async {
+    if (_isFetching) return;
+    _isFetching = true;
     state = state.copyWith(
       status: NotificationStatus.loading,
       errorMessage: null,
@@ -38,7 +51,15 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         errorMessage: 'Unable to fetch notifications.',
         hasLoadedOnce: true,
       );
+    } finally {
+      _isFetching = false;
     }
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription.cancel();
+    super.dispose();
   }
 
   Future<void> markAsRead(String notificationId) async {

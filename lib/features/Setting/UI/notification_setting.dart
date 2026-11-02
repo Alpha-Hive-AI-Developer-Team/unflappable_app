@@ -61,190 +61,191 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
             // instead of briefly rendering stale pre-fetch values with no
             // indication a fresh load is happening.
             if (state.isLoadingInitialData)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: Center(child: CircularProgressIndicator()))
             else
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ScreenUtils.authHorizontalMargin,
-                  vertical: ScreenUtils.vLg,
-                ),
-                children: [
-                  if (showPermissionWarning) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(ScreenUtils.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(
-                          ScreenUtils.radiusSm,
-                        ),
-                        border: Border.all(
-                          color: AppColors.error.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            color: AppColors.error,
-                            size: ScreenUtils.iconMd,
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ScreenUtils.authHorizontalMargin,
+                    vertical: ScreenUtils.vLg,
+                  ),
+                  children: [
+                    if (showPermissionWarning) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(ScreenUtils.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(
+                            ScreenUtils.radiusSm,
                           ),
-                          SizedBox(width: ScreenUtils.sm),
-                          Expanded(
-                            child: Text(
-                              'Notifications are turned off at the system '
-                              'level, so these reminders won\'t actually be '
-                              'delivered until you re-enable the permission.',
-                              style: AppTextStyles.bodySM.copyWith(
-                                color: AppColors.error,
+                          border: Border.all(
+                            color: AppColors.error.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.error,
+                              size: ScreenUtils.iconMd,
+                            ),
+                            SizedBox(width: ScreenUtils.sm),
+                            Expanded(
+                              child: Text(
+                                'Notifications are turned off at the system '
+                                'level, so these reminders won\'t actually be '
+                                'delivered until you re-enable the permission.',
+                                style: AppTextStyles.bodySM.copyWith(
+                                  color: AppColors.error,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      SizedBox(height: ScreenUtils.vMd),
+                    ],
+
+                    // Daily Reminders toggle
+                    ToggleRow(
+                      label: 'Daily Reminders',
+                      value: n.dailyReminders,
+                      onChanged: (v) async {
+                        // Request notification permission at this relevant
+                        // moment (the user is explicitly asking for a
+                        // reminder) rather than unconditionally at app launch.
+                        if (v) {
+                          final granted =
+                              await NotificationManager.requestPermissions();
+                          if (mounted) {
+                            setState(() => _osPermissionGranted = granted);
+                          }
+                          if (!granted) {
+                            // US-68: don't leave the toggle showing ON when
+                            // permission was actually denied/dismissed.
+                            notifier.toggleDailyReminders(false);
+                            if (context.mounted) {
+                              AppSnackbar.showError(
+                                context,
+                                message:
+                                    'Notifications permission is required for reminders.',
+                              );
+                            }
+                            return;
+                          }
+                        }
+                        notifier.toggleDailyReminders(v);
+                      },
                     ),
-                    SizedBox(height: ScreenUtils.vMd),
-                  ],
 
-                  // Daily Reminders toggle
-                  ToggleRow(
-                    label: 'Daily Reminders',
-                    value: n.dailyReminders,
-                    onChanged: (v) async {
-                      // Request notification permission at this relevant
-                      // moment (the user is explicitly asking for a
-                      // reminder) rather than unconditionally at app launch.
-                      if (v) {
-                        final granted =
-                            await NotificationManager.requestPermissions();
-                        if (mounted) {
-                          setState(() => _osPermissionGranted = granted);
-                        }
-                        if (!granted) {
-                          // US-68: don't leave the toggle showing ON when
-                          // permission was actually denied/dismissed.
-                          notifier.toggleDailyReminders(false);
-                          if (context.mounted) {
-                            AppSnackbar.showError(
-                              context,
-                              message:
-                                  'Notifications permission is required for reminders.',
-                            );
-                          }
-                          return;
-                        }
-                      }
-                      notifier.toggleDailyReminders(v);
-                    },
-                  ),
+                    SizedBox(height: 24.h),
 
-                  SizedBox(height: 24.h),
-
-                  // Morning Reminder — the cron only reads the single
-                  // `dailyReminders` flag (morning + evening share it), so
-                  // disable the time pickers when it's off to avoid implying
-                  // they can be controlled independently.
-                  TimePickerRow(
-                    label: 'Morning Reminder',
-                    value: n.morningReminder,
-                    enabled: n.dailyReminders,
-                    onTap: () async {
-                      final picked = await _pickTime(
-                        context,
-                        n.morningReminder,
-                      );
-                      if (picked != null) notifier.setMorningReminder(picked);
-                    },
-                  ),
-
-                  SizedBox(height: 24.h),
-
-                  // Evening Reminder — shares `dailyReminders` with Morning.
-                  TimePickerRow(
-                    label: 'Evening Reminder',
-                    value: n.eveningReminder,
-                    enabled: n.dailyReminders,
-                    onTap: () async {
-                      final picked = await _pickTime(
-                        context,
-                        n.eveningReminder,
-                      );
-                      if (picked != null) notifier.setEveningReminder(picked);
-                    },
-                  ),
-
-                  SizedBox(height: 24.h),
-
-                  // Weekly Review toggle
-                  ToggleRow(
-                    label: 'Weekly Review',
-                    value: n.weeklyReview,
-                    onChanged: (v) async {
-                      if (v) {
-                        final granted =
-                            await NotificationManager.requestPermissions();
-                        if (mounted) {
-                          setState(() => _osPermissionGranted = granted);
-                        }
-                        if (!granted) {
-                          notifier.toggleWeeklyReview(false);
-                          if (context.mounted) {
-                            AppSnackbar.showError(
-                              context,
-                              message:
-                                  'Notifications permission is required for reminders.',
-                            );
-                          }
-                          return;
-                        }
-                      }
-                      notifier.toggleWeeklyReview(v);
-                    },
-                  ),
-
-                  SizedBox(height: 24.h),
-
-                  // Weekly Reminder — gated by the `weeklyReview` flag.
-                  TimePickerRow(
-                    label: 'Weekly Reminder (${n.weeklyReminderDay})',
-                    value: n.weeklyReminder,
-                    enabled: n.weeklyReview,
-                    onTap: () async {
-                      final picked = await _pickTime(context, n.weeklyReminder);
-                      if (picked != null) notifier.setWeeklyReminder(picked);
-                    },
-                  ),
-                  SizedBox(height: ScreenUtils.vXl),
-                  PrimaryButton(
-                    label: 'Save Preferences',
-                    isLoading: state.isSavingNotifications,
-                    // US-23 / US-69: disabled until something actually
-                    // changed from the last saved preferences.
-                    onTap: !state.hasUnsavedNotificationChanges
-                        ? null
-                        : () async {
-                      await notifier.saveNotifications();
-                      if (!context.mounted) return;
-                      final latest = ref.read(settingsProvider);
-                      if (latest.errorMessage != null) {
-                        AppSnackbar.showError(
+                    // Morning Reminder — the cron only reads the single
+                    // `dailyReminders` flag (morning + evening share it), so
+                    // disable the time pickers when it's off to avoid implying
+                    // they can be controlled independently.
+                    TimePickerRow(
+                      label: 'Morning Reminder',
+                      value: n.morningReminder,
+                      enabled: n.dailyReminders,
+                      onTap: () async {
+                        final picked = await _pickTime(
                           context,
-                          message: latest.errorMessage!,
+                          n.morningReminder,
                         );
-                        return;
-                      }
-                      AppSnackbar.showSuccess(
-                        context,
-                        message: 'Notification preferences updated.',
-                      );
-                    },
-                  ),
-                ],
+                        if (picked != null) notifier.setMorningReminder(picked);
+                      },
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    // Evening Reminder — shares `dailyReminders` with Morning.
+                    TimePickerRow(
+                      label: 'Evening Reminder',
+                      value: n.eveningReminder,
+                      enabled: n.dailyReminders,
+                      onTap: () async {
+                        final picked = await _pickTime(
+                          context,
+                          n.eveningReminder,
+                        );
+                        if (picked != null) notifier.setEveningReminder(picked);
+                      },
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    // Weekly Review toggle
+                    ToggleRow(
+                      label: 'Weekly Review',
+                      value: n.weeklyReview,
+                      onChanged: (v) async {
+                        if (v) {
+                          final granted =
+                              await NotificationManager.requestPermissions();
+                          if (mounted) {
+                            setState(() => _osPermissionGranted = granted);
+                          }
+                          if (!granted) {
+                            notifier.toggleWeeklyReview(false);
+                            if (context.mounted) {
+                              AppSnackbar.showError(
+                                context,
+                                message:
+                                    'Notifications permission is required for reminders.',
+                              );
+                            }
+                            return;
+                          }
+                        }
+                        notifier.toggleWeeklyReview(v);
+                      },
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    // Weekly Reminder — gated by the `weeklyReview` flag.
+                    TimePickerRow(
+                      label: 'Weekly Reminder (${n.weeklyReminderDay})',
+                      value: n.weeklyReminder,
+                      enabled: n.weeklyReview,
+                      onTap: () async {
+                        final picked = await _pickTime(
+                          context,
+                          n.weeklyReminder,
+                        );
+                        if (picked != null) notifier.setWeeklyReminder(picked);
+                      },
+                    ),
+                    SizedBox(height: ScreenUtils.vXl),
+                    PrimaryButton(
+                      label: 'Save Preferences',
+                      isLoading: state.isSavingNotifications,
+                      // US-23 / US-69: disabled until something actually
+                      // changed from the last saved preferences.
+                      onTap: state.canSaveNotifications
+                          ? () async {
+                              await notifier.saveNotifications();
+                              if (!context.mounted) return;
+                              final latest = ref.read(settingsProvider);
+                              if (latest.errorMessage != null) {
+                                AppSnackbar.showError(
+                                  context,
+                                  message: latest.errorMessage!,
+                                );
+                                return;
+                              }
+                              AppSnackbar.showSuccess(
+                                context,
+                                message: 'Notification preferences updated.',
+                              );
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

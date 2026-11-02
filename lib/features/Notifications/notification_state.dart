@@ -31,7 +31,9 @@ class NotificationsState {
   // — fixes the duplicate-loader bug.
   bool get isInitialLoading => isLoading && !hasLoadedOnce;
   bool get hasError => status == NotificationStatus.error;
-  bool get isEmpty => notifications.isEmpty && status != NotificationStatus.loading;
+  bool get isEmpty =>
+      notifications.isEmpty && status != NotificationStatus.loading;
+  int get unreadCount => notifications.where((item) => !item.isRead).length;
 
   NotificationsState copyWith({
     NotificationStatus? status,
@@ -43,8 +45,9 @@ class NotificationsState {
     return NotificationsState(
       status: status ?? this.status,
       notifications: notifications ?? this.notifications,
-      errorMessage:
-          errorMessage == _keep ? this.errorMessage : errorMessage as String?,
+      errorMessage: errorMessage == _keep
+          ? this.errorMessage
+          : errorMessage as String?,
       actionErrorMessage: actionErrorMessage == _keep
           ? this.actionErrorMessage
           : actionErrorMessage as String?,

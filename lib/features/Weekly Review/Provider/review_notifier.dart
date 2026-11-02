@@ -26,54 +26,39 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
 
   void setBiggestWin(String v) => state = state.copyWith(
     draft: state.draft.copyWith(biggestWin: v),
-    biggestWinError: _fieldError(v, 'Biggest Win', state.biggestWinError),
+    biggestWinError: _fieldError(v, 'Biggest Win'),
   );
 
   void setBiggestMiss(String v) => state = state.copyWith(
     draft: state.draft.copyWith(biggestMiss: v),
-    biggestMissError: _fieldError(v, 'Biggest Miss', state.biggestMissError),
+    biggestMissError: _fieldError(v, 'Biggest Miss'),
   );
 
   void setCauseOfDrift(String v) => state = state.copyWith(
     draft: state.draft.copyWith(causeOfDrift: v),
-    causeOfDriftError: _fieldError(
-      v,
-      'Cause of Drift',
-      state.causeOfDriftError,
-    ),
+    causeOfDriftError: _fieldError(v, 'Cause of Drift'),
   );
 
   void setOneShift(String v) => state = state.copyWith(
     draft: state.draft.copyWith(oneShiftNextWeek: v),
-    oneShiftError: _fieldError(
-      v,
-      'One Shift for Next Week',
-      state.oneShiftError,
-    ),
+    oneShiftError: _fieldError(v, 'One Shift for Next Week'),
   );
 
   /// UW-40: all four fields are required by the create API; validate before
   /// submitting instead of silently disabling the button with no explanation.
   Future<void> saveReview() async {
-    final biggestWinError = _fieldError(
-      state.draft.biggestWin,
-      'Biggest Win',
-      null,
-    );
+    final biggestWinError = _fieldError(state.draft.biggestWin, 'Biggest Win');
     final biggestMissError = _fieldError(
       state.draft.biggestMiss,
       'Biggest Miss',
-      null,
     );
     final causeOfDriftError = _fieldError(
       state.draft.causeOfDrift,
       'Cause of Drift',
-      null,
     );
     final oneShiftError = _fieldError(
       state.draft.oneShiftNextWeek,
       'One Shift for Next Week',
-      null,
     );
 
     if (biggestWinError != null ||
@@ -129,12 +114,12 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
     state = state.copyWith(clearSuccess: true);
   }
 
-  String? _fieldError(String value, String label, String? currentError) {
+  String? _fieldError(String value, String label) {
     if (value.length > kMaxWeeklyReviewFieldLength) {
       return '$label must be no more than '
           '$kMaxWeeklyReviewFieldLength characters';
     }
-    if (value.trim().isEmpty) return currentError;
+    if (value.trim().isEmpty) return '$label is required';
     return null;
   }
 

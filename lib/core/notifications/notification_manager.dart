@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -36,6 +37,10 @@ abstract final class NotificationManager {
   static bool _isRegistering = false;
   static String? _currentRegisteredToken;
   static GoRouter? _router;
+  static final StreamController<void> _notificationEvents =
+      StreamController<void>.broadcast();
+
+  static Stream<void> get onNotificationReceived => _notificationEvents.stream;
 
   static Future<void> init() async {
     if (_isInitialized) return;
@@ -236,6 +241,7 @@ abstract final class NotificationManager {
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
+    _notificationEvents.add(null);
     if (message.notification == null) return;
     _showNotification(message);
   }

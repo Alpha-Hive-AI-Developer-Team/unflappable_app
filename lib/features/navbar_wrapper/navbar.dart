@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/theme/app_colors.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
@@ -63,11 +64,14 @@ class AppNavBar extends StatelessWidget {
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12.r),
                     ),
-                    child: Image.asset(
+                    child: SvgPicture.asset(
                       item.icon,
                       width: 24.w,
                       height: 24.h,
-                      color: selected ? AppColors.primary : AppColors.bodyText,
+                      colorFilter: ColorFilter.mode(
+                        selected ? AppColors.primary : AppColors.bodyText,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                   SizedBox(height: 2.h),

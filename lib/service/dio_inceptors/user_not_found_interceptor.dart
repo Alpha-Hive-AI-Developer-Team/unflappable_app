@@ -8,22 +8,16 @@ import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/core/utils/session_provider_reset.dart';
 import 'package:unflappable/features/Auth/providers/user_notifier.dart';
 
-bool _handlingUserNotFound401 = false;
+bool _handlingUnauthorized401 = false;
 
-bool _responseIsUserNotFound401(DioException e) {
-  if (e.response?.statusCode != 401) return false;
-  final data = e.response?.data;
-  if (data is! Map) return false;
-  final msg = data['message'];
-  if (msg is! String) return false;
-  return msg.trim().toLowerCase() == 'user not found';
-}
+bool _responseIsUnauthorized401(DioException e) =>
+    e.response?.statusCode == 401;
 
-/// Clears stored session and sends the user to login when the API reports
-/// the JWT user id no longer exists (e.g. DB reset, wrong environment).
+/// Clears the stored session and sends the user to Login when an authenticated
+/// API request reports an invalid or expired JWT.
 void _scheduleForceLogin() {
-  if (_handlingUserNotFound401) return;
-  _handlingUserNotFound401 = true;
+  if (_handlingUnauthorized401) return;
+  _handlingUnauthorized401 = true;
 
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     try {
@@ -37,7 +31,7 @@ void _scheduleForceLogin() {
       }
     } finally {
       Future<void>.delayed(const Duration(seconds: 1), () {
-        _handlingUserNotFound401 = false;
+        _handlingUnauthorized401 = false;
       });
     }
   });
@@ -45,7 +39,7 @@ void _scheduleForceLogin() {
 
 final Interceptor userNotFound401Interceptor = InterceptorsWrapper(
   onError: (DioException error, ErrorInterceptorHandler handler) {
-    if (_responseIsUserNotFound401(error)) {
+    if (_responseIsUnauthorized401(error)) {
       _scheduleForceLogin();
     }
     handler.next(error);

@@ -1,4 +1,5 @@
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/core/utils/app_strings.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
@@ -172,11 +173,14 @@ class _RunResetCard extends ConsumerWidget {
                   width: 1.5,
                 ),
               ),
-              child: Image.asset(
+              child: SvgPicture.asset(
                 refresh,
-                color: Colors.white,
                 width: 24.w,
                 height: 24.h,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
             SizedBox(height: 8.h),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
@@ -138,7 +139,7 @@ class _performanceCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Image.asset(icon, width: 32.w, height: 32.w),
+            SvgPicture.asset(icon, width: 32.w, height: 32.w),
             SizedBox(width: 12.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

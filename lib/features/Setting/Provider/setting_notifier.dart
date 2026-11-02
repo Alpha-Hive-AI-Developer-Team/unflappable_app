@@ -204,6 +204,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   }
 
   Future<void> saveNotifications() async {
+    if (!state.canSaveNotifications || state.isSavingNotifications) return;
+
     state = state.copyWith(isSavingNotifications: true, clearError: true);
     try {
       await SettingsService.updateNotifications(

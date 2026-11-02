@@ -242,7 +242,9 @@ class _LoginBody extends ConsumerWidget {
                     child: Text(
                       'Sign up',
                       style: AppTextStyles.bodySM.copyWith(
-                        color: AppColors.primary,
+                        color: (state.isLoginLoading || state.isAppleLoading)
+                            ? AppColors.bodyText
+                            : AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

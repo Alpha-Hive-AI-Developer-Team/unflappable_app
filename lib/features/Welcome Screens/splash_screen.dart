@@ -25,21 +25,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     Future.microtask(() async {
       await ref.read(splashProvider.notifier).navigateNext(() async {
         final isLoggedIn =
-            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty ==
-                true;
+            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty == true;
         if (isLoggedIn) {
           await ref.read(userProvider.notifier).restoreSessionIfNeeded();
         }
         if (!mounted) return;
         final stillLoggedIn =
-            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty ==
-                true;
+            LocalStorage.getData(LocalStorage.accessToken)?.isNotEmpty == true;
         if (stillLoggedIn) {
           // UA-11 / UN-43: resume onboarding instead of opening Home if the
           // account never finished it (e.g. the app was killed/crashed
           // mid-onboarding in an earlier session).
-          final onboardingCompleted =
-              ref.read(userProvider).onboardingCompleted;
+          final onboardingCompleted = ref
+              .read(userProvider)
+              .onboardingCompleted;
           context.go(
             onboardingCompleted ? AppRoutes.home : AppRoutes.onboarding,
           );
@@ -69,6 +68,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: 280.h),
+              // logo is a .png — see app_strings.dart for why it's not SVG.
               Image.asset(logo, width: 440.w, height: 294.h),
               const Spacer(),
               Text(
