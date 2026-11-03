@@ -175,9 +175,17 @@ class _OtpBody extends ConsumerWidget {
             Expanded(
               // UA-9: disabled during either verify or resend — previously
               // had no guard at all and stayed tappable throughout.
+              // UA-30: same safe-pop guard as the PopScope handler above —
+              // never fall through to whatever default the platform picks
+              // (which previously could land on Home or crash) if there's
+              // nothing to pop to.
               child: SecondaryButton(
                 label: 'Back',
-                onTap: state.isBusy ? null : () => context.pop(),
+                onTap: state.isBusy
+                    ? null
+                    : () => context.canPop()
+                        ? context.pop()
+                        : context.go(AppRoutes.login),
               ),
             ),
             SizedBox(width: ScreenUtils.md),

@@ -88,7 +88,12 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     final currentPasswordError = (!isSettingPassword && currentPassword.isEmpty)
         ? 'Current password is required'
         : null;
-    final newPasswordError = _validateNewPassword(newPassword);
+    // UC-74: catch the common autofill-copies-current-into-new case
+    // client-side too, not just after a round trip to the backend.
+    final newPasswordError = _validateNewPassword(newPassword) ??
+        (!isSettingPassword && newPassword == currentPassword
+            ? 'New password must be different from current password'
+            : null);
     final confirmPasswordError = confirmPassword.isEmpty
         ? 'Confirm password is required'
         : (confirmPassword != newPassword ? 'Passwords do not match' : null);
@@ -134,25 +139,18 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
         return true;
       }
 
-      final message =
-          _messageFor(response.data) ??
-          'Unable to update password. Please try again.';
-      state = state.copyWith(
-        isLoading: false,
-        status: ChangePasswordStatus.authError,
-        authErrorMessage: message,
-      );
+      _applyErrorResponse(response.data);
       return false;
     } on DioException catch (e) {
-      final message = e.response != null
-          ? _messageFor(e.response!.data) ??
-                'Unable to update password. Please try again.'
-          : describeConnectionError(e);
-      state = state.copyWith(
-        isLoading: false,
-        status: ChangePasswordStatus.authError,
-        authErrorMessage: message,
-      );
+      if (e.response != null) {
+        _applyErrorResponse(e.response!.data);
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.authError,
+          authErrorMessage: describeConnectionError(e),
+        );
+      }
       return false;
     } catch (_) {
       state = state.copyWith(
@@ -164,19 +162,66 @@ class ChangePasswordNotifier extends StateNotifier<ChangePasswordState> {
     }
   }
 
-  /// Maps the backend's `PASSWORD_ALREADY_SET` code (returned when
-  /// Set Password is called on an account that already has one) to a
-  /// clearer message than the raw server text.
-  String? _messageFor(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      if (data['code'] == 'PASSWORD_ALREADY_SET') {
-        return 'This account already has a password — use Change Password instead.';
-      }
-      return data['message']?.toString() ??
-          data['error']?.toString() ??
-          data['errors']?.toString();
+  /// UC-74: routes by the backend's error `code` instead of showing one
+  /// generic "requirements not met" message for every failure — the
+  /// Digisoft reopen was mainly autofill copying Current into New, which
+  /// needs its own clear message, not a strength-rules error.
+  void _applyErrorResponse(dynamic data) {
+    if (data is! Map<String, dynamic>) {
+      state = state.copyWith(
+        isLoading: false,
+        status: ChangePasswordStatus.authError,
+        authErrorMessage: 'Unable to update password. Please try again.',
+      );
+      return;
     }
-    return null;
+
+    switch (data['code']) {
+      case 'PASSWORD_SAME_AS_CURRENT':
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.validationError,
+          newPasswordError:
+              'New password must be different from current password',
+        );
+        return;
+      case 'PASSWORD_VALIDATION_FAILED':
+        final errors = data['errors'];
+        final message = errors is List && errors.isNotEmpty
+            ? errors.map((e) => e.toString()).join('\n')
+            : 'Must be 8+ characters with at least one uppercase letter and one number.';
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.validationError,
+          newPasswordError: message,
+        );
+        return;
+      case 'CURRENT_PASSWORD_INCORRECT':
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.validationError,
+          currentPasswordError: 'Current password is incorrect',
+        );
+        return;
+      case 'PASSWORD_ALREADY_SET':
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.authError,
+          authErrorMessage:
+              'This account already has a password — use Change Password instead.',
+        );
+        return;
+      default:
+        final message = data['message']?.toString() ??
+            data['error']?.toString() ??
+            data['errors']?.toString() ??
+            'Unable to update password. Please try again.';
+        state = state.copyWith(
+          isLoading: false,
+          status: ChangePasswordStatus.authError,
+          authErrorMessage: message,
+        );
+    }
   }
 }
 

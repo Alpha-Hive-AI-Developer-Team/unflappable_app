@@ -144,7 +144,14 @@ class LoginNotifier extends StateNotifier<LoginState> {
       // parsing message text.
       if (e.response?.statusCode == 403 &&
           _extractCode(e.response?.data) == 'EMAIL_NOT_VERIFIED') {
-        state = state.copyWith(loginStatus: LoginStatus.emailNotVerified);
+        // Prefer the response's own email (e.g. normalized/trimmed by the
+        // backend) over whatever was typed, falling back to the typed
+        // value if the response doesn't include one.
+        final responseEmail = _extractUserEmail(e.response?.data);
+        state = state.copyWith(
+          loginStatus: LoginStatus.emailNotVerified,
+          email: responseEmail ?? state.email,
+        );
         return;
       }
       final message = e.response != null

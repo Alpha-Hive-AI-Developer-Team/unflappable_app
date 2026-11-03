@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:unflappable/core/notifications/notification_manager.dart';
-import 'package:unflappable/core/storage/local_storage.dart';
 import 'package:unflappable/features/Auth/signup_screen/signup_provider/signup_state.dart';
 import 'package:unflappable/service/auth_service.dart';
 
@@ -153,11 +151,12 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final token = _extractAuthToken(response.data);
-        if (token != null) {
-          await LocalStorage.saveData(LocalStorage.accessToken, token);
-          await NotificationManager.registerDeviceToken();
-        }
+        // UA-30: never persist a token from signup itself — the account
+        // isn't verified yet at this point. Saving it here would let an
+        // unverified user reach Home on a later cold start (splash sees a
+        // saved token and restores the session without the OTP step ever
+        // completing). The token is only saved once OTP verify succeeds
+        // (see otp_notifier.dart's verify()).
         // UA-7: explicitly clear every field error and the auth error
         // message — status alone gates the error dialog, but the inline
         // per-field error text isn't gated by status at all, so a stale
@@ -206,17 +205,4 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     return null;
   }
 
-  String? _extractAuthToken(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      final token = data['accessToken'] ?? data['token'] ?? data['authToken'];
-      if (token != null) return token.toString();
-      if (data['data'] is Map<String, dynamic>) {
-        final nested = data['data'] as Map<String, dynamic>;
-        return nested['accessToken']?.toString() ??
-            nested['token']?.toString() ??
-            nested['authToken']?.toString();
-      }
-    }
-    return null;
-  }
 }
