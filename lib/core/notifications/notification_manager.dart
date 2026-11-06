@@ -10,6 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unflappable/core/Routes/app_routes.dart';
 import 'package:unflappable/core/storage/local_storage.dart';
+import 'package:unflappable/core/utils/device_timezone.dart';
 import 'package:unflappable/firebase_options.dart';
 import 'package:unflappable/service/notification_service.dart';
 
@@ -162,9 +163,17 @@ abstract final class NotificationManager {
     final fcmToken = prefetchedToken ?? await _getFcmTokenSafely();
     if (fcmToken == null || fcmToken.isEmpty) return;
 
+    // UA-81: a changed timezone (e.g. travel) must still reach the backend
+    // at app start even when the FCM token itself hasn't changed, so the
+    // dedup check below no longer skips the call on timezone drift alone.
+    final currentTimezone = await DeviceTimezone.current();
     final cachedToken = LocalStorage.getData(LocalStorage.fcmToken);
+    final cachedTimezone = LocalStorage.getData(LocalStorage.deviceTimezone);
+    final timezoneUnchanged =
+        currentTimezone == null || currentTimezone == cachedTimezone;
     if (!force &&
-        (_currentRegisteredToken == fcmToken || cachedToken == fcmToken)) {
+        (_currentRegisteredToken == fcmToken || cachedToken == fcmToken) &&
+        timezoneUnchanged) {
       debugPrint('FCM token already registered. Skipping duplicate call.');
       _currentRegisteredToken = fcmToken;
       return;
@@ -177,6 +186,12 @@ abstract final class NotificationManager {
         platform: _currentPlatform,
       );
       await LocalStorage.saveData(LocalStorage.fcmToken, fcmToken);
+      if (currentTimezone != null) {
+        await LocalStorage.saveData(
+          LocalStorage.deviceTimezone,
+          currentTimezone,
+        );
+      }
       _currentRegisteredToken = fcmToken;
       debugPrint('FCM token registered successfully');
     } catch (e, stackTrace) {

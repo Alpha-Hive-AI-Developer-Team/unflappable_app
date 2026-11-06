@@ -367,6 +367,10 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(weeklyReviewProvider);
     final notifier = ref.read(weeklyReviewProvider.notifier);
+    // UW-38: openAddScreen() pre-fills from this week's already-submitted
+    // review when one exists — the heading must say Update, not Add, or it
+    // reads as if a duplicate is about to be created.
+    final isEditing = state.saved?.hasAnyEntry ?? false;
 
     ref.listen<WeeklyReviewState>(weeklyReviewProvider, (previous, next) {
       if (previous?.errorMessage != next.errorMessage &&
@@ -387,7 +391,7 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
           child: Column(
             children: [
               HelpingAppBar(
-                title: 'Add Review',
+                title: isEditing ? 'Update Review' : 'Add Review',
                 onBack: notifier.closeAddScreen,
               ),
 

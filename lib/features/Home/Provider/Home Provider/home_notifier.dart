@@ -172,6 +172,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
       await loadHome(force: true);
 
       if (isFinalTaskCompletion) {
+        // UC-76: completing the last task finishes the mission, which now
+        // belongs in Mission History — without this it stays stale until a
+        // manual pull-to-refresh.
+        if (mounted) _ref.invalidate(missionHistoryProvider);
         state = state.copyWith(
           clearActiveTask: true,
           successMessage: "Today's mission completed successfully",

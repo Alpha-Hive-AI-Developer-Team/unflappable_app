@@ -34,7 +34,11 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         status: NotificationStatus.loaded,
         notifications: notifications,
         hasLoadedOnce: true,
+        // Immediate fallback from this page's own data; refined below by
+        // the dedicated endpoint, which accounts for pages not fetched yet.
+        unreadCount: notifications.where((item) => !item.isRead).length,
       );
+      unawaited(fetchUnreadCount());
     } on DioException catch (_) {
       // Always show a plain, user-facing message here — this is a
       // full-screen error state, unlike the action-error toast below, so a
@@ -62,6 +66,33 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     super.dispose();
   }
 
+  /// UN-56: authoritative unread count for the Home bell badge.
+  Future<void> fetchUnreadCount() async {
+    try {
+      final response = await NotificationService.fetchUnreadCount();
+      final count = _extractUnreadCount(response.data);
+      if (count != null) {
+        state = state.copyWith(unreadCount: count);
+      }
+    } catch (_) {
+      // Keep whatever value is already shown (derived from the list, or
+      // the last successful fetch) rather than blanking the badge.
+    }
+  }
+
+  int? _extractUnreadCount(dynamic data) {
+    if (data is int) return data;
+    if (data is Map<String, dynamic>) {
+      final direct =
+          data['unreadCount'] ?? data['count'] ?? data['unread_count'];
+      if (direct is int) return direct;
+      final nested = data['data'];
+      if (nested is Map<String, dynamic>) return _extractUnreadCount(nested);
+      if (nested is int) return nested;
+    }
+    return null;
+  }
+
   Future<void> markAsRead(String notificationId) async {
     final currentIndex = state.notifications.indexWhere(
       (item) => item.id == notificationId,
@@ -73,11 +104,20 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
 
     final optimistic = List<AppNotification>.from(state.notifications);
     optimistic[currentIndex] = notification.copyWith(isRead: true);
-    state = state.copyWith(notifications: optimistic);
+    state = state.copyWith(
+      notifications: optimistic,
+      unreadCount: state.unreadCount > 0 ? state.unreadCount - 1 : 0,
+    );
 
     try {
       await NotificationService.markAsRead(notificationId: notificationId);
     } on DioException catch (e) {
+      // UN-60: a response was received and it was a success status — the
+      // backend processed the mutation. Treat this as success rather than
+      // reverting; whatever threw happened after the HTTP layer already
+      // confirmed success (e.g. decoding an empty/non-JSON body).
+      if (_isSuccessStatus(e.response?.statusCode)) return;
+
       // UN-31: don't flip `status` to error — that was replacing the whole
       // list with a full-screen error for a single failed tap. Revert just
       // this item and surface a toast instead.
@@ -96,20 +136,27 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     }
   }
 
+  bool _isSuccessStatus(int? statusCode) =>
+      statusCode != null && statusCode >= 200 && statusCode < 300;
+
   Future<void> markAllAsRead() async {
     if (state.notifications.isEmpty) return;
 
     final previous = List<AppNotification>.from(state.notifications);
+    final previousUnreadCount = state.unreadCount;
     final optimistic = state.notifications
         .map((item) => item.copyWith(isRead: true))
         .toList(growable: false);
-    state = state.copyWith(notifications: optimistic);
+    state = state.copyWith(notifications: optimistic, unreadCount: 0);
 
     try {
       await NotificationService.markAllRead();
     } on DioException catch (e) {
+      if (_isSuccessStatus(e.response?.statusCode)) return;
+
       state = state.copyWith(
         notifications: previous,
+        unreadCount: previousUnreadCount,
         actionErrorMessage: _extractError(
           e,
           fallback: 'Unable to mark all notifications as read.',
@@ -118,6 +165,7 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     } catch (_) {
       state = state.copyWith(
         notifications: previous,
+        unreadCount: previousUnreadCount,
         actionErrorMessage: 'Unable to mark all notifications as read.',
       );
     }
@@ -134,7 +182,10 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     if (index < 0) return;
     final reverted = List<AppNotification>.from(state.notifications);
     reverted[index] = reverted[index].copyWith(isRead: false);
-    state = state.copyWith(notifications: reverted);
+    state = state.copyWith(
+      notifications: reverted,
+      unreadCount: state.unreadCount + 1,
+    );
   }
 
   List<AppNotification> _parseResponse(dynamic data) {

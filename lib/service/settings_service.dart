@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:unflappable/core/utils/device_timezone.dart';
 import 'package:unflappable/features/Setting/Model/setting_model.dart';
 import 'package:unflappable/service/dio_helper.dart';
 import 'package:unflappable/service/endpoint/endpoint.dart';
@@ -25,7 +26,10 @@ abstract final class SettingsService {
 
   static Future<Response> updateNotifications({
     required NotificationSettings notifications,
-  }) {
+  }) async {
+    // UA-81: backend derives reminder delivery times from this — omitted
+    // (or stale), it falls back to UTC and times drift by the user's offset.
+    final timezone = await DeviceTimezone.current();
     return DioHelper.putData(
       endPoint: EndPoints.settings.notifications,
       data: {
@@ -35,6 +39,7 @@ abstract final class SettingsService {
         'weeklyReview': notifications.weeklyReview,
         'weeklyReminderDay': notifications.weeklyReminderDay,
         'weeklyReminderTime': notifications.weeklyReminderTime24h,
+        if (timezone != null) 'timezone': timezone,
       },
     );
   }

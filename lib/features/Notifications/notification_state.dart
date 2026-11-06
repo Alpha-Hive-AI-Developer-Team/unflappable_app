@@ -16,6 +16,10 @@ class NotificationsState {
   // "first load ever" from "refreshing a list that happens to be empty" —
   // checking notifications.isEmpty alone can't tell those apart.
   final bool hasLoadedOnce;
+  // UN-56: backed by GET /api/notifications/unread-count rather than
+  // derived from `notifications` — the fetched list can be a page of the
+  // full history, which would undercount the Home bell badge.
+  final int unreadCount;
 
   const NotificationsState({
     this.status = NotificationStatus.initial,
@@ -23,6 +27,7 @@ class NotificationsState {
     this.errorMessage,
     this.actionErrorMessage,
     this.hasLoadedOnce = false,
+    this.unreadCount = 0,
   });
 
   bool get isLoading => status == NotificationStatus.loading;
@@ -33,7 +38,6 @@ class NotificationsState {
   bool get hasError => status == NotificationStatus.error;
   bool get isEmpty =>
       notifications.isEmpty && status != NotificationStatus.loading;
-  int get unreadCount => notifications.where((item) => !item.isRead).length;
 
   NotificationsState copyWith({
     NotificationStatus? status,
@@ -41,6 +45,7 @@ class NotificationsState {
     Object? errorMessage = _keep,
     Object? actionErrorMessage = _keep,
     bool? hasLoadedOnce,
+    int? unreadCount,
   }) {
     return NotificationsState(
       status: status ?? this.status,
@@ -52,6 +57,7 @@ class NotificationsState {
           ? this.actionErrorMessage
           : actionErrorMessage as String?,
       hasLoadedOnce: hasLoadedOnce ?? this.hasLoadedOnce,
+      unreadCount: unreadCount ?? this.unreadCount,
     );
   }
 }

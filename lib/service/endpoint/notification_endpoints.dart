@@ -19,4 +19,5 @@ class _Notifications {
   String get list => _notificationsController;
   String read(String notificationId) => '$_notificationsController/$notificationId/read';
   String get readAll => '$_notificationsController/read-all';
+  String get unreadCount => '$_notificationsController/unread-count';
 }

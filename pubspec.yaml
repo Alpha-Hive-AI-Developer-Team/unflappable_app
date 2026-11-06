@@ -33,6 +33,7 @@ dependencies:
   # in_app_purchase: ^3.2.3
   # in_app_purchase_storekit: ^0.4.8+1
   flutter_launcher_icons: ^0.14.4
+  flutter_timezone: ^5.1.1
 
 dev_dependencies:
   flutter_test:

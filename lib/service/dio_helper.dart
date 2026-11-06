@@ -78,8 +78,14 @@ abstract final class DioHelper {
     required String endPoint,
     Map<String, dynamic>? queryParameters,
     required dynamic data,
+    Options? options,
   }) async {
-    return _dio.patch(endPoint, queryParameters: queryParameters, data: data);
+    return _dio.patch(
+      endPoint,
+      queryParameters: queryParameters,
+      data: data,
+      options: options,
+    );
   }
 
   static Future<Response> deleteData({

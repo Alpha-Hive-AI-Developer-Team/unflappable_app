@@ -139,7 +139,11 @@ class _performanceCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            SvgPicture.asset(icon, width: 32.w, height: 32.w),
+            // Best Streak passes fire.png (a raster PNG, not a vector SVG)
+            // — SvgPicture.asset silently fails to render it.
+            icon.endsWith('.svg')
+                ? SvgPicture.asset(icon, width: 32.w, height: 32.w)
+                : Image.asset(icon, width: 32.w, height: 32.w),
             SizedBox(width: 12.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

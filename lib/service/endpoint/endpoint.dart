@@ -14,7 +14,7 @@ part 'subscription_endpoints.dart';
 abstract final class EndPoints {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://unflappable-app-backend-ewfe.onrender.com',
+    defaultValue: 'https://unflappable-app-backend-7jya.onrender.com',
   );
   static _Authentication get auth => _Authentication(apiBaseUrl: baseUrl);
   static _Home get home => _Home(apiBaseUrl: baseUrl);
