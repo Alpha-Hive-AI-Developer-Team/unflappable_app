@@ -47,6 +47,11 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
   /// UW-40: all four fields are required by the create API; validate before
   /// submitting instead of silently disabling the button with no explanation.
   Future<void> saveReview() async {
+    // Button is disabled whenever !isDraftDirty, but guard here too in case
+    // it's ever reached another way — no API call, no success toast, for a
+    // no-op save.
+    if (!state.isDraftDirty) return;
+
     final biggestWinError = _fieldError(state.draft.biggestWin, 'Biggest Win');
     final biggestMissError = _fieldError(
       state.draft.biggestMiss,

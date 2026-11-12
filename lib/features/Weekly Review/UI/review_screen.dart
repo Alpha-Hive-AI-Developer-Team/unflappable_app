@@ -443,11 +443,16 @@ class _AddReviewScreenState extends ConsumerState<_AddReviewScreen> {
                 child: PrimaryButton(
                   label: 'Save Changes',
                   isLoading: state.isLoading,
-                  // UW-40: always tappable — saveReview() validates required
-                  // fields itself and surfaces per-field errors instead of
-                  // the button silently refusing to respond.
-                  onTap: () =>
-                      ref.read(weeklyReviewProvider.notifier).saveReview(),
+                  // UW-40: tappable once any field differs from the loaded
+                  // baseline — saveReview() validates required fields itself
+                  // and surfaces per-field errors instead of the button
+                  // silently refusing to respond. Disabled (not just a no-op
+                  // on tap) when nothing has changed, so there's no save /
+                  // success toast for an untouched form.
+                  onTap: state.isDraftDirty
+                      ? () =>
+                            ref.read(weeklyReviewProvider.notifier).saveReview()
+                      : null,
                 ),
               ),
             ],

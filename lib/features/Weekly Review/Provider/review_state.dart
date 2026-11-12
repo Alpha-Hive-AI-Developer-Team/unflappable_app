@@ -38,6 +38,19 @@ class WeeklyReviewState {
 
   bool get hasSavedReview => saved != null && saved!.hasAnyEntry;
 
+  /// True once any of the four fields differs from the baseline — the
+  /// already-saved review when editing, or an empty review when adding.
+  /// openAddScreen() seeds [draft] from exactly that baseline, so this
+  /// catches the "opened the screen and tapped Save without typing
+  /// anything" case the Save button must stay disabled for.
+  bool get isDraftDirty {
+    final baseline = saved ?? const WeeklyReviewData();
+    return draft.biggestWin != baseline.biggestWin ||
+        draft.biggestMiss != baseline.biggestMiss ||
+        draft.causeOfDrift != baseline.causeOfDrift ||
+        draft.oneShiftNextWeek != baseline.oneShiftNextWeek;
+  }
+
   WeeklyReviewState copyWith({
     bool? showAddScreen,
     WeeklyReviewData? draft,
