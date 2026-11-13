@@ -103,6 +103,14 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
             : 'This week\'s review was updated',
       );
     } on DioException catch (e) {
+      // UW-39: backend's own no-op guard — our isDraftDirty check should
+      // already prevent reaching here, but if it ever disagrees with the
+      // backend's comparison, there's nothing wrong to report; just close
+      // the screen instead of showing a scary error for a no-op save.
+      if (_errorCode(e.response?.data) == 'NO_CHANGES') {
+        state = state.copyWith(isLoading: false, showAddScreen: false);
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         errorMessage: _dioErrorMessage(e, fallback: 'Unable to save review.'),
@@ -113,6 +121,11 @@ class WeeklyReviewNotifier extends StateNotifier<WeeklyReviewState> {
         errorMessage: 'Unable to save review.',
       );
     }
+  }
+
+  String? _errorCode(dynamic data) {
+    if (data is Map<String, dynamic>) return data['code']?.toString();
+    return null;
   }
 
   void clearSuccessMessage() {

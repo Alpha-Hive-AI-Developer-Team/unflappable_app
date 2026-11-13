@@ -71,7 +71,15 @@ abstract final class NotificationManager {
     } else {
       debugPrint('FCM token: unavailable at startup');
     }
-    await _registerDeviceTokenIfNeeded(prefetchedToken: startupFcmToken);
+    // UA-81/iOS token refresh: backend now deactivates this platform's
+    // other registered tokens on every register call, to keep push working
+    // after an app update — that only takes effect if the call actually
+    // reaches the backend on launch, so this bypasses the token/timezone
+    // dedup below instead of skipping a "duplicate" call.
+    await _registerDeviceTokenIfNeeded(
+      force: true,
+      prefetchedToken: startupFcmToken,
+    );
     _isInitialized = true;
   }
 
