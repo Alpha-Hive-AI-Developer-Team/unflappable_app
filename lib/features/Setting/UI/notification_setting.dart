@@ -153,6 +153,9 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
                         final picked = await _pickTime(
                           context,
                           n.morningReminder,
+                          requireAm: true,
+                          constraintErrorMessage:
+                              'Morning Reminder must be an AM time.',
                         );
                         if (picked != null) notifier.setMorningReminder(picked);
                       },
@@ -169,6 +172,9 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
                         final picked = await _pickTime(
                           context,
                           n.eveningReminder,
+                          requireAm: false,
+                          constraintErrorMessage:
+                              'Evening Reminder must be a PM time.',
                         );
                         if (picked != null) notifier.setEveningReminder(picked);
                       },
@@ -252,7 +258,17 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
     );
   }
 
-  Future<String?> _pickTime(BuildContext context, String current) async {
+  /// [requireAm] restricts the result to AM (`true`) or PM (`false`) — used
+  /// so Morning/Evening Reminder can't be set to the wrong half of the day.
+  /// `showTimePicker` has no built-in way to restrict which half of the day
+  /// is selectable, so an out-of-range pick is rejected after the fact with
+  /// [constraintErrorMessage] instead, and the previous value is kept.
+  Future<String?> _pickTime(
+    BuildContext context,
+    String current, {
+    bool? requireAm,
+    String? constraintErrorMessage,
+  }) async {
     // Parse current string to TimeOfDay
     final parts = current
         .replaceAll(' AM', '')
@@ -304,6 +320,17 @@ class _NotificationsSettingState extends ConsumerState<NotificationsSetting> {
       },
     );
     if (picked == null) return null;
+
+    if (requireAm != null && (picked.period == DayPeriod.am) != requireAm) {
+      if (context.mounted) {
+        AppSnackbar.showError(
+          context,
+          message: constraintErrorMessage ?? 'Please select a valid time.',
+        );
+      }
+      return null;
+    }
+
     return picked.format(context);
   }
 }
