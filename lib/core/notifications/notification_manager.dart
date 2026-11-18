@@ -48,10 +48,17 @@ abstract final class NotificationManager {
 
     await _initializeLocalNotifications();
 
-    // Permission is requested at a contextual moment via [requestPermissions]
-    // (e.g. when the user turns on a reminder in Notification Settings), not
-    // unconditionally here at app launch. If the user already granted it in
-    // an earlier session, the token fetch below still picks it up.
+    if (!kIsWeb) {
+      try {
+        final settings = await _requestNotificationPermission();
+        debugPrint(
+          'Startup notification permission: ${settings.authorizationStatus}',
+        );
+      } catch (error) {
+        debugPrint('Failed to request startup notification permission: $error');
+      }
+    }
+
     if (!kIsWeb && Platform.isIOS) {
       await _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
@@ -95,15 +102,7 @@ abstract final class NotificationManager {
   /// US-68: callers must use this to revert UI state (e.g. a toggle) if the
   /// user dismisses/denies the prompt, instead of assuming success.
   static Future<bool> requestPermissions() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      announcement: true,
-      provisional: false,
-      criticalAlert: false,
-      carPlay: false,
-    );
+    final settings = await _requestNotificationPermission();
     debugPrint('FCM permission: ${settings.authorizationStatus}');
 
     final granted =
@@ -119,6 +118,18 @@ abstract final class NotificationManager {
       await _registerDeviceTokenIfNeeded(force: true, prefetchedToken: token);
     }
     return true;
+  }
+
+  static Future<NotificationSettings> _requestNotificationPermission() {
+    return _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      announcement: true,
+      provisional: false,
+      criticalAlert: false,
+      carPlay: false,
+    );
   }
 
   /// Current OS-level notification permission, without prompting.
@@ -137,6 +148,42 @@ abstract final class NotificationManager {
 
   static Future<void> registerDeviceToken() async {
     await _registerDeviceTokenIfNeeded(force: true, prefetchedToken: null);
+  }
+
+  static Future<void> logFcmToken() async {
+    try {
+      if (!kIsWeb && Platform.isIOS) {
+        final apnsToken = await _messaging.getAPNSToken();
+        final settings = await _messaging.getNotificationSettings();
+        debugPrint(
+          'APNs registration: '
+          '${apnsToken == null || apnsToken.isEmpty ? 'unavailable' : 'available'}',
+        );
+        debugPrint(
+          'iOS notification authorization: ${settings.authorizationStatus}',
+        );
+      }
+
+      final token = await _getFcmTokenSafely();
+      if (token != null && token.isNotEmpty) {
+        debugPrint('FCM token: $token');
+      } else {
+        debugPrint('FCM token: unavailable');
+      }
+    } catch (error) {
+      debugPrint('Failed to retrieve FCM token: $error');
+    }
+  }
+
+  static Future<void> logApnsTokenAfterSignIn() async {
+    if (kIsWeb || !Platform.isIOS) return;
+
+    try {
+      final apnsToken = await _messaging.getAPNSToken();
+      debugPrint('APNs token after sign-in: ${apnsToken ?? 'unavailable'}');
+    } catch (e) {
+      debugPrint('Failed to retrieve APNs token after sign-in: $e');
+    }
   }
 
   static Future<void> deleteDeviceToken() async {
@@ -265,7 +312,6 @@ abstract final class NotificationManager {
 
   static void _handleForegroundMessage(RemoteMessage message) {
     _notificationEvents.add(null);
-    if (message.notification == null) return;
     _showNotification(message);
   }
 
@@ -360,7 +406,12 @@ abstract final class NotificationManager {
 
   static Future<void> _showNotification(RemoteMessage message) async {
     final notification = message.notification;
-    if (notification == null) return;
+    final title = notification?.title ?? message.data['title']?.toString();
+    final body =
+        notification?.body ??
+        message.data['body']?.toString() ??
+        message.data['message']?.toString();
+    if (title == null && body == null) return;
 
     final androidDetails = AndroidNotificationDetails(
       _androidChannel.id,
@@ -381,8 +432,8 @@ abstract final class NotificationManager {
     final payload = jsonEncode(message.data);
     await _localNotifications.show(
       id: message.hashCode,
-      title: notification.title,
-      body: notification.body,
+      title: title,
+      body: body,
       notificationDetails: NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,

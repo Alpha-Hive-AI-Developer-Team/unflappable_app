@@ -109,6 +109,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
           await NotificationManager.registerDeviceToken();
         }
+        await NotificationManager.logApnsTokenAfterSignIn();
         final email = _extractUserEmail(response.data) ?? state.email.trim();
         final name =
             _extractUserName(response.data) ?? _deriveNameFromEmail(email);
@@ -223,6 +224,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
           await LocalStorage.saveData(LocalStorage.accessToken, token);
           await NotificationManager.registerDeviceToken();
         }
+        await NotificationManager.logApnsTokenAfterSignIn();
 
         final email =
             _extractUserEmail(response.data) ?? credential.email ?? '';

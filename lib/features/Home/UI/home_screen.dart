@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:unflappable/core/notifications/notification_manager.dart';
 import 'package:unflappable/core/theme/appText_styles.dart';
 import 'package:unflappable/export.dart';
 import 'package:unflappable/features/Auth/create_password/create_password_export.dart';
@@ -97,6 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     IconButton(
                       onPressed: () {
+                        unawaited(NotificationManager.logFcmToken());
                         context.push(AppRoutes.notifications);
                       },
                       icon: Icon(
