@@ -26,12 +26,18 @@ abstract final class NotificationManager {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  // UN-90/91/92: a new channel id, since Android locks `showBadge` (and
+  // most other settings) to whatever a channel id was first created with —
+  // devices that already have `unflappable_notifications` from an earlier
+  // build would keep showing a badge otherwise, no matter what this code
+  // says now.
   static final AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
-        'unflappable_notifications',
+        'unflappable_notifications_v2',
         'App Notifications',
         description: 'Notifications from Unflappable',
         importance: Importance.high,
+        showBadge: false,
       );
 
   static bool _isInitialized = false;
@@ -60,9 +66,10 @@ abstract final class NotificationManager {
     }
 
     if (!kIsWeb && Platform.isIOS) {
+      // UN-90/91/92: no app icon badge for v1.
       await _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
-        badge: true,
+        badge: false,
         sound: true,
       );
     }
@@ -121,9 +128,11 @@ abstract final class NotificationManager {
   }
 
   static Future<NotificationSettings> _requestNotificationPermission() {
+    // UN-90/91/92: no app icon badge for v1 — don't even request the
+    // permission for it.
     return _messaging.requestPermission(
       alert: true,
-      badge: true,
+      badge: false,
       sound: true,
       announcement: true,
       provisional: false,
@@ -423,9 +432,10 @@ abstract final class NotificationManager {
       ticker: 'ticker',
     );
 
+    // UN-90/91/92: no app icon badge for v1.
     final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
-      presentBadge: true,
+      presentBadge: false,
       presentSound: true,
     );
 
