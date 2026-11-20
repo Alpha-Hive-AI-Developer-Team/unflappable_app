@@ -3,6 +3,7 @@ import 'package:unflappable/features/Home/Provider/Home%20Provider/home_state.da
 import 'package:unflappable/features/Home/model/mission.dart';
 import 'package:unflappable/features/Home/model/mission_task.dart';
 import 'package:unflappable/features/Mission%20History/missionHistory_notifier.dart';
+import 'package:unflappable/features/Notifications/notification_notifier.dart';
 import 'package:unflappable/service/home_service.dart';
 import 'package:unflappable/service/progress_service.dart';
 import 'package:unflappable/service/reset_service.dart';
@@ -170,6 +171,13 @@ class HomeNotifier extends StateNotifier<HomeState> {
     try {
       await HomeService.completeTask(missionId: mission.id, taskId: taskId);
       await loadHome(force: true);
+      // UN-89: every task completion now creates a task_completed
+      // notification (and the last task also gets mission_completed) —
+      // without this the list/bell badge stays stale until the user
+      // backgrounds/resumes the app or reopens Notifications.
+      if (mounted) {
+        await _ref.read(notificationsProvider.notifier).fetchNotifications();
+      }
 
       if (isFinalTaskCompletion) {
         // UC-76: completing the last task finishes the mission, which now
